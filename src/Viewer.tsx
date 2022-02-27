@@ -18,9 +18,6 @@ const Viewer = observer<{
   onSelect?(node?: MkNode): void;
 }>(({ width, height, section, selected, onSelect }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const ctxRef = useRef<CanvasRenderingContext2D>(
-    null as any as CanvasRenderingContext2D
-  );
 
   const [baseTransform, setBaseTransform] = useState(() => new Transform());
 
@@ -40,16 +37,6 @@ const Viewer = observer<{
 
   hitCanvas.width = width;
   hitCanvas.height = height;
-
-  const ctxHit = useMemo(() => hitCanvas.getContext("2d")!, [hitCanvas]);
-
-  useLayoutEffect(() => {
-    const canvas = canvasRef.current;
-
-    if (!canvas) return;
-
-    ctxRef.current = canvas.getContext("2d")!;
-  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -91,7 +78,8 @@ const Viewer = observer<{
   }, []);
 
   useLayoutEffect(() => {
-    const ctx = ctxRef.current;
+    const ctx = canvasRef.current!.getContext("2d")!;
+    const ctxHit = hitCanvas.getContext("2d")!;
 
     // Clear
 
@@ -113,6 +101,8 @@ const Viewer = observer<{
 
   const clickHandler = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
+      const ctxHit = hitCanvas.getContext("2d")!;
+
       const rect = e.currentTarget.getBoundingClientRect();
 
       const x = e.clientX - rect.left;
@@ -122,7 +112,7 @@ const Viewer = observer<{
 
       onSelect?.(node);
     },
-    [ctxHit, onSelect]
+    [hitCanvas, onSelect]
   );
 
   return (

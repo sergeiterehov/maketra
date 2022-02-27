@@ -60,6 +60,8 @@ export class MkNode {
   ) {
     const pixel = hitCtx.getImageData(x, y, 1, 1).data;
 
+    console.log(pixel, x, y)
+
     return MkNode.reservedColors.get(
       `rgb(${pixel[0]},${pixel[1]},${pixel[2]})`
     );
