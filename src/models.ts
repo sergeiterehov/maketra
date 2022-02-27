@@ -135,9 +135,10 @@ export class MkNode {
 
   public draw(
     ctxView: CanvasRenderingContext2D,
-    ctxHit: CanvasRenderingContext2D
+    ctxHit: CanvasRenderingContext2D,
+    baseTransform: Transform
   ) {
-    const m = this.absoluteTransform.getMatrix();
+    const m = baseTransform.copy().multiply(this.absoluteTransform).getMatrix();
 
     ctxView.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
     ctxHit.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
@@ -146,7 +147,7 @@ export class MkNode {
     this.drawHit(ctxHit);
 
     for (const child of this.children) {
-      child.draw(ctxView, ctxHit);
+      child.draw(ctxView, ctxHit, baseTransform);
     }
   }
 

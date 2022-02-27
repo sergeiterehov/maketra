@@ -96,7 +96,7 @@ const NodesViewLevel = observer<{
     <ul>
       {nodes.map((n) => {
         return (
-          <li>
+          <li key={n.id}>
             <NodeListItem
               className={selected === n ? "active" : undefined}
               onClick={() => onSelect(n)}
