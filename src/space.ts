@@ -1,4 +1,4 @@
-import { Area, Project, Section, Space } from "./models";
+import { Area, Figure, Project, Section, Space } from "./models";
 
 const space = Object.assign(new Space(), {
   projects: [
@@ -41,7 +41,15 @@ space.projects[0].sections[0].nodes[0].add(
       width: 40,
       height: 40,
       backgroundColor: "#AFA",
-    })
+    }).add(
+      Object.assign(new Figure(), {
+        name: "Star",
+        x: 5,
+        y: 5,
+        path: "M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855l2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
+        backgroundColor: "#AAF",
+      })
+    )
   )
 );
 

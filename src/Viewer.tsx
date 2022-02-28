@@ -86,6 +86,8 @@ const Viewer = observer<{
     ctx.resetTransform();
     ctxHit.resetTransform();
 
+    ctxHit.imageSmoothingEnabled = false;
+
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctxHit.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 

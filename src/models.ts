@@ -1,3 +1,4 @@
+import { Path } from "konva/lib/shapes/Path";
 import { Transform } from "konva/lib/Util";
 import { action, computed, makeObservable, observable } from "mobx";
 import { randomString } from "./utils/randomString";
@@ -59,8 +60,6 @@ export class MkNode {
     y: number
   ) {
     const pixel = hitCtx.getImageData(x, y, 1, 1).data;
-
-    console.log(pixel, x, y)
 
     return MkNode.reservedColors.get(
       `rgb(${pixel[0]},${pixel[1]},${pixel[2]})`
@@ -145,6 +144,9 @@ export class MkNode {
     ctxView.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
     ctxHit.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
 
+    ctxHit.fillStyle = this.hitColorKey;
+    ctxHit.strokeStyle = this.hitColorKey;
+
     this.drawView(ctxView);
     this.drawHit(ctxHit);
 
@@ -162,7 +164,25 @@ export class MkNode {
   }
 }
 
-export class Area extends MkNode {
+export class Group extends MkNode {
+  public name: string = "Group";
+
+  constructor() {
+    super();
+
+    makeObservable(this);
+  }
+
+  protected drawView(ctx: CanvasRenderingContext2D): void {
+    // not implemented
+  }
+
+  protected drawHit(ctx: CanvasRenderingContext2D): void {
+    // not implemented
+  }
+}
+
+export class Area extends Group {
   public name: string = "Area";
 
   @observable public width: number = 0;
@@ -190,7 +210,110 @@ export class Area extends MkNode {
   protected drawHit(ctx: CanvasRenderingContext2D): void {
     const { width, height } = this;
 
-    ctx.fillStyle = this.hitColorKey;
     ctx.fillRect(0, 0, width, height);
+  }
+}
+
+export class Primitive extends MkNode {
+  public name: string = "Primitive";
+
+  constructor() {
+    super();
+
+    makeObservable(this);
+  }
+}
+
+export class Figure extends Primitive {
+  public name: string = "Figure";
+
+  @observable public path: string = "";
+  @observable public backgroundColor: string = "#AAAAAA";
+  @observable public strokeColor: string = "#000000";
+
+  @computed protected get pathData(): any[] {
+    return Path.parsePathData(this.path);
+  }
+
+  constructor() {
+    super();
+
+    makeObservable(this);
+  }
+
+  private renderPathData(ctx: CanvasRenderingContext2D): void {
+    const commands = this.pathData;
+    let isClosed = false;
+
+    ctx.beginPath();
+
+    for (let n = 0; n < commands.length; n++) {
+      const command = commands[n].command;
+      const p = commands[n].points;
+
+      switch (command) {
+        case "L":
+          ctx.lineTo(p[0], p[1]);
+
+          break;
+        case "M":
+          ctx.moveTo(p[0], p[1]);
+
+          break;
+        case "C":
+          ctx.bezierCurveTo(p[0], p[1], p[2], p[3], p[4], p[5]);
+
+          break;
+        case "Q":
+          ctx.quadraticCurveTo(p[0], p[1], p[2], p[3]);
+
+          break;
+        case "A":
+          const cx = p[0];
+          const cy = p[1];
+          const rx = p[2];
+          const ry = p[3];
+          const theta = p[4];
+          const dTheta = p[5];
+          const psi = p[6];
+          const fs = p[7];
+
+          const r = rx > ry ? rx : ry;
+          const scaleX = rx > ry ? 1 : rx / ry;
+          const scaleY = rx > ry ? ry / rx : 1;
+
+          ctx.translate(cx, cy);
+          ctx.rotate(psi);
+          ctx.scale(scaleX, scaleY);
+          ctx.arc(0, 0, r, theta, theta + dTheta, Boolean(1 - fs));
+          ctx.scale(1 / scaleX, 1 / scaleY);
+          ctx.rotate(-psi);
+          ctx.translate(-cx, -cy);
+
+          break;
+        case "z":
+          isClosed = true;
+          ctx.closePath();
+
+          break;
+      }
+    }
+
+    if (isClosed) {
+      ctx.fill();
+    }
+
+    ctx.stroke();
+  }
+
+  protected drawView(ctx: CanvasRenderingContext2D): void {
+    ctx.fillStyle = this.backgroundColor;
+    ctx.strokeStyle = this.strokeColor;
+
+    this.renderPathData(ctx);
+  }
+
+  protected drawHit(ctx: CanvasRenderingContext2D): void {
+    this.renderPathData(ctx);
   }
 }
