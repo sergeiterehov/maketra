@@ -1,6 +1,7 @@
 import { Path } from "konva/lib/shapes/Path";
 import { Transform } from "konva/lib/Util";
 import { action, computed, makeObservable, observable } from "mobx";
+import { measureTextWidth } from "./utils/measureTextWidth";
 import { randomString } from "./utils/randomString";
 
 export class Space {
@@ -203,6 +204,7 @@ export class Area extends Group {
     ctx.fillRect(0, 0, width, height);
 
     ctx.fillStyle = "#000000";
+    ctx.textBaseline = "bottom";
     ctx.font = "14px monospace";
     ctx.fillText(this.name, 0, -8);
   }
@@ -315,5 +317,62 @@ export class Figure extends Primitive {
 
   protected drawHit(ctx: CanvasRenderingContext2D): void {
     this.renderPathData(ctx);
+  }
+}
+
+export class Text extends Primitive {
+  public name: string = "Text";
+
+  @observable public text: string = "Sample";
+  @observable public fontFamily: string = "monospace";
+  @observable public fontSize: number = 14;
+  @observable public fontSizeUnit: string = "px";
+  @observable public fontWeight: string = "normal";
+
+  @observable public textColor: string = "#000000";
+
+  @computed protected get font(): string {
+    const { fontFamily, fontSizeUnit, fontSize, fontWeight } = this;
+
+    return `${fontWeight} ${fontSize}${fontSizeUnit} ${fontFamily}`;
+  }
+
+  @computed protected get computedTextWidth(): number {
+    const { text, font } = this;
+
+    return measureTextWidth(text, font);
+  }
+
+  @computed protected get computedTextHeight(): number {
+    const { textLines, fontSize } = this;
+
+    return textLines.length * fontSize;
+  }
+
+  @computed public get textLines() {
+    const { text } = this;
+
+    return text.split("\n");
+  }
+
+  constructor() {
+    super();
+
+    makeObservable(this);
+  }
+
+  protected drawView(ctx: CanvasRenderingContext2D): void {
+    const { text, x, y, textColor, font } = this;
+
+    ctx.fillStyle = textColor;
+    ctx.font = font;
+    ctx.textBaseline = "top";
+    ctx.fillText(text, x, y);
+  }
+
+  protected drawHit(ctx: CanvasRenderingContext2D): void {
+    const { x, y, computedTextHeight, computedTextWidth } = this;
+
+    ctx.fillRect(x, y, computedTextWidth, computedTextHeight);
   }
 }
