@@ -101,7 +101,9 @@ const Viewer = observer<{
     }
   });
 
-  const clickHandler = useCallback(
+  const mouseRef = useRef({ x: 0, y: 0, dragging: false });
+
+  const mouseDownHandler = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       const ctxHit = hitCanvas.getContext("2d")!;
 
@@ -113,8 +115,37 @@ const Viewer = observer<{
       const node = MkNode.getNodeByHitCtx(ctxHit, x, y);
 
       onSelect?.(node);
+
+      mouseRef.current.x = x;
+      mouseRef.current.y = y;
+      mouseRef.current.dragging = true;
     },
     [hitCanvas, onSelect]
+  );
+
+  const mouseMoveHandler = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      const rect = e.currentTarget.getBoundingClientRect();
+
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      if (mouseRef.current.dragging && selected) {
+        selected.x += x - mouseRef.current.x;
+        selected.y += y - mouseRef.current.y;
+      }
+
+      mouseRef.current.x = x;
+      mouseRef.current.y = y;
+    },
+    [selected]
+  );
+
+  const mouseUpHandler = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      mouseRef.current.dragging = false;
+    },
+    []
   );
 
   return (
@@ -132,7 +163,9 @@ const Viewer = observer<{
         ref={canvasRef}
         width={width}
         height={height}
-        onClick={clickHandler}
+        onMouseDown={mouseDownHandler}
+        onMouseMove={mouseMoveHandler}
+        onMouseUp={mouseUpHandler}
       />
     </>
   );

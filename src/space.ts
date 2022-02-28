@@ -31,7 +31,7 @@ space.projects[0].sections[0].nodes[0].add(
     x: 30,
     y: 30,
     width: 100,
-    height: 120,
+    height: 240,
     backgroundColor: "#FAA",
   }).add(
     Object.assign(new Area(), {
@@ -48,18 +48,18 @@ space.projects[0].sections[0].nodes[0].add(
         y: 5,
         path: "M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855l2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
         backgroundColor: "#AAF",
-      }),
-      Object.assign(new Text(), {
-        name: "Label 1",
-        x: 5,
-        y: 25,
-        fontSize: 24,
-        fontWeight: "bold",
-        fontFamily: "arial",
-        text: "Hello, world!",
-        textColor: "#272",
       })
-    )
+    ),
+    Object.assign(new Text(), {
+      name: "Label 1",
+      x: 20,
+      y: 150,
+      fontSize: 24,
+      fontWeight: "bold",
+      fontFamily: "sans-serif",
+      text: "Hello, world!\nHow are you?",
+      textColor: "#272",
+    })
   )
 );
 

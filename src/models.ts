@@ -36,6 +36,20 @@ export class Section {
 
 // NODES
 
+export enum PositionAlignment {
+  Top = 1,
+  Bottom = 2,
+  Middle = Top + Bottom,
+  Left = 4,
+  Right = 8,
+  Center = Left + Right,
+}
+
+export interface Size {
+  width: number;
+  height: number;
+}
+
 export class MkNode {
   public static reservedColors = new Map<string, MkNode>();
 
@@ -80,6 +94,12 @@ export class MkNode {
   @observable public scaleX: number = 1;
   @observable public scaleY: number = 1;
   @observable public rotate: number = 0;
+
+  @observable public alignment: PositionAlignment = PositionAlignment.Left + PositionAlignment.Top;
+
+  @computed public get size(): Size {
+    return { width: 0, height: 0 };
+  }
 
   @computed protected get transform(): Transform {
     return new Transform()
@@ -191,6 +211,10 @@ export class Area extends Group {
 
   @observable public backgroundColor: string = "#FFFFFF";
 
+  get size(): Size {
+    return { width: this.width, height: this.height }
+  }
+
   constructor() {
     super();
 
@@ -205,6 +229,7 @@ export class Area extends Group {
 
     ctx.fillStyle = "#000000";
     ctx.textBaseline = "bottom";
+    ctx.textAlign = "left";
     ctx.font = "14px monospace";
     ctx.fillText(this.name, 0, -8);
   }
@@ -305,6 +330,7 @@ export class Figure extends Primitive {
       ctx.fill();
     }
 
+    ctx.lineWidth = 1;
     ctx.stroke();
   }
 
@@ -320,10 +346,17 @@ export class Figure extends Primitive {
   }
 }
 
+export enum TextAlign {
+  Left = "left",
+  Right = "right",
+  Center = "center",
+}
+
 export class Text extends Primitive {
   public name: string = "Text";
 
   @observable public text: string = "Sample";
+  @observable public textAlign: TextAlign = TextAlign.Left;
   @observable public fontFamily: string = "monospace";
   @observable public fontSize: number = 14;
   @observable public fontSizeUnit: string = "px";
@@ -338,9 +371,14 @@ export class Text extends Primitive {
   }
 
   @computed protected get computedTextWidth(): number {
-    const { text, font } = this;
+    const { textLines, font } = this;
+    let width = 0;
 
-    return measureTextWidth(text, font);
+    for (const line of textLines) {
+      width = Math.max(width, measureTextWidth(line, font));
+    }
+
+    return width;
   }
 
   @computed protected get computedTextHeight(): number {
@@ -362,17 +400,35 @@ export class Text extends Primitive {
   }
 
   protected drawView(ctx: CanvasRenderingContext2D): void {
-    const { text, x, y, textColor, font } = this;
+    const { textColor, font, textLines, fontSize, textAlign, computedTextWidth } = this;
 
     ctx.fillStyle = textColor;
     ctx.font = font;
     ctx.textBaseline = "top";
-    ctx.fillText(text, x, y);
+    ctx.textAlign = textAlign as any;
+
+    let alignOffset = 0;
+
+    switch (textAlign) {
+      case TextAlign.Center:
+        alignOffset = computedTextWidth / 2;
+        break;
+      case TextAlign.Right:
+        alignOffset = computedTextWidth;
+        break;
+      default:
+    }
+
+    for (let i = 0; i < textLines.length; i += 1) {
+      const line = textLines[i];
+
+      ctx.fillText(line, alignOffset, i * fontSize);
+    }
   }
 
   protected drawHit(ctx: CanvasRenderingContext2D): void {
-    const { x, y, computedTextHeight, computedTextWidth } = this;
+    const { computedTextHeight, computedTextWidth } = this;
 
-    ctx.fillRect(x, y, computedTextWidth, computedTextHeight);
+    ctx.fillRect(0, 0, computedTextWidth, computedTextHeight);
   }
 }

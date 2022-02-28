@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { Area, Figure, MkNode } from "./models";
+import { Area, Figure, MkNode, Text } from "./models";
 
 const numPropToChangingStep: Record<string, number> = {
   x: 10,
@@ -51,6 +51,56 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
             onChange={(e) => (node.backgroundColor = e.currentTarget.value)}
           />
         </div>
+      ) : null}
+      {node instanceof Figure ? (
+        <div>
+          Background color:
+          <input
+            value={node.strokeColor}
+            onChange={(e) => (node.strokeColor = e.currentTarget.value)}
+          />
+        </div>
+      ) : null}
+      {node instanceof Text ? (
+        <>
+          <div>
+            Text:
+            <textarea
+              value={node.text}
+              onChange={(e) => (node.text = e.currentTarget.value)}
+            />
+          </div>
+          <div>
+            FontSize:
+            <input
+              type="number"
+              step={1}
+              value={node.fontSize}
+              onChange={(e) => (node.fontSize = Number(e.currentTarget.value) || 0)}
+            />
+          </div>
+          <div>
+            Font family:
+            <input
+              value={node.fontFamily}
+              onChange={(e) => (node.fontFamily = e.currentTarget.value)}
+            />
+          </div>
+          <div>
+            Font weight:
+            <input
+              value={node.fontWeight}
+              onChange={(e) => (node.fontWeight = e.currentTarget.value)}
+            />
+          </div>
+          <div>
+          Color:
+          <input
+            value={node.textColor}
+            onChange={(e) => (node.textColor = e.currentTarget.value)}
+          />
+        </div>
+        </>
       ) : null}
     </>
   );
