@@ -41,6 +41,8 @@ export enum Constraint {
   Center,
   End,
 
+  Scale,
+
   Left = Start,
   Right = End,
   Top = Start,
@@ -259,6 +261,10 @@ export class Area extends Group {
           child[propName] += diff;
         } else if (constraint === Constraint.Center) {
           child[propName] += diff / 2;
+        } else if (constraint === Constraint.Scale) {
+          if (child[change.name] !== undefined) {
+            (child[change.name] as number) += diff;
+          }
         }
       }
 

@@ -52,6 +52,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
               <option value={Constraint.Left}>Left</option>
               <option value={Constraint.Center}>Center</option>
               <option value={Constraint.Right}>Right</option>
+              <option value={Constraint.Scale}>SCALE</option>
             </select>
           </div>
           <div>
@@ -65,6 +66,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
               <option value={Constraint.Top}>Top</option>
               <option value={Constraint.Center}>Center</option>
               <option value={Constraint.Bottom}>Bottom</option>
+              <option value={Constraint.Scale}>SCALE</option>
             </select>
           </div>
         </>
