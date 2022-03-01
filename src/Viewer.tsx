@@ -19,7 +19,9 @@ const Viewer = observer<{
 }>(({ width, height, section, selected, onSelect }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const [baseTransform, setBaseTransform] = useState(() => new Transform());
+  const pixelRatio = devicePixelRatio;
+
+  const [baseTransform, setBaseTransform] = useState(() => new Transform().scale(pixelRatio, pixelRatio));
 
   const flatNodes: MkNode[] = [];
   const lookup = [...section.nodes];
@@ -62,7 +64,7 @@ const Viewer = observer<{
           next.translate(x, y);
           next.scale(scaleX - factor, scaleY - factor);
         } else {
-          next.translate(x - e.deltaX, y - e.deltaY);
+          next.translate(x - e.deltaX * pixelRatio, y - e.deltaY * pixelRatio);
           next.scale(scaleX, scaleY);
         }
 
@@ -75,7 +77,7 @@ const Viewer = observer<{
     return () => {
       canvas.removeEventListener("wheel", wheelHandler);
     };
-  }, []);
+  }, [pixelRatio]);
 
   useLayoutEffect(() => {
     const ctxView = canvasRef.current!.getContext("2d")!;
@@ -112,7 +114,7 @@ const Viewer = observer<{
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      const node = MkNode.getNodeByHitCtx(ctxHit, x, y);
+      const node = MkNode.getNodeByHitCtx(ctxHit, x * pixelRatio, y * pixelRatio);
 
       onSelect?.(node);
 
@@ -120,7 +122,7 @@ const Viewer = observer<{
       mouseRef.current.y = y;
       mouseRef.current.dragging = true;
     },
-    [hitCanvas, onSelect]
+    [hitCanvas, onSelect, pixelRatio]
   );
 
   const mouseMoveHandler = useCallback(
@@ -161,8 +163,9 @@ const Viewer = observer<{
       </div>
       <canvas
         ref={canvasRef}
-        width={width}
-        height={height}
+        width={width * pixelRatio}
+        height={height * pixelRatio}
+        style={{ width, height }}
         onMouseDown={mouseDownHandler}
         onMouseMove={mouseMoveHandler}
         onMouseUp={mouseUpHandler}
