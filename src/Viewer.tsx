@@ -78,26 +78,26 @@ const Viewer = observer<{
   }, []);
 
   useLayoutEffect(() => {
-    const ctx = canvasRef.current!.getContext("2d")!;
+    const ctxView = canvasRef.current!.getContext("2d")!;
     const ctxHit = hitCanvas.getContext("2d")!;
 
     // Clear
 
-    ctx.resetTransform();
+    ctxView.resetTransform();
     ctxHit.resetTransform();
 
     ctxHit.imageSmoothingEnabled = false;
 
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctxHit.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctxView.clearRect(0, 0, ctxView.canvas.width, ctxView.canvas.height);
+    ctxHit.clearRect(0, 0, ctxView.canvas.width, ctxView.canvas.height);
 
     // Draw
 
-    ctx.fillStyle = "#EEE";
-    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctxView.fillStyle = "#EEE";
+    ctxView.fillRect(0, 0, ctxView.canvas.width, ctxView.canvas.height);
 
     for (const node of section.nodes) {
-      node.draw(ctx, ctxHit, baseTransform);
+      node.draw(ctxView, ctxHit, baseTransform);
     }
   });
 

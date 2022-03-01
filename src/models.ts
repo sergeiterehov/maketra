@@ -95,6 +95,7 @@ export class MkNode {
   @observable public scaleY: number = 1;
   @observable public rotate: number = 0;
 
+  // TODO: alignment
   @observable public alignment: PositionAlignment = PositionAlignment.Left + PositionAlignment.Top;
 
   @computed public get size(): Size {
@@ -160,6 +161,9 @@ export class MkNode {
     ctxHit: CanvasRenderingContext2D,
     baseTransform: Transform
   ) {
+    ctxView.save();
+    ctxHit.save();
+
     const m = baseTransform.copy().multiply(this.absoluteTransform).getMatrix();
 
     ctxView.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
@@ -174,6 +178,9 @@ export class MkNode {
     for (const child of this.children) {
       child.draw(ctxView, ctxHit, baseTransform);
     }
+
+    ctxView.restore();
+    ctxHit.restore();
   }
 
   protected drawView(ctx: CanvasRenderingContext2D) {
@@ -232,6 +239,12 @@ export class Area extends Group {
     ctx.textAlign = "left";
     ctx.font = "14px monospace";
     ctx.fillText(this.name, 0, -8);
+
+    const clip = new Path2D();
+
+    clip.rect(0, 0, width, height);
+
+    ctx.clip(clip);
   }
 
   protected drawHit(ctx: CanvasRenderingContext2D): void {
