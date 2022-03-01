@@ -130,7 +130,6 @@ export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
             width: 320,
             height: "100%",
             flexShrink: 0,
-            borderRight: "solid 1px #0002",
           }}
         >
           <div style={{ borderBottom: "solid 1px #0002" }}>
@@ -168,7 +167,6 @@ export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
             width: 320,
             height: "100%",
             flexShrink: 0,
-            borderLeft: "solid 1px #0002",
           }}
         >
           {selectedNode ? <NodeProps node={selectedNode} /> : null}

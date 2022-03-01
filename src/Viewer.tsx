@@ -95,7 +95,7 @@ const Viewer = observer<{
 
     // Draw
 
-    ctxView.fillStyle = "#EEE";
+    ctxView.fillStyle = "#DDD";
     ctxView.fillRect(0, 0, ctxView.canvas.width, ctxView.canvas.height);
 
     for (const node of section.nodes) {

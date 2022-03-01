@@ -1,6 +1,6 @@
 import { Path } from "konva/lib/shapes/Path";
 import { Transform } from "konva/lib/Util";
-import { action, computed, makeObservable, observable } from "mobx";
+import { action, computed, intercept, makeObservable, observable } from "mobx";
 import { measureTextWidth } from "./utils/measureTextWidth";
 import { randomString } from "./utils/randomString";
 
@@ -36,13 +36,15 @@ export class Section {
 
 // NODES
 
-export enum PositionAlignment {
-  Top = 1,
-  Bottom = 2,
-  Middle = Top + Bottom,
-  Left = 4,
-  Right = 8,
-  Center = Left + Right,
+export enum Constraint {
+  Start = 1,
+  Center,
+  End,
+
+  Left = Start,
+  Right = End,
+  Top = Start,
+  Bottom = End,
 }
 
 export interface Size {
@@ -91,13 +93,27 @@ export class MkNode {
 
   @observable public x: number = 0;
   @observable public y: number = 0;
-  @observable public scaleX: number = 1;
-  @observable public scaleY: number = 1;
+  @observable public width?: number = undefined;
+  @observable public height?: number = undefined;
   @observable public rotate: number = 0;
+  /**
+   * @deprecated
+   */
+  @observable public scaleX: number = 1;
+  /**
+   * @deprecated
+   */
+  @observable public scaleY: number = 1;
 
   // TODO: alignment
-  @observable public alignment: PositionAlignment = PositionAlignment.Left + PositionAlignment.Top;
+  @observable public verticalConstraint: Constraint =
+    Constraint.Start;
+  @observable public horizontalConstraint: Constraint =
+    Constraint.Start;
 
+  /**
+   * Использовать в вычислениях.
+   */
   @computed public get size(): Size {
     return { width: 0, height: 0 };
   }
@@ -213,19 +229,41 @@ export class Group extends MkNode {
 export class Area extends Group {
   public name: string = "Area";
 
-  @observable public width: number = 0;
-  @observable public height: number = 0;
+  public width: number = 0;
+  public height: number = 0;
 
   @observable public backgroundColor: string = "#FFFFFF";
 
   get size(): Size {
-    return { width: this.width, height: this.height }
+    return { width: this.width, height: this.height };
   }
 
   constructor() {
     super();
 
     makeObservable(this);
+
+    intercept(this, (change) => {
+      if (change.type !== "update") return change;
+
+      if (!(change.name === "width" || change.name === "height")) return change;
+
+      const isWidth = change.name === "width";
+      const diff = change.newValue - change.object[change.name];
+
+      for (const child of this.children) {
+        const constraint = isWidth ? child.horizontalConstraint : child.verticalConstraint;
+        const propName = isWidth ? "x" : "y";
+
+        if (constraint === Constraint.End) {
+          child[propName] += diff;
+        } else if (constraint === Constraint.Center) {
+          child[propName] += diff / 2;
+        }
+      }
+
+      return change;
+    });
   }
 
   protected drawView(ctx: CanvasRenderingContext2D): void {
@@ -234,11 +272,13 @@ export class Area extends Group {
     ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, width, height);
 
-    ctx.fillStyle = "#000000";
-    ctx.textBaseline = "bottom";
-    ctx.textAlign = "left";
-    ctx.font = "14px monospace";
-    ctx.fillText(this.name, 0, -8);
+    if (!this.parentNode) {
+      ctx.fillStyle = "#000000";
+      ctx.textBaseline = "bottom";
+      ctx.textAlign = "left";
+      ctx.font = "14px monospace";
+      ctx.fillText(this.name, 0, -8);
+    }
 
     const clip = new Path2D();
 
@@ -251,6 +291,12 @@ export class Area extends Group {
     const { width, height } = this;
 
     ctx.fillRect(0, 0, width, height);
+
+    const clip = new Path2D();
+
+    clip.rect(0, 0, width, height);
+
+    ctx.clip(clip);
   }
 }
 
@@ -413,7 +459,14 @@ export class Text extends Primitive {
   }
 
   protected drawView(ctx: CanvasRenderingContext2D): void {
-    const { textColor, font, textLines, fontSize, textAlign, computedTextWidth } = this;
+    const {
+      textColor,
+      font,
+      textLines,
+      fontSize,
+      textAlign,
+      computedTextWidth,
+    } = this;
 
     ctx.fillStyle = textColor;
     ctx.font = font;
