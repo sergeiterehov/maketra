@@ -37,8 +37,8 @@ const Viewer = observer<{
 
   const hitCanvas = useMemo(() => document.createElement("canvas"), []);
 
-  hitCanvas.width = width;
-  hitCanvas.height = height;
+  hitCanvas.width = width * pixelRatio;
+  hitCanvas.height = height * pixelRatio;
 
   useEffect(() => {
     const canvas = canvasRef.current;
