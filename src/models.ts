@@ -108,10 +108,8 @@ export class MkNode {
   @observable public scaleY: number = 1;
 
   // TODO: alignment
-  @observable public verticalConstraint: Constraint =
-    Constraint.Start;
-  @observable public horizontalConstraint: Constraint =
-    Constraint.Start;
+  @observable public verticalConstraint: Constraint = Constraint.Start;
+  @observable public horizontalConstraint: Constraint = Constraint.Start;
 
   /**
    * Использовать в вычислениях.
@@ -127,7 +125,7 @@ export class MkNode {
       .rotate(this.rotate);
   }
 
-  @computed protected get absoluteTransform(): Transform {
+  @computed public get absoluteTransform(): Transform {
     let at = new Transform();
 
     if (this.parentNode) {
@@ -234,6 +232,7 @@ export class Area extends Group {
   public width: number = 0;
   public height: number = 0;
 
+  @observable public clipContent: boolean = true;
   @observable public backgroundColor: string = "#FFFFFF";
 
   get size(): Size {
@@ -254,7 +253,9 @@ export class Area extends Group {
       const diff = change.newValue - change.object[change.name];
 
       for (const child of this.children) {
-        const constraint = isWidth ? child.horizontalConstraint : child.verticalConstraint;
+        const constraint = isWidth
+          ? child.horizontalConstraint
+          : child.verticalConstraint;
         const propName = isWidth ? "x" : "y";
 
         if (constraint === Constraint.End) {
@@ -272,6 +273,18 @@ export class Area extends Group {
     });
   }
 
+  protected clip(ctx: CanvasRenderingContext2D) {
+    const { width, height, clipContent } = this;
+
+    if (clipContent) {
+      const clip = new Path2D();
+
+      clip.rect(0, 0, width, height);
+
+      ctx.clip(clip);
+    }
+  }
+
   protected drawView(ctx: CanvasRenderingContext2D): void {
     const { width, height, backgroundColor } = this;
 
@@ -286,11 +299,7 @@ export class Area extends Group {
       ctx.fillText(this.name, 0, -8);
     }
 
-    const clip = new Path2D();
-
-    clip.rect(0, 0, width, height);
-
-    ctx.clip(clip);
+    this.clip(ctx);
   }
 
   protected drawHit(ctx: CanvasRenderingContext2D): void {
@@ -298,11 +307,7 @@ export class Area extends Group {
 
     ctx.fillRect(0, 0, width, height);
 
-    const clip = new Path2D();
-
-    clip.rect(0, 0, width, height);
-
-    ctx.clip(clip);
+    this.clip(ctx);
   }
 }
 
@@ -322,6 +327,26 @@ export class Figure extends Primitive {
   @observable public path: string = "";
   @observable public backgroundColor: string = "#AAAAAA";
   @observable public strokeColor: string = "#000000";
+  @observable public strokeWidth: number = 1;
+
+  get size(): Size {
+    // TODO: не считать динамически, а сделать пересчет при изменении.
+    let xMin = +Infinity;
+    let yMin = +Infinity;
+    let xMax = -Infinity;
+    let yMax = -Infinity;
+
+    for (const { points: p } of this.pathData) {
+      if (p.length < 2) continue;
+
+      if (p[0] < xMin) xMin = p[0];
+      if (p[0] > xMax) xMax = p[0];
+      if (p[1] < yMin) yMin = p[1];
+      if (p[1] > yMax) yMax = p[1];
+    }
+
+    return { width: xMax - xMin, height: yMax - yMin };
+  }
 
   @computed protected get pathData(): any[] {
     return Path.parsePathData(this.path);
@@ -394,20 +419,25 @@ export class Figure extends Primitive {
     if (isClosed) {
       ctx.fill();
     }
-
-    ctx.lineWidth = 1;
-    ctx.stroke();
   }
 
   protected drawView(ctx: CanvasRenderingContext2D): void {
     ctx.fillStyle = this.backgroundColor;
-    ctx.strokeStyle = this.strokeColor;
 
     this.renderPathData(ctx);
+
+    if (this.strokeWidth) {
+      ctx.lineWidth = this.strokeWidth;
+      ctx.strokeStyle = this.strokeColor;
+      ctx.stroke();
+    }
   }
 
   protected drawHit(ctx: CanvasRenderingContext2D): void {
     this.renderPathData(ctx);
+
+    ctx.lineWidth = 4;
+    ctx.stroke();
   }
 }
 
@@ -428,6 +458,10 @@ export class Text extends Primitive {
   @observable public fontWeight: string = "normal";
 
   @observable public textColor: string = "#000000";
+
+  get size(): Size {
+    return { width: this.computedTextWidth, height: this.computedTextHeight };
+  }
 
   @computed protected get font(): string {
     const { fontFamily, fontSizeUnit, fontSize, fontWeight } = this;

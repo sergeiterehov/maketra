@@ -39,6 +39,20 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           );
         }
       )}
+      {node instanceof Area ? (
+        <div>
+          <label>
+            <input
+              type="checkbox"
+              checked={node.clipContent}
+              onChange={(e) =>
+                (node.clipContent = e.currentTarget.checked)
+              }
+            />
+            Clip content
+          </label>
+        </div>
+      ) : null}
       {node.parentNode ? (
         <>
           <div>

@@ -8,7 +8,7 @@ import React, {
   useState,
 } from "react";
 import { useEffect } from "react";
-import { MkNode, Section } from "./models";
+import { Figure, Group, MkNode, Section } from "./models";
 
 const Viewer = observer<{
   section: Section;
@@ -21,7 +21,10 @@ const Viewer = observer<{
 
   const pixelRatio = devicePixelRatio;
 
-  const [baseTransform, setBaseTransform] = useState(() => new Transform().scale(pixelRatio, pixelRatio));
+  const [baseTransform, setBaseTransform] = useState(() =>
+    new Transform().scale(pixelRatio, pixelRatio)
+  );
+  const [transformer, setTransformer] = useState<MkNode>();
 
   const flatNodes: MkNode[] = [];
   const lookup = [...section.nodes];
@@ -39,6 +42,69 @@ const Viewer = observer<{
 
   hitCanvas.width = width * pixelRatio;
   hitCanvas.height = height * pixelRatio;
+
+  useEffect(() => {
+    if (!selected) {
+      setTransformer(undefined);
+
+      return;
+    }
+
+    const at = selected.absoluteTransform;
+    const { x, y } = at.decompose();
+    const { width, height } = selected.size;
+
+    const next = Object.assign(new Group(), {
+      name: "Transformer",
+      x,
+      y,
+    }).add(
+      Object.assign(new Figure(), {
+        name: "T",
+        path: `M 0,0 l ${width},0`,
+        strokeColor: "#00F",
+      }),
+      Object.assign(new Figure(), {
+        name: "B",
+        y: height,
+        path: `M 0,0 l ${width},0`,
+        strokeColor: "#00F",
+      }),
+      Object.assign(new Figure(), {
+        name: "L",
+        path: `M 0,0 l 0,${height}`,
+        strokeColor: "#00F",
+      }),
+      Object.assign(new Figure(), {
+        name: "R",
+        x: width,
+        path: `M 0,0 l 0,${height}`,
+        strokeColor: "#00F",
+      }),
+      Object.assign(new Figure(), {
+        name: "TL",
+        path: "M -3,-3 l 5,0 l 0,5 l -5,0 z",
+      }),
+      Object.assign(new Figure(), {
+        name: "BR",
+        x: width,
+        y: height,
+        path: "M -3,-3 l 5,0 l 0,5 l -5,0 z",
+      }),
+      Object.assign(new Figure(), {
+        name: "BL",
+        y: height,
+        path: "M -3,-3 l 5,0 l 0,5 l -5,0 z",
+      }),
+      Object.assign(new Figure(), {
+        name: "TL",
+        x: width,
+        path: "M -3,-3 l 5,0 l 0,5 l -5,0 z",
+      }),
+    );
+
+    setTransformer(next);
+  }, [selected]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -101,6 +167,10 @@ const Viewer = observer<{
     for (const node of section.nodes) {
       node.draw(ctxView, ctxHit, baseTransform);
     }
+
+    if (transformer) {
+      transformer.draw(ctxView, ctxHit, baseTransform);
+    }
   });
 
   const mouseRef = useRef({ x: 0, y: 0, dragging: false });
@@ -114,7 +184,11 @@ const Viewer = observer<{
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      const node = MkNode.getNodeByHitCtx(ctxHit, x * pixelRatio, y * pixelRatio);
+      const node = MkNode.getNodeByHitCtx(
+        ctxHit,
+        x * pixelRatio,
+        y * pixelRatio
+      );
 
       onSelect?.(node);
 
