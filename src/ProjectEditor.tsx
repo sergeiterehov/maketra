@@ -127,7 +127,7 @@ export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
       <div style={{ display: "flex", height: "100%" }}>
         <div
           style={{
-            width: 320,
+            width: 240,
             height: "100%",
             flexShrink: 0,
           }}
@@ -164,7 +164,7 @@ export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
-            width: 320,
+            width: 240,
             height: "100%",
             flexShrink: 0,
           }}

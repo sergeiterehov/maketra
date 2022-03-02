@@ -1,4 +1,6 @@
 import { observer } from "mobx-react-lite";
+import { CustomInput } from "./components/CustomInput";
+import { Scrubber } from "./components/Scrubber";
 import { Area, Constraint, Figure, MkNode, Text } from "./models";
 
 const numPropToChangingStep: Record<string, number> = {
@@ -146,6 +148,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           </div>
         </>
       ) : null}
+      <Scrubber value={node.x} onChange={(next) => node.x = next || 0}>Scrubber<CustomInput value={node.x.toString()} /></Scrubber>
     </>
   );
 });
