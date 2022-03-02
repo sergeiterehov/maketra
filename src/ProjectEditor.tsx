@@ -2,6 +2,7 @@ import { observer } from "mobx-react-lite";
 import { useCallback, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
+import { PropsContainer } from "./components/PropsContainer";
 import { MkNode, Project, Section } from "./models";
 import { NodeProps } from "./NodeProps";
 import { useElementSize } from "./utils/useElementSize";
@@ -159,7 +160,7 @@ export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
             />
           ) : null}
         </div>
-        <div
+        <PropsContainer
           style={{
             display: "flex",
             flexDirection: "column",
@@ -170,7 +171,7 @@ export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
           }}
         >
           {selectedNode ? <NodeProps node={selectedNode} /> : null}
-        </div>
+        </PropsContainer>
       </div>
     </div>
   );

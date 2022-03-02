@@ -1,15 +1,9 @@
 import { observer } from "mobx-react-lite";
 import { CustomInput } from "./components/CustomInput";
+import { ElementsRow } from "./components/ElementsRow";
+import { Icon } from "./components/Icon";
 import { Scrubber } from "./components/Scrubber";
 import { Area, Constraint, Figure, MkNode, Text } from "./models";
-
-const numPropToChangingStep: Record<string, number> = {
-  x: 10,
-  y: 10,
-  width: 10,
-  height: 10,
-  rotate: Math.PI / 180,
-};
 
 export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
   return (
@@ -21,35 +15,115 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           onChange={(e) => (node.name = e.currentTarget.value)}
         />
       </div>
-      {(["x", "y", "width", "height", "rotate"] as Array<keyof MkNode>).map(
-        (key) => {
-          if (!node.hasOwnProperty(key)) return null;
+      <ElementsRow>
+        <Scrubber value={node.x} onChange={(next) => (node.x = next || 0)}>
+          <Icon>X</Icon>
+          <CustomInput
+            value={node.x.toString()}
+            onChange={(next) => {
+              const value = Number(next);
 
-          return (
-            <div>
-              {key}=
-              <input
-                key={key}
-                type="number"
-                step={numPropToChangingStep[key] || 1}
-                value={String(node[key])}
-                onChange={(e) =>
-                  ((node[key] as any) = Number(e.currentTarget.value) || 0)
-                }
-              />
-            </div>
-          );
-        }
-      )}
+              if (Number.isNaN(value)) return false;
+
+              node.x = value;
+
+              return true;
+            }}
+          />
+        </Scrubber>
+        <Scrubber
+          className="second-in-row"
+          value={node.y}
+          onChange={(next) => (node.y = next || 0)}
+        >
+          <Icon>Y</Icon>
+          <CustomInput
+            value={node.y.toString()}
+            onChange={(next) => {
+              const value = Number(next);
+
+              if (Number.isNaN(value)) return false;
+
+              node.y = value;
+
+              return true;
+            }}
+          />
+        </Scrubber>
+      </ElementsRow>
+      <ElementsRow>
+        <Scrubber value={node.width} onChange={(next) => (node.width = next)}>
+          <Icon>W</Icon>
+          <CustomInput
+            value={node.width?.toString()}
+            onChange={(next) => {
+              if (!next) {
+                node.width = undefined;
+
+                return true;
+              }
+              const value = Number(next);
+
+              if (Number.isNaN(value)) return false;
+
+              node.width = value;
+
+              return true;
+            }}
+          />
+        </Scrubber>
+        <Scrubber
+          className="second-in-row"
+          value={node.height}
+          onChange={(next) => (node.height = next)}
+        >
+          <Icon>H</Icon>
+          <CustomInput
+            value={node.height?.toString()}
+            onChange={(next) => {
+              if (!next) {
+                node.height = undefined;
+
+                return true;
+              }
+              const value = Number(next);
+
+              if (Number.isNaN(value)) return false;
+
+              node.height = value;
+
+              return true;
+            }}
+          />
+        </Scrubber>
+      </ElementsRow>
+      <ElementsRow>
+        <Scrubber
+          value={node.rotate}
+          onChange={(next) => (node.rotate = next || 0)}
+        >
+          <Icon>A</Icon>
+          <CustomInput
+            value={node.rotate.toString()}
+            onChange={(next) => {
+              const value = Number(next);
+
+              if (Number.isNaN(value)) return false;
+
+              node.rotate = value;
+
+              return true;
+            }}
+          />
+        </Scrubber>
+      </ElementsRow>
       {node instanceof Area ? (
         <div>
           <label>
             <input
               type="checkbox"
               checked={node.clipContent}
-              onChange={(e) =>
-                (node.clipContent = e.currentTarget.checked)
-              }
+              onChange={(e) => (node.clipContent = e.currentTarget.checked)}
             />
             Clip content
           </label>
@@ -148,7 +222,6 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           </div>
         </>
       ) : null}
-      <Scrubber value={node.x} onChange={(next) => node.x = next || 0}>Scrubber<CustomInput value={node.x.toString()} /></Scrubber>
     </>
   );
 });

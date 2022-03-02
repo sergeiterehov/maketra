@@ -1,10 +1,15 @@
 import { FC, useCallback, useEffect, useRef } from "react";
 import styled from "styled-components";
 
-const ScrubberContainer = styled.label.withConfig({
+export const ScrubberContainer = styled.label.withConfig({
   displayName: "scrubber-container",
 })`
   user-select: none;
+  display: flex;
+  align-items: center;
+  border-radius: 2px;
+  height: 28px;
+  overflow: hidden;
 `;
 
 export const Scrubber: FC<{
@@ -13,7 +18,7 @@ export const Scrubber: FC<{
   speed?: number;
   units?: string;
   onChange?(newValue?: number, units?: string): void;
-}> = ({ children, value, units, onChange, className, speed = 0.1 }) => {
+}> = ({ children, value, units, onChange, className, speed = 1 }) => {
   const valueRef = useRef(value);
 
   valueRef.current = value;
