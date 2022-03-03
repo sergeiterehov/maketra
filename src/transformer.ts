@@ -70,7 +70,7 @@ export const transformer = makeAutoObservable(
     >,
 
     adjust(node: MkNode) {
-      if (lockAdjustment) return;
+      if (lockAdjustment) return this;
 
       const { width, height } = node.size;
       const at = node.absoluteTransform;
@@ -226,7 +226,15 @@ export const transformer = makeAutoObservable(
           default:
             CH.path = "";
         }
+
+        CH.visible = true;
+        CV.visible = true;
+      } else {
+        CH.visible = false;
+        CV.visible = false;
       }
+
+      return this;
     },
   },
   {

@@ -73,7 +73,7 @@ const Viewer = observer<{
     transformer.adjust(selected);
 
     const stop = observe(selected, () => {
-      transformer.adjust(selected);
+      transformer.adjust(selected).realign();
     });
 
     return stop;
