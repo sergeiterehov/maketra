@@ -1,6 +1,5 @@
 import { Path } from "konva/lib/shapes/Path";
-import { computed, makeObservable, observable } from "mobx";
-import { Size } from "./MkNode";
+import { action, computed, makeObservable, observable, observe } from "mobx";
 import { Primitive } from "./Primitive";
 
 export class Figure extends Primitive {
@@ -11,8 +10,20 @@ export class Figure extends Primitive {
   @observable public strokeColor: string = "#000000";
   @observable public strokeWidth: number = 1;
 
-  get size(): Size {
-    // TODO: не считать динамически, а сделать пересчет при изменении.
+  @computed public get pathData(): any[] {
+    return Path.parsePathData(this.path);
+  }
+
+  constructor() {
+    super();
+
+    makeObservable(this);
+
+    observe(this, "pathData", () => this.adjustPointsAndSize());
+  }
+
+  @action
+  protected adjustPointsAndSize() {
     let xMin = +Infinity;
     let yMin = +Infinity;
     let xMax = -Infinity;
@@ -27,20 +38,23 @@ export class Figure extends Primitive {
       if (p[1] > yMax) yMax = p[1];
     }
 
-    return { width: xMax - xMin, height: yMax - yMin };
+    const x = xMin;
+    const y = yMin;
+
+    if (x || y) {
+      for (const { points: p } of this.pathData) {
+        if (p.length < 2) continue;
+
+        p[0] -= x;
+        p[1] -= y;
+      }
+    }
+
+    this.width = xMax - xMin;
+    this.height = yMax - yMin;
   }
 
-  @computed protected get pathData(): any[] {
-    return Path.parsePathData(this.path);
-  }
-
-  constructor() {
-    super();
-
-    makeObservable(this);
-  }
-
-  private renderPathData(ctx: CanvasRenderingContext2D): void {
+  protected renderPathData(ctx: CanvasRenderingContext2D): void {
     const commands = this.pathData;
     let isClosed = false;
 

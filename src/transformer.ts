@@ -1,4 +1,4 @@
-import { makeAutoObservable, observe, runInAction } from "mobx";
+import { action, makeAutoObservable, observe } from "mobx";
 import { Figure } from "./models/Figure";
 import { Group } from "./models/Group";
 import { MkNode } from "./models/MkNode";
@@ -32,23 +32,27 @@ const transformerGroup = Object.assign(new Group(), {
   }),
   Object.assign(new Figure(), {
     name: "TL",
-    path: "M -3,-3 l 5,0 l 0,5 l -5,0 z",
+    x: 0 - 3,
+    y: 0 - 3,
+    path: "M 0,0 l 5,0 l 0,5 l -5,0 z",
   }),
   Object.assign(new Figure(), {
     name: "BR",
-    x: 10,
-    y: 10,
-    path: "M -3,-3 l 5,0 l 0,5 l -5,0 z",
+    x: 10 - 3,
+    y: 10 - 3,
+    path: "M 0,0 l 5,0 l 0,5 l -5,0 z",
   }),
   Object.assign(new Figure(), {
     name: "BL",
-    y: 10,
-    path: "M -3,-3 l 5,0 l 0,5 l -5,0 z",
+    x: 0 - 3,
+    y: 10 - 3,
+    path: "M 0,0 l 5,0 l 0,5 l -5,0 z",
   }),
   Object.assign(new Figure(), {
     name: "TR",
-    x: 10,
-    path: "M -3,-3 l 5,0 l 0,5 l -5,0 z",
+    x: 10 - 3,
+    y: 0 - 3,
+    path: "M 0,0 l 5,0 l 0,5 l -5,0 z",
   })
 );
 
@@ -68,17 +72,18 @@ export const transformer = makeAutoObservable({
     const { width, height } = node.size;
     const { x, y } = at.decompose();
 
-    runInAction(() => {
-      this.width = width;
-      this.height = height;
-      this.x = x;
-      this.y = y;
-    });
+    this.width = width;
+    this.height = height;
+    this.x = x;
+    this.y = y;
   },
+}, {
+  adjust: action,
 });
 
-observe(transformer, () => {
-  runInAction(() => {
+observe(
+  transformer,
+  action(() => {
     const { x, y, width, height, group } = transformer;
     const { T, L, R, B, TL, BR, TR, BL } = transformer.nodes;
 
@@ -97,11 +102,11 @@ observe(transformer, () => {
 
     // TL maintain
 
-    BR.x = width;
-    BR.y = height;
+    BR.x = width - 3;
+    BR.y = height - 3;
 
-    BL.y = height;
+    BL.y = height - 3;
 
-    TR.x = width;
-  });
-});
+    TR.x = width - 3;
+  })
+);

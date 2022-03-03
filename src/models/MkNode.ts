@@ -82,7 +82,7 @@ export class MkNode {
    * Использовать в вычислениях.
    */
   @computed public get size(): Size {
-    return { width: 0, height: 0 };
+    return { width: this.width || 0, height: this.height || 0 };
   }
 
   @computed protected get transform(): Transform {

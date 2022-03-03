@@ -1,5 +1,5 @@
 import { Transform } from "konva/lib/Util";
-import { observe } from "mobx";
+import { autorun, observe, runInAction } from "mobx";
 import { observer } from "mobx-react-lite";
 import React, {
   useCallback,
@@ -28,22 +28,52 @@ const Viewer = observer<{
     new Transform().scale(pixelRatio, pixelRatio)
   );
 
-  const allSectionsNodes: MkNode[] = section.nodes.flatMap((node) => node.allNodes);
+  const allSectionsNodes: MkNode[] = section.nodes.flatMap(
+    (node) => node.allNodes
+  );
 
   const hitCanvas = useMemo(() => document.createElement("canvas"), []);
 
   hitCanvas.width = width * pixelRatio;
   hitCanvas.height = height * pixelRatio;
 
+  const draw = useCallback(() => {
+    const ctxView = canvasRef.current!.getContext("2d")!;
+    const ctxHit = hitCanvas.getContext("2d")!;
+
+    // Clear
+
+    ctxView.resetTransform();
+    ctxHit.resetTransform();
+
+    ctxHit.imageSmoothingEnabled = false;
+
+    ctxView.clearRect(0, 0, ctxView.canvas.width, ctxView.canvas.height);
+    ctxHit.clearRect(0, 0, ctxView.canvas.width, ctxView.canvas.height);
+
+    // Draw
+
+    ctxView.fillStyle = "#DDD";
+    ctxView.fillRect(0, 0, ctxView.canvas.width, ctxView.canvas.height);
+
+    for (const node of section.nodes) {
+      node.draw(ctxView, ctxHit, baseTransform);
+    }
+
+    if (selected) {
+      transformer.group.draw(ctxView, ctxHit, baseTransform);
+    }
+  }, [baseTransform, hitCanvas, section, selected]);
+
+  useEffect(() => autorun(() => draw()), [draw, section]);
+
   useEffect(() => {
     if (!selected) return;
 
     transformer.adjust(selected);
 
-    const stop = observe(selected, (change) => {
+    const stop = observe(selected, () => {
       transformer.adjust(selected);
-
-      return change;
     });
 
     return stop;
@@ -89,31 +119,7 @@ const Viewer = observer<{
   }, [pixelRatio]);
 
   useLayoutEffect(() => {
-    const ctxView = canvasRef.current!.getContext("2d")!;
-    const ctxHit = hitCanvas.getContext("2d")!;
-
-    // Clear
-
-    ctxView.resetTransform();
-    ctxHit.resetTransform();
-
-    ctxHit.imageSmoothingEnabled = false;
-
-    ctxView.clearRect(0, 0, ctxView.canvas.width, ctxView.canvas.height);
-    ctxHit.clearRect(0, 0, ctxView.canvas.width, ctxView.canvas.height);
-
-    // Draw
-
-    ctxView.fillStyle = "#DDD";
-    ctxView.fillRect(0, 0, ctxView.canvas.width, ctxView.canvas.height);
-
-    for (const node of section.nodes) {
-      node.draw(ctxView, ctxHit, baseTransform);
-    }
-
-    if (selected) {
-      transformer.group.draw(ctxView, ctxHit, baseTransform);
-    }
+    draw();
   });
 
   const mouseRef = useRef({ x: 0, y: 0, dragging: false });
@@ -150,8 +156,10 @@ const Viewer = observer<{
       const y = e.clientY - rect.top;
 
       if (mouseRef.current.dragging && selected) {
-        selected.x += x - mouseRef.current.x;
-        selected.y += y - mouseRef.current.y;
+        runInAction(() => {
+          selected.x += x - mouseRef.current.x;
+          selected.y += y - mouseRef.current.y;
+        });
       }
 
       mouseRef.current.x = x;
@@ -169,15 +177,6 @@ const Viewer = observer<{
 
   return (
     <>
-      <div style={{ display: "none" }}>
-        {[...allSectionsNodes, ...transformer.group.allNodes]
-          .map((n) =>
-            Object.keys(n)
-              .map((k) => (n as any)[k])
-              .join()
-          )
-          .join()}
-      </div>
       <canvas
         ref={canvasRef}
         width={width * pixelRatio}
