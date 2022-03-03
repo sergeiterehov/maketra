@@ -14,3 +14,7 @@ body {
   overflow: hidden;
   height: 100vh;
 }
+
+input:focus, textarea:focus, select:focus{
+  outline: none;
+}
