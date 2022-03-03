@@ -9,12 +9,12 @@ export const PropsContainer = styled.div.withConfig({ displayName: "props-contai
     outline-offset: -2px;
 
     :hover {
-      border-color: #DDD;
+      border-color: var(--color-border);
     }
 
     :focus-within {
-      border-color: #00F;
-      outline-color: #00F;
+      border-color: var(--color-focus);
+      outline-color: var(--color-focus);
     }
   }
 

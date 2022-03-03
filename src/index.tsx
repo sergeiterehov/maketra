@@ -1,13 +1,22 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import { BrowserRouter } from "react-router-dom";
+import { createGlobalStyle } from "styled-components";
 import "./index.css";
 import Maketra from "./Maketra";
 import reportWebVitals from "./reportWebVitals";
 
+const CssVariablesStyle = createGlobalStyle`
+  :root {
+    --color-focus: #00F;
+    --color-border: #DDD;
+  }
+`;
+
 ReactDOM.render(
   <React.StrictMode>
     <BrowserRouter>
+      <CssVariablesStyle />
       <Maketra />
     </BrowserRouter>
   </React.StrictMode>,
