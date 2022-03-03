@@ -141,7 +141,7 @@ export class MkNode {
     makeObservable(this);
   }
 
-  public destroy() {
+  @action public destroy() {
     MkNode.reservedColors.delete(this.hitColorKey);
     this.hitColorKey = "transparent";
   }
@@ -170,6 +170,18 @@ export class MkNode {
     }
 
     return this;
+  }
+
+  public findOneByName(name: string): MkNode | undefined {
+    const pool: MkNode[] = [...this.children];
+
+    while(pool.length) {
+      const node = pool.pop()!;
+
+      if (node.name === name) return node;
+
+      pool.push(...node.children);
+    }
   }
 
   public draw(

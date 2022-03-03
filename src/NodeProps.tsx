@@ -3,7 +3,7 @@ import { CustomInput } from "./components/CustomInput";
 import { ElementsRow } from "./components/ElementsRow";
 import { Icon } from "./components/Icon";
 import { Scrubber } from "./components/Scrubber";
-import { Area, Constraint, Figure, MkNode, Text } from "./models";
+import { Area, Constraint, Figure, MkNode, Text, TextAlign } from "./models";
 
 export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
   return (
@@ -187,6 +187,19 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
               value={node.text}
               onChange={(e) => (node.text = e.currentTarget.value)}
             />
+          </div>
+          <div>
+            Align text:
+            <select
+              value={node.textAlign}
+              onChange={(e) =>
+                (node.textAlign = e.currentTarget.value as TextAlign)
+              }
+            >
+              <option value={TextAlign.Left}>Left</option>
+              <option value={TextAlign.Center}>Center</option>
+              <option value={TextAlign.Right}>Right</option>
+            </select>
           </div>
           <div>
             FontSize:
