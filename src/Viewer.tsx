@@ -122,7 +122,12 @@ const Viewer = observer<{
     draw();
   });
 
-  const mouseRef = useRef({ x: 0, y: 0, dragging: false });
+  const mouseRef = useRef({
+    x: 0,
+    y: 0,
+    dragging: false,
+    transformerControl: undefined as undefined | MkNode,
+  });
 
   const mouseDownHandler = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -139,7 +144,13 @@ const Viewer = observer<{
         y * pixelRatio
       );
 
-      onSelect?.(node);
+      // Если это трансформер, то не выделять его не нужно.
+      if (node && transformer.has(node)) {
+        mouseRef.current.transformerControl = node;
+      } else {
+        mouseRef.current.transformerControl = undefined;
+        onSelect?.(node);
+      }
 
       mouseRef.current.x = x;
       mouseRef.current.y = y;
@@ -155,11 +166,23 @@ const Viewer = observer<{
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      if (mouseRef.current.dragging && selected) {
-        runInAction(() => {
-          selected.x += x - mouseRef.current.x;
-          selected.y += y - mouseRef.current.y;
-        });
+      if (mouseRef.current.dragging) {
+        const { transformerControl } = mouseRef.current;
+
+        if (transformerControl) {
+          transformer.moveControlBy(
+            transformerControl,
+            x - mouseRef.current.x,
+            y - mouseRef.current.y
+          );
+
+          if (selected) transformer.applyTo(selected);
+        } else if (selected) {
+          runInAction(() => {
+            selected.x += x - mouseRef.current.x;
+            selected.y += y - mouseRef.current.y;
+          });
+        }
       }
 
       mouseRef.current.x = x;
