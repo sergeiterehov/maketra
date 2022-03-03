@@ -28,17 +28,7 @@ const Viewer = observer<{
     new Transform().scale(pixelRatio, pixelRatio)
   );
 
-  const flatNodes: MkNode[] = [];
-  const lookup = [...section.nodes, transformer.group];
-
-  while (lookup.length) {
-    const node = lookup.pop()!;
-
-    if (flatNodes.includes(node)) continue;
-
-    flatNodes.push(node);
-    lookup.push(...node.children);
-  }
+  const allSectionsNodes: MkNode[] = section.nodes.flatMap((node) => node.allNodes);
 
   const hitCanvas = useMemo(() => document.createElement("canvas"), []);
 
@@ -180,7 +170,7 @@ const Viewer = observer<{
   return (
     <>
       <div style={{ display: "none" }}>
-        {flatNodes
+        {[...allSectionsNodes, ...transformer.group.allNodes]
           .map((n) =>
             Object.keys(n)
               .map((k) => (n as any)[k])

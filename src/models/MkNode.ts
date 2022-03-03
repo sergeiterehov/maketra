@@ -104,6 +104,22 @@ export class MkNode {
     return at;
   }
 
+  @computed public get allNodes(): MkNode[] {
+    const nodes: MkNode[] = [];
+    const lookup: MkNode[] = [this];
+
+    while (lookup.length) {
+      const node = lookup.pop()!;
+
+      if (nodes.includes(node)) continue;
+
+      nodes.push(node);
+      lookup.push(...node.children);
+    }
+
+    return nodes;
+  }
+
   constructor() {
     makeObservable(this);
   }
