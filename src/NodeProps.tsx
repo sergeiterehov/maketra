@@ -3,10 +3,22 @@ import { CustomInput } from "./components/CustomInput";
 import { ElementsRow } from "./components/ElementsRow";
 import { Icon } from "./components/Icon";
 import { Scrubber } from "./components/Scrubber";
+import { Option, Select } from "./components/Select";
 import { Area } from "./models/Area";
 import { Figure } from "./models/Figure";
 import { Constraint, MkNode } from "./models/MkNode";
 import { FontStyle, FontWeight, Text, TextAlign } from "./models/Text";
+
+function formatTextAlign(value: TextAlign): string {
+  switch (value) {
+    case TextAlign.Left:
+      return "Left align";
+    case TextAlign.Right:
+      return "Right align";
+    case TextAlign.Center:
+      return "Center align";
+  }
+}
 
 export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
   return (
@@ -174,13 +186,34 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
         </div>
       ) : null}
       {node instanceof Figure ? (
-        <div>
-          Background color:
-          <input
-            value={node.strokeColor}
-            onChange={(e) => (node.strokeColor = e.currentTarget.value)}
-          />
-        </div>
+        <>
+          <Scrubber
+            speed={0.02}
+            value={node.strokeWidth}
+            onChange={(next) => (node.strokeWidth = next || 0)}
+          >
+            <Icon>sw</Icon>
+            <CustomInput
+              value={node.strokeWidth?.toString()}
+              onChange={(next) => {
+                const value = Number(next);
+
+                if (Number.isNaN(value)) return false;
+
+                node.strokeWidth = value;
+
+                return true;
+              }}
+            />
+          </Scrubber>
+          <div>
+            Stroke color:
+            <input
+              value={node.strokeColor}
+              onChange={(e) => (node.strokeColor = e.currentTarget.value)}
+            />
+          </div>
+        </>
       ) : null}
       {node instanceof Text ? (
         <>
@@ -191,19 +224,18 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
               onChange={(e) => (node.text = e.currentTarget.value)}
             />
           </div>
-          <div>
-            Align text:
-            <select
+          <ElementsRow>
+            <Select
+              className="text-align"
               value={node.textAlign}
-              onChange={(e) =>
-                (node.textAlign = e.currentTarget.value as TextAlign)
-              }
+              onChange={(next) => (node.textAlign = next)}
+              format={formatTextAlign}
             >
-              <option value={TextAlign.Left}>Left</option>
-              <option value={TextAlign.Center}>Center</option>
-              <option value={TextAlign.Right}>Right</option>
-            </select>
-          </div>
+              <Option value={TextAlign.Left} />
+              <Option value={TextAlign.Center} />
+              <Option value={TextAlign.Right} />
+            </Select>
+          </ElementsRow>
           <div>
             FontSize:
             <input

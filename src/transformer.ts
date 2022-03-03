@@ -47,8 +47,6 @@ const transformerGroup = Object.assign(new Group(), { name: "Transformer" }).add
   Object.assign(new Figure(), constraintProps, { name: "CH" })
 );
 
-console.log(transformerGroup);
-
 let lockAdjustment = false;
 
 export const transformer = makeAutoObservable(
@@ -200,7 +198,7 @@ export const transformer = makeAutoObservable(
             break;
           case Constraint.Right:
             CH.x = width;
-            CH.path = `M 0,0 l ${rw - width - dx},0`;
+            CH.path = `M ${rw - width - dx},0 L 0,0`;
             break;
           case Constraint.Center:
             CH.x = -dx;
@@ -217,7 +215,7 @@ export const transformer = makeAutoObservable(
             break;
           case Constraint.Right:
             CV.y = height;
-            CV.path = `M 0,0 l 0,${rh - height - dy}`;
+            CV.path = `M 0,${rh - height - dy} L 0,0`;
             break;
           case Constraint.Center:
             CV.y = -dy;

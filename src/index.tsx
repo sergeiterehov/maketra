@@ -10,6 +10,9 @@ const CssVariablesStyle = createGlobalStyle`
   :root {
     --color-focus: #00F;
     --color-border: #DDD;
+    --color-icon: #BBB;
+    --color-bg-drop-down: #000;
+    --color-fg-drop-down: #FFF;
   }
 `;
 

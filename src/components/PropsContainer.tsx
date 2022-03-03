@@ -1,9 +1,10 @@
 import styled from "styled-components";
 import { ElementsRow } from "./ElementsRow";
 import { ScrubberContainer } from "./Scrubber";
+import { Select, SelectContainer, SelectValue } from "./Select";
 
 export const PropsContainer = styled.div.withConfig({ displayName: "props-container" })`
-  ${ScrubberContainer} {
+  ${ScrubberContainer}, ${SelectContainer} {
     border: solid 1px transparent;
     outline: solid 1px transparent;
     outline-offset: -2px;
@@ -18,6 +19,14 @@ export const PropsContainer = styled.div.withConfig({ displayName: "props-contai
     }
   }
 
+  ${SelectContainer} {
+    :hover {
+      ${SelectValue} {
+        width: 100%;
+      }
+    }
+  }
+
   ${ElementsRow} {
     ${ScrubberContainer} {
       grid-column-end: span 11;
@@ -25,6 +34,10 @@ export const PropsContainer = styled.div.withConfig({ displayName: "props-contai
 
     ${ScrubberContainer}.second-in-row {
       grid-column-start: 13;
+    }
+
+    ${Select}.text-align {
+      grid-column-end: span 13;
     }
   }
 `;

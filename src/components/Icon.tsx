@@ -6,5 +6,5 @@ export const Icon = styled.span.withConfig({displayName: "icon"})`
   line-height: 32px;
   text-align: center;
   overflow: hidden;
-  color: #BBB;
+  color: var(--color-icon);
 `;
