@@ -2,6 +2,11 @@ import { Path } from "konva/lib/shapes/Path";
 import { action, computed, makeObservable, observable, observe } from "mobx";
 import { Primitive } from "./Primitive";
 
+export enum StrokeStyle {
+  Solid = 1,
+  Dash,
+}
+
 export class Figure extends Primitive {
   public name: string = "Figure";
 
@@ -9,6 +14,9 @@ export class Figure extends Primitive {
   @observable public backgroundColor: string = "#AAAAAA";
   @observable public strokeColor: string = "#000000";
   @observable public strokeWidth: number = 1;
+  @observable public strokeStyle: StrokeStyle = StrokeStyle.Solid;
+  @observable public strokeDash: number = 10;
+  @observable public strokeDashGap?: number = undefined;
 
   @computed public get pathData(): any[] {
     return Path.parsePathData(this.path);
@@ -118,13 +126,27 @@ export class Figure extends Primitive {
   }
 
   protected drawView(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = this.backgroundColor;
+    const {
+      backgroundColor,
+      strokeStyle,
+      strokeWidth,
+      strokeColor,
+      strokeDash,
+      strokeDashGap,
+    } = this;
+
+    ctx.fillStyle = backgroundColor;
 
     this.renderPathData(ctx);
 
-    if (this.strokeWidth) {
-      ctx.lineWidth = this.strokeWidth;
-      ctx.strokeStyle = this.strokeColor;
+    if (strokeWidth) {
+      ctx.lineWidth = strokeWidth;
+      ctx.strokeStyle = strokeColor;
+
+      if (strokeStyle === StrokeStyle.Dash) {
+        ctx.setLineDash([strokeDash, strokeDashGap ?? strokeDash]);
+      }
+
       ctx.stroke();
     }
   }
@@ -132,7 +154,7 @@ export class Figure extends Primitive {
   protected drawHit(ctx: CanvasRenderingContext2D): void {
     this.renderPathData(ctx);
 
-    ctx.lineWidth = 4;
+    ctx.lineWidth = 8;
     ctx.stroke();
   }
 }
