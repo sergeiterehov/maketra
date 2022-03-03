@@ -1,5 +1,7 @@
-import { intercept, makeAutoObservable, observe, runInAction } from "mobx";
-import { Figure, Group, MkNode } from "./models";
+import { makeAutoObservable, observe, runInAction } from "mobx";
+import { Figure } from "./models/Figure";
+import { Group } from "./models/Group";
+import { MkNode } from "./models/MkNode";
 
 const transformerGroup = Object.assign(new Group(), {
   name: "Transformer",

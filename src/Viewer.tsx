@@ -9,7 +9,8 @@ import React, {
   useState,
 } from "react";
 import { useEffect } from "react";
-import { MkNode, Section } from "./models";
+import { MkNode } from "./models/MkNode";
+import { Section } from "./models/Section";
 import { transformer } from "./transformer";
 
 const Viewer = observer<{

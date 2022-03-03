@@ -3,7 +3,10 @@ import { CustomInput } from "./components/CustomInput";
 import { ElementsRow } from "./components/ElementsRow";
 import { Icon } from "./components/Icon";
 import { Scrubber } from "./components/Scrubber";
-import { Area, Constraint, Figure, MkNode, Text, TextAlign } from "./models";
+import { Area } from "./models/Area";
+import { Figure } from "./models/Figure";
+import { Constraint, MkNode } from "./models/MkNode";
+import { FontStyle, FontWeight, Text, TextAlign } from "./models/Text";
 
 export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
   return (
@@ -221,10 +224,36 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           </div>
           <div>
             Font weight:
-            <input
+            <select
               value={node.fontWeight}
-              onChange={(e) => (node.fontWeight = e.currentTarget.value)}
-            />
+              onChange={(e) =>
+                (node.fontWeight = e.currentTarget.value as FontWeight)
+              }
+            >
+              <option value="100">Thin (Hairline)</option>
+              <option value="200">Extra Light (Ultra Light)</option>
+              <option value="300">Light</option>
+              <option value="normal">Normal (Regular)</option>
+              <option value="500">Medium</option>
+              <option value="600">Semi Bold (Demi Bold)</option>
+              <option value="bold">Bold</option>
+              <option value="800">Extra Bold (Ultra Bold)</option>
+              <option value="900">Black (Heavy)</option>
+            </select>
+          </div>
+          <div>
+            <label>
+              <input
+                type="checkbox"
+                checked={node.fontStyle === FontStyle.Italic}
+                onChange={(e) =>
+                  (node.fontStyle = e.currentTarget.checked
+                    ? FontStyle.Italic
+                    : FontStyle.Normal)
+                }
+              />
+              Italic
+            </label>
           </div>
           <div>
             Color:

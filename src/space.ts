@@ -1,4 +1,9 @@
-import { Area, Figure, Project, Section, Space, Text } from "./models";
+import { Area } from "./models/Area";
+import { Figure } from "./models/Figure";
+import { Project } from "./models/Project";
+import { Section } from "./models/Section";
+import { Space } from "./models/Space";
+import { Text } from "./models/Text";
 
 const space = Object.assign(new Space(), {
   projects: [
