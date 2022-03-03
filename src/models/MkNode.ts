@@ -60,6 +60,9 @@ export class MkNode {
   @observable public parentNode?: MkNode = undefined;
   @observable public parentSection?: Section = undefined;
 
+  @observable public visible: boolean = true;
+  @observable public interactive: boolean = true;
+
   @observable public x: number = 0;
   @observable public y: number = 0;
   @observable public width?: number = undefined;
@@ -74,7 +77,6 @@ export class MkNode {
    */
   @observable public scaleY: number = 1;
 
-  // TODO: alignment
   @observable public verticalConstraint: Constraint = Constraint.Start;
   @observable public horizontalConstraint: Constraint = Constraint.Start;
 
@@ -172,21 +174,28 @@ export class MkNode {
     ctxHit: CanvasRenderingContext2D,
     baseTransform: Transform
   ) {
+    const { absoluteTransform, hitColorKey, children, visible, interactive } = this;
+
     ctxView.save();
     ctxHit.save();
 
-    const m = baseTransform.copy().multiply(this.absoluteTransform).getMatrix();
+    const m = baseTransform.copy().multiply(absoluteTransform).getMatrix();
 
     ctxView.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
     ctxHit.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
 
-    ctxHit.fillStyle = this.hitColorKey;
-    ctxHit.strokeStyle = this.hitColorKey;
+    ctxHit.fillStyle = hitColorKey;
+    ctxHit.strokeStyle = hitColorKey;
 
-    this.drawView(ctxView);
-    this.drawHit(ctxHit);
+    if (visible) {
+      this.drawView(ctxView);
 
-    for (const child of this.children) {
+      if (interactive) {
+        this.drawHit(ctxHit);
+      }
+    }
+
+    for (const child of children) {
       child.draw(ctxView, ctxHit, baseTransform);
     }
 
