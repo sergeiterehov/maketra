@@ -42,14 +42,27 @@ export class Figure extends Primitive {
 
       if (!(change.name === "width" || change.name === "height")) return change;
 
+      // Нельзя допустить установки нулевых значений.
+      if (change.newValue === 0) {
+        change.newValue = 1;
+      }
+
       const isWidth = change.name === "width";
       const diff = change.newValue - change.object[change.name];
 
       for (const point of this.points) {
         if (isWidth) {
-          point.x += (diff * point.x) / (this.width || 1);
+          const k = diff / (this.width || 1);
+
+          point.x += k * point.x;
+          point.xAfter += k * point.xAfter;
+          point.xBefore += k * point.xBefore;
         } else {
-          point.y += (diff * point.y) / (this.height || 1);
+          const k = diff / (this.height || 1);
+
+          point.y += k * point.y;
+          point.yAfter += k * point.yAfter;
+          point.yBefore += k * point.yBefore;
         }
       }
 
@@ -60,7 +73,7 @@ export class Figure extends Primitive {
   /**
    * Возвращает набор точек в правильном порядке рисования.
    * Линия рисуется от родителя к точке. Если нет родителя, это старт.
-   * 
+   *
    * Проверяет и возвращает замкнутость фигуры. TODO: вынести в отдельный get.
    */
   @computed public get lines(): { points: FPoint[]; isClosed: boolean } {
@@ -141,15 +154,21 @@ export class Figure extends Primitive {
   }
 
   protected renderPathData(ctx: CanvasRenderingContext2D): void {
+    if (!this.points.length) return;
+
     ctx.beginPath();
 
     const { isClosed, points } = this.lines;
 
+    if (!points.length) return;
+
+    // Если это замкнутая фигура, то нужно сперва перейти
+    if (points[0].parentPoint) {
+      ctx.moveTo(points[0].parentPoint.x, points[0].parentPoint.y);
+    }
+
     for (const p of points) {
       if (p.parentPoint) {
-        // Фигура не замкнется, если делать перемещения.
-        if (!isClosed) ctx.moveTo(p.parentPoint.x, p.parentPoint.y);
-
         // Можно рисовать lineTo для отображения скелета.
         ctx.bezierCurveTo(
           p.parentPoint.x + p.parentPoint.xAfter,

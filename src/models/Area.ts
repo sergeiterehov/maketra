@@ -25,6 +25,11 @@ export class Area extends Group {
 
       if (!(change.name === "width" || change.name === "height")) return change;
 
+      // Нельзя допустить установки нулевых значений.
+      if (change.newValue === 0) {
+        change.newValue = 1;
+      }
+
       const isWidth = change.name === "width";
       const diff = change.newValue - change.object[change.name];
 

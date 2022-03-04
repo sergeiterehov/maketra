@@ -166,13 +166,17 @@ export const transformer = makeAutoObservable(
 
       // Грани
 
+      T.x = 0;
       T.points = FPoint.createLine(0, 0, width, 0);
 
+      B.x = 0;
       B.y = height;
       B.points = FPoint.createLine(0, 0, width, 0);
 
+      L.y = 0;
       L.points = FPoint.createLine(0, 0, 0, height);
 
+      R.y = 0;
       R.x = width;
       R.points = FPoint.createLine(0, 0, 0, height);
 

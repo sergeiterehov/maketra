@@ -80,13 +80,13 @@ space.projects[0].sections[0].nodes[0].add(
     })
   ),
   Object.assign(new Figure(), {
-    name: "Figure",
-    x: 5,
-    y: 5,
+    name: "Curved Circle",
+    x: 140,
+    y: 240,
     points: new FPoint(0, 0, 30, -30)
-      .next(new FPoint(60, 0, 30, 30))
-      .next(new FPoint(60, 60, -30, 30))
-      .next(new FPoint(0, 60, -30, -30))
+      .next(new FPoint(110, 0, 30, 30))
+      .next(new FPoint(110, 110, -30, 30))
+      .next(new FPoint(0, 110, -30, -30))
       .loop().allPoints,
     backgroundColor: "#AAF",
     strokeWidth: 2,
