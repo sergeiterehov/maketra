@@ -1,5 +1,6 @@
 import {
   action,
+  computed,
   intercept,
   makeObservable,
   observable,
@@ -46,14 +47,64 @@ export class Figure extends Primitive {
 
       for (const point of this.points) {
         if (isWidth) {
-          point.x += diff * point.x / (this.width || 1);
+          point.x += (diff * point.x) / (this.width || 1);
         } else {
-          point.y += diff * point.y / (this.height || 1);
+          point.y += (diff * point.y) / (this.height || 1);
         }
       }
 
       return change;
     });
+  }
+
+  /**
+   * Возвращает набор точек в правильном порядке рисования.
+   * Линия рисуется от родителя к точке. Если нет родителя, это старт.
+   * 
+   * Проверяет и возвращает замкнутость фигуры. TODO: вынести в отдельный get.
+   */
+  @computed public get lines(): { points: FPoint[]; isClosed: boolean } {
+    let isClosed = false;
+    const points: FPoint[] = [];
+
+    const reserve: FPoint[] = [];
+    const pool: FPoint[] = [];
+
+    for (const p of this.points) {
+      if (!p.parentPoint) {
+        pool.push(p);
+      } else {
+        reserve.push(p);
+      }
+    }
+
+    // Если нет ни одной начальной точки, то это замкнутая фигура.
+    if (this.points.length && !pool.length) {
+      isClosed = true;
+      // Можно начать рисование с любой точки.
+      pool.push(reserve.pop()!);
+    }
+
+    while (pool.length) {
+      const p = pool.pop()!;
+
+      points.push(p);
+
+      // Далее находим связанные с текущей точки.
+      for (let i = 0; i < reserve.length; i += 1) {
+        const other = reserve[i];
+
+        if (other.parentPoint === p) {
+          pool.push(other);
+          // Удаляем из резерва.
+          reserve.splice(i, 1);
+          i -= 1;
+          continue;
+        }
+      }
+    }
+
+    return { points, isClosed };
   }
 
   @action
@@ -84,35 +135,17 @@ export class Figure extends Primitive {
     this.lockScaleOnResize = true;
     this.width = xMax - xMin;
     this.height = yMax - yMin;
+    this.x += x;
+    this.y += y;
     this.lockScaleOnResize = false;
   }
 
   protected renderPathData(ctx: CanvasRenderingContext2D): void {
-    let isClosed = false;
-
     ctx.beginPath();
 
-    const reserve: FPoint[] = [];
-    const pool: FPoint[] = [];
+    const { isClosed, points } = this.lines;
 
-    for (const p of this.points) {
-      if (!p.parentPoint) {
-        pool.push(p);
-      } else {
-        reserve.push(p);
-      }
-    }
-
-    // Если нет ни одной начальной точки, то это замкнутая фигура.
-    if (this.points.length && !pool.length) {
-      isClosed = true;
-      // Можно начать рисование с любой точки.
-      pool.push(reserve.pop()!);
-    }
-
-    while (pool.length) {
-      const p = pool.pop()!;
-
+    for (const p of points) {
       if (p.parentPoint) {
         // Фигура не замкнется, если делать перемещения.
         if (!isClosed) ctx.moveTo(p.parentPoint.x, p.parentPoint.y);
@@ -128,19 +161,6 @@ export class Figure extends Primitive {
         );
       } else {
         ctx.moveTo(p.x, p.y);
-      }
-
-      // Далее находим связанные с текущей точки.
-      for (let i = 0; i < reserve.length; i += 1) {
-        const other = reserve[i];
-
-        if (other.parentPoint === p) {
-          pool.push(other);
-          // Удаляем из резерва.
-          reserve.splice(i, 1);
-          i -= 1;
-          continue;
-        }
       }
     }
 
