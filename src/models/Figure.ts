@@ -1,7 +1,17 @@
-import { action, computed, makeObservable, observable } from "mobx";
+import { action, computed, makeObservable, observable, observe } from "mobx";
 import { Primitive } from "./Primitive";
 
 export class FPoint {
+  /**
+   * Создает начальную точку и возвращает ее.
+   *
+   * @param x X
+   * @param y Y
+   */
+  public static start(x: number = 0, y: number = 0) {
+    return new FPoint(x, y);
+  }
+
   @observable public parentPoint?: FPoint = undefined;
 
   @observable public x: number = 0;
@@ -107,6 +117,26 @@ export class FPoint {
 
     return this;
   }
+
+  /**
+   * Формирует линию до указанных координат и возвращает следующую точку.
+   *
+   * @param x X.
+   * @param y Y.
+   */
+  public lineTo(x: number, y: number): FPoint {
+    return this.next(new FPoint(x, y));
+  }
+
+  /**
+   * Формирует линию смещением и возвращает следующую точку.
+   *
+   * @param dx Смещение X.
+   * @param dy Смещение Y.
+   */
+  public line(dx: number, dy: number): FPoint {
+    return this.next(new FPoint(this.x + dx, this.y + dy));
+  }
 }
 
 export enum StrokeStyle {
@@ -121,7 +151,7 @@ export class Figure extends Primitive {
     bx: number,
     by: number
   ): FPoint[] {
-    return new FPoint(ax, ay).next(new FPoint(bx, by)).allPoints;
+    return FPoint.start(ax, ay).lineTo(bx, by).allPoints;
   }
 
   public static createRect(
@@ -130,11 +160,8 @@ export class Figure extends Primitive {
     w: number,
     h: number
   ): FPoint[] {
-    return new FPoint(x, y)
-      .next(new FPoint(x + w, y))
-      .next(new FPoint(x + w, y + h))
-      .next(new FPoint(x, y + h))
-      .loop().allPoints;
+    return FPoint.start(x, y).line(w, 0).line(0, h).line(-w, 0).loop()
+      .allPoints;
   }
 
   public name: string = "Figure";
@@ -152,7 +179,7 @@ export class Figure extends Primitive {
 
     makeObservable(this);
 
-    // observe(this, "pathData", () => this.adjustPointsAndSize());
+    observe(this, "points", () => this.adjustPointsAndSize());
   }
 
   @action

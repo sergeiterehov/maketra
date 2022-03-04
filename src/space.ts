@@ -1,5 +1,5 @@
 import { Area } from "./models/Area";
-import { Figure } from "./models/Figure";
+import { Figure, FPoint } from "./models/Figure";
 import { Project } from "./models/Project";
 import { Section } from "./models/Section";
 import { Space } from "./models/Space";
@@ -51,7 +51,18 @@ space.projects[0].sections[0].nodes[0].add(
         name: "Star",
         x: 5,
         y: 5,
-        points: [],
+        points: FPoint.start(15.422, 18.129)
+          .line(-5.264, -2.768)
+          .line(-5.265, 2.768)
+          .line(1.006, -5.863)
+          .lineTo(1.64, 8.114)
+          .line(5.887, -0.855)
+          .line(2.632, -5.334)
+          .line(2.633, 5.334)
+          .line(5.885, 0.855)
+          .line(-4.258, 4.152)
+          .lineTo(15.422, 18.129)
+          .loop().allPoints,
         backgroundColor: "#AAF",
         strokeWidth: 0,
       })
