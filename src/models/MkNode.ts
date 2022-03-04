@@ -178,36 +178,43 @@ export class MkNode {
 
   public draw(
     ctxView: CanvasRenderingContext2D,
-    ctxHit: CanvasRenderingContext2D,
+    ctxHit: CanvasRenderingContext2D | undefined,
     baseTransform: Transform
   ) {
-    const { absoluteTransform, hitColorKey, children, visible, interactive } = this;
-
-    ctxView.save();
-    ctxHit.save();
+    const { absoluteTransform, hitColorKey, children, visible, interactive } =
+      this;
 
     const m = baseTransform.copy().multiply(absoluteTransform).getMatrix();
 
+    ctxView.save();
     ctxView.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
-    ctxHit.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
 
-    ctxHit.fillStyle = hitColorKey;
-    ctxHit.strokeStyle = hitColorKey;
+    if (ctxHit) {
+      ctxHit?.save();
+      ctxHit.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
+
+      ctxHit.fillStyle = hitColorKey;
+      ctxHit.strokeStyle = hitColorKey;
+    }
 
     if (visible) {
       this.drawView(ctxView);
 
-      for (const child of children) {
-        child.draw(ctxView, ctxHit, baseTransform);
+      if (interactive && ctxHit) {
+        this.drawHit(ctxHit);
       }
 
-      if (interactive) {
-        this.drawHit(ctxHit);
+      for (const child of children) {
+        // Если элемент не интерактивный, то не передаем контекст для рисования маски.
+        child.draw(ctxView, interactive ? ctxHit : undefined, baseTransform);
       }
     }
 
     ctxView.restore();
-    ctxHit.restore();
+
+    if (ctxHit) {
+      ctxHit.restore();
+    }
   }
 
   protected drawView(ctx: CanvasRenderingContext2D) {
