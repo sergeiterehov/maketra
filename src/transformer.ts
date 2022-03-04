@@ -10,41 +10,49 @@ const cornerColor = "#FFF";
 const cornerSize: number = 6;
 const cornerOffset = -cornerSize / 2;
 
-const borderProps: Partial<Figure> = {
-  path: `M 0,0 l 0,0`,
-  strokeColor: borderColor,
-};
-
-const cornerProps: Partial<Figure> = {
-  x: cornerOffset,
-  y: cornerOffset,
-  path: `M 0,0 l ${cornerSize},0 l 0,${cornerSize} l ${-cornerSize},0 z`,
-  strokeColor: borderColor,
-  backgroundColor: cornerColor,
-};
-
-const constraintProps: Partial<Figure> = {
-  interactive: false,
-  path: `M 0,0 l 0,0`,
-  strokeStyle: StrokeStyle.Dash,
-  strokeDash: 5,
-  strokeColor: constraintColor,
+function getBorderProps(): Partial<Figure> {
+  return {
+    points: Figure.createLine(0, 0, 0, 0),
+    strokeColor: borderColor,
+  };
 }
 
-const transformerGroup = Object.assign(new Group(), { name: "Transformer" }).add(
+function getCornerProps(): Partial<Figure> {
+  return {
+    x: cornerOffset,
+    y: cornerOffset,
+    points: Figure.createRect(0, 0, cornerSize, cornerSize),
+    strokeColor: borderColor,
+    backgroundColor: cornerColor,
+  };
+}
+
+function getConstraintProps(): Partial<Figure> {
+  return {
+    interactive: false,
+    points: Figure.createLine(0, 0, 0, 0),
+    strokeStyle: StrokeStyle.Dash,
+    strokeDash: 5,
+    strokeColor: constraintColor,
+  };
+}
+
+const transformerGroup = Object.assign(new Group(), {
+  name: "Transformer",
+}).add(
   // Грани
-  Object.assign(new Figure(), borderProps, { name: "T" }),
-  Object.assign(new Figure(), borderProps, { name: "B" }),
-  Object.assign(new Figure(), borderProps, { name: "L" }),
-  Object.assign(new Figure(), borderProps, { name: "R" }),
+  Object.assign(new Figure(), getBorderProps(), { name: "T" }),
+  Object.assign(new Figure(), getBorderProps(), { name: "B" }),
+  Object.assign(new Figure(), getBorderProps(), { name: "L" }),
+  Object.assign(new Figure(), getBorderProps(), { name: "R" }),
   // Углы
-  Object.assign(new Figure(), cornerProps, { name: "TL" }),
-  Object.assign(new Figure(), cornerProps, { name: "BR" }),
-  Object.assign(new Figure(), cornerProps, { name: "BL" }),
-  Object.assign(new Figure(), cornerProps, { name: "TR" }),
+  Object.assign(new Figure(), getCornerProps(), { name: "TL" }),
+  Object.assign(new Figure(), getCornerProps(), { name: "BR" }),
+  Object.assign(new Figure(), getCornerProps(), { name: "BL" }),
+  Object.assign(new Figure(), getCornerProps(), { name: "TR" }),
   // Ограничения
-  Object.assign(new Figure(), constraintProps, { name: "CV" }),
-  Object.assign(new Figure(), constraintProps, { name: "CH" })
+  Object.assign(new Figure(), getConstraintProps(), { name: "CV" }),
+  Object.assign(new Figure(), getConstraintProps(), { name: "CH" })
 );
 
 let lockAdjustment = false;
@@ -157,15 +165,15 @@ export const transformer = makeAutoObservable(
 
       // Грани
 
-      T.path = `M 0,0 l ${width},0`;
+      T.points = Figure.createLine(0, 0, width, 0);
 
       B.y = height;
-      B.path = `M 0,0 l ${width},0`;
+      B.points = Figure.createLine(0, 0, width, 0);
 
-      L.path = `M 0,0 l 0,${height}`;
+      L.points = Figure.createLine(0, 0, 0, height);
 
       R.x = width;
-      R.path = `M 0,0 l 0,${height}`;
+      R.points = Figure.createLine(0, 0, 0, height);
 
       // Углы
 
@@ -194,35 +202,35 @@ export const transformer = makeAutoObservable(
         switch (target.horizontalConstraint) {
           case Constraint.Left:
             CH.x = -dx;
-            CH.path = `M 0,0 l ${dx},0`;
+            CH.points = Figure.createLine(0, 0, dx, 0);
             break;
           case Constraint.Right:
             CH.x = width;
-            CH.path = `M ${rw - width - dx},0 L 0,0`;
+            CH.points = Figure.createLine(rw - width - dx, 0, 0, 0);
             break;
           case Constraint.Center:
             CH.x = -dx;
-            CH.path = `M 0,0 l ${rw},0`;
+            CH.points = Figure.createLine(0, 0, rw, 0);
             break;
           default:
-            CH.path = "";
+            CH.points = [];
         }
 
         switch (target.verticalConstraint) {
           case Constraint.Top:
             CV.y = -dy;
-            CV.path = `M 0,0 l 0,${dy}`;
+            CV.points = Figure.createLine(0, 0, 0, dy);
             break;
           case Constraint.Right:
             CV.y = height;
-            CV.path = `M 0,${rh - height - dy} L 0,0`;
+            CV.points = Figure.createLine(0, rh - height - dy, 0, 0);
             break;
           case Constraint.Center:
             CV.y = -dy;
-            CV.path = `M 0,0 l 0,${rh}`;
+            CV.points = Figure.createLine(0, 0, 0, rh);
             break;
           default:
-            CH.path = "";
+            CH.points = [];
         }
 
         CH.visible = true;

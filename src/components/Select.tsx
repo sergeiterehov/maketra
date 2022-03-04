@@ -87,6 +87,8 @@ export const SelectContainer = styled.div.withConfig({
   displayName: "select-container",
 })`
   display: flex;
+  padding-left: 7px;
+  padding-right: 5px;
   align-items: center;
   border-radius: 2px;
   height: 28px;
@@ -97,13 +99,16 @@ const ChevronDown = styled<FC<{ className?: string }>>(({ className }) => (
   <span className={className}>&#8744;</span>
 )).withConfig({ displayName: "chevron-down" })`
   margin-left: 5px;
-  margin-right: 5px;
   color: var(--color-icon);
 `;
 
 export const SelectValue = styled.span.withConfig({
   displayName: "select-value",
-})``;
+})`
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+`;
 
 const SelectComponent: FC<{
   className?: string;

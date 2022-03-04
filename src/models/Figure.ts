@@ -1,6 +1,113 @@
-import { Path } from "konva/lib/shapes/Path";
-import { action, computed, makeObservable, observable, observe } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
 import { Primitive } from "./Primitive";
+
+export class FPoint {
+  @observable public parentPoint?: FPoint = undefined;
+
+  @observable public x: number = 0;
+  @observable public y: number = 0;
+
+  @observable public xBefore: number = 0;
+  @observable public yBefore: number = 0;
+  @observable public xAfter: number = 0;
+  @observable public yAfter: number = 0;
+
+  // TODO: corner radius
+
+  constructor(
+    x: number,
+    y: number,
+    xAfter: number = 0,
+    yAfter: number = 0,
+    xBefore?: number,
+    yBefore?: number,
+    parentPoint?: FPoint
+  ) {
+    this.parentPoint = parentPoint;
+
+    this.x = x;
+    this.y = y;
+
+    this.xAfter = xAfter;
+    this.yAfter = yAfter;
+    this.xBefore = xBefore === undefined ? -xAfter : 0;
+    this.yBefore = yBefore === undefined ? -yAfter : 0;
+
+    makeObservable(this);
+  }
+
+  /** Все точки по связям. */
+  @computed public get allPoints(): FPoint[] {
+    const result: FPoint[] = [];
+    let lookup: FPoint | undefined = this;
+
+    while (lookup) {
+      if (result.includes(lookup)) break;
+
+      result.push(lookup);
+      lookup = lookup.parentPoint;
+    }
+
+    return result;
+  }
+
+  /**
+   * Присоединяет себя к начальной точке.
+   *
+   * @param parent Родительская точка.
+   */
+  public after(parent: FPoint) {
+    this.parentPoint = parent;
+
+    return this;
+  }
+
+  /**
+   * Присоединяет продолжающие точки и возвращает себя.
+   *
+   * @param children Присоединяемые точки.
+   */
+  public before(...children: FPoint[]) {
+    for (const child of children) {
+      child.parentPoint = this;
+    }
+
+    return this;
+  }
+
+  /**
+   * Присоединяет точку и возвращает ее.
+   *
+   * @param next Присоединяемая точка.
+   */
+  public next(next: FPoint) {
+    next.parentPoint = this;
+
+    return next;
+  }
+
+  /**
+   * Замыкает текущую точку на Еву.
+   */
+  public loop() {
+    const checked: FPoint[] = [this];
+    let lookup = this.parentPoint;
+
+    while (lookup) {
+      if (checked.includes(lookup)) break;
+
+      if (!lookup.parentPoint) {
+        lookup.parentPoint = this;
+        break;
+      }
+
+      checked.push(lookup);
+      lookup = lookup.parentPoint;
+    }
+
+    return this;
+  }
+}
 
 export enum StrokeStyle {
   Solid = 1,
@@ -8,9 +115,31 @@ export enum StrokeStyle {
 }
 
 export class Figure extends Primitive {
+  public static createLine(
+    ax: number,
+    ay: number,
+    bx: number,
+    by: number
+  ): FPoint[] {
+    return new FPoint(ax, ay).next(new FPoint(bx, by)).allPoints;
+  }
+
+  public static createRect(
+    x: number,
+    y: number,
+    w: number,
+    h: number
+  ): FPoint[] {
+    return new FPoint(x, y)
+      .next(new FPoint(x + w, y))
+      .next(new FPoint(x + w, y + h))
+      .next(new FPoint(x, y + h))
+      .loop().allPoints;
+  }
+
   public name: string = "Figure";
 
-  @observable public path: string = "";
+  @observable public points: FPoint[] = [];
   @observable public backgroundColor: string = "#AAAAAA";
   @observable public strokeColor: string = "#000000";
   @observable public strokeWidth: number = 1;
@@ -18,16 +147,12 @@ export class Figure extends Primitive {
   @observable public strokeDash: number = 10;
   @observable public strokeDashGap?: number = undefined;
 
-  @computed public get pathData(): any[] {
-    return Path.parsePathData(this.path);
-  }
-
   constructor() {
     super();
 
     makeObservable(this);
 
-    observe(this, "pathData", () => this.adjustPointsAndSize());
+    // observe(this, "pathData", () => this.adjustPointsAndSize());
   }
 
   @action
@@ -37,24 +162,20 @@ export class Figure extends Primitive {
     let xMax = -Infinity;
     let yMax = -Infinity;
 
-    for (const { points: p } of this.pathData) {
-      if (p.length < 2) continue;
-
-      if (p[0] < xMin) xMin = p[0];
-      if (p[0] > xMax) xMax = p[0];
-      if (p[1] < yMin) yMin = p[1];
-      if (p[1] > yMax) yMax = p[1];
+    for (const p of this.points) {
+      if (p.x < xMin) xMin = p.x;
+      if (p.x > xMax) xMax = p.x;
+      if (p.y < yMin) yMin = p.y;
+      if (p.y > yMax) yMax = p.y;
     }
 
     const x = xMin;
     const y = yMin;
 
     if (x || y) {
-      for (const { points: p } of this.pathData) {
-        if (p.length < 2) continue;
-
-        p[0] -= x;
-        p[1] -= y;
+      for (const p of this.points) {
+        p.x -= x;
+        p.y -= y;
       }
     }
 
@@ -63,64 +184,64 @@ export class Figure extends Primitive {
   }
 
   protected renderPathData(ctx: CanvasRenderingContext2D): void {
-    const commands = this.pathData;
     let isClosed = false;
 
     ctx.beginPath();
 
-    for (let n = 0; n < commands.length; n++) {
-      const command = commands[n].command;
-      const p = commands[n].points;
+    const reserve: FPoint[] = [];
+    const pool: FPoint[] = [];
 
-      switch (command) {
-        case "L":
-          ctx.lineTo(p[0], p[1]);
+    for (const p of this.points) {
+      if (!p.parentPoint) {
+        pool.push(p);
+      } else {
+        reserve.push(p);
+      }
+    }
 
-          break;
-        case "M":
-          ctx.moveTo(p[0], p[1]);
+    // Если нет ни одной начальной точки, то это замкнутая фигура.
+    if (this.points.length && !pool.length) {
+      isClosed = true;
+      // Можно начать рисование с любой точки.
+      pool.push(reserve.pop()!);
+    }
 
-          break;
-        case "C":
-          ctx.bezierCurveTo(p[0], p[1], p[2], p[3], p[4], p[5]);
+    while (pool.length) {
+      const p = pool.pop()!;
 
-          break;
-        case "Q":
-          ctx.quadraticCurveTo(p[0], p[1], p[2], p[3]);
+      if (p.parentPoint) {
+        // Фигура не замкнется, если делать перемещения.
+        if (!isClosed) ctx.moveTo(p.parentPoint.x, p.parentPoint.y);
 
-          break;
-        case "A":
-          const cx = p[0];
-          const cy = p[1];
-          const rx = p[2];
-          const ry = p[3];
-          const theta = p[4];
-          const dTheta = p[5];
-          const psi = p[6];
-          const fs = p[7];
+        // Можно рисовать lineTo для отображения скелета.
+        ctx.bezierCurveTo(
+          p.parentPoint.x + p.parentPoint.xAfter,
+          p.parentPoint.y + p.parentPoint.yAfter,
+          p.x + p.xBefore,
+          p.y + p.yBefore,
+          p.x,
+          p.y
+        );
+      } else {
+        ctx.moveTo(p.x, p.y);
+      }
 
-          const r = rx > ry ? rx : ry;
-          const scaleX = rx > ry ? 1 : rx / ry;
-          const scaleY = rx > ry ? ry / rx : 1;
+      // Далее находим связанные с текущей точки.
+      for (let i = 0; i < reserve.length; i += 1) {
+        const other = reserve[i];
 
-          ctx.translate(cx, cy);
-          ctx.rotate(psi);
-          ctx.scale(scaleX, scaleY);
-          ctx.arc(0, 0, r, theta, theta + dTheta, Boolean(1 - fs));
-          ctx.scale(1 / scaleX, 1 / scaleY);
-          ctx.rotate(-psi);
-          ctx.translate(-cx, -cy);
-
-          break;
-        case "z":
-          isClosed = true;
-          ctx.closePath();
-
-          break;
+        if (other.parentPoint === p) {
+          pool.push(other);
+          // Удаляем из резерва.
+          reserve.splice(i, 1);
+          i -= 1;
+          continue;
+        }
       }
     }
 
     if (isClosed) {
+      ctx.closePath();
       ctx.fill();
     }
   }

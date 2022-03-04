@@ -2,6 +2,7 @@ import { observer } from "mobx-react-lite";
 import { CustomInput } from "./components/CustomInput";
 import { ElementsRow } from "./components/ElementsRow";
 import { Icon } from "./components/Icon";
+import { Label } from "./components/Label";
 import { Scrubber } from "./components/Scrubber";
 import { Option, Select } from "./components/Select";
 import { Area } from "./models/Area";
@@ -12,34 +13,60 @@ import { FontStyle, FontWeight, Text, TextAlign } from "./models/Text";
 function formatTextAlign(value: TextAlign): string {
   switch (value) {
     case TextAlign.Left:
-      return "Left align";
+      return "Слева";
     case TextAlign.Right:
-      return "Right align";
+      return "Справа";
     case TextAlign.Center:
-      return "Center align";
+      return "По-центру";
   }
 }
 
 function formatFontWeight(value: FontWeight): string {
   switch (value) {
     case FontWeight.Thin:
-      return "Thin (Hairline)";
+      return "Самый легкий";
     case FontWeight.ExtraLight:
-      return "Extra Light (Ultra Light)";
+      return "Очень легкий";
     case FontWeight.Light:
-      return "Light";
+      return "Легкий";
     case FontWeight.Normal:
-      return "Normal (Regular)";
+      return "Обычный";
     case FontWeight.Medium:
-      return "Medium";
+      return "Средний";
     case FontWeight.SemiBold:
-      return "Semi Bold (Demi Bold)";
+      return "Полужирный";
     case FontWeight.Bold:
-      return "Bold";
+      return "Жирный";
     case FontWeight.ExtraBold:
-      return "Extra Bold (Ultra Bold)";
+      return "Очень жирный";
     case FontWeight.Black:
-      return "Black (Heavy)";
+      return "Самый жирный";
+  }
+}
+
+function formatVerticalConstraint(value: Constraint): string {
+  switch (value) {
+    case Constraint.Top:
+      return "Сверху";
+    case Constraint.Bottom:
+      return "Снизу";
+    case Constraint.Center:
+      return "Вертикально";
+    case Constraint.Scale:
+      return "Увеличивать";
+  }
+}
+
+function formatHorizontalConstraint(value: Constraint): string {
+  switch (value) {
+    case Constraint.Left:
+      return "Слева";
+    case Constraint.Right:
+      return "Справа";
+    case Constraint.Center:
+      return "Горизонтально";
+    case Constraint.Scale:
+      return "Расширять";
   }
 }
 
@@ -55,7 +82,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
       </div>
       <ElementsRow>
         <Scrubber value={node.x} onChange={(next) => (node.x = next || 0)}>
-          <Icon>X</Icon>
+          <Icon>&#8614;</Icon>
           <CustomInput
             value={node.x.toString()}
             onChange={(next) => {
@@ -74,7 +101,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           value={node.y}
           onChange={(next) => (node.y = next || 0)}
         >
-          <Icon>Y</Icon>
+          <Icon>&#8615;</Icon>
           <CustomInput
             value={node.y.toString()}
             onChange={(next) => {
@@ -91,7 +118,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
       </ElementsRow>
       <ElementsRow>
         <Scrubber value={node.width} onChange={(next) => (node.width = next)}>
-          <Icon>W</Icon>
+          <Icon>&#8660;</Icon>
           <CustomInput
             value={node.width?.toString()}
             onChange={(next) => {
@@ -115,7 +142,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           value={node.height}
           onChange={(next) => (node.height = next)}
         >
-          <Icon>H</Icon>
+          <Icon>&#8661;</Icon>
           <CustomInput
             value={node.height?.toString()}
             onChange={(next) => {
@@ -140,7 +167,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           value={node.rotate}
           onChange={(next) => (node.rotate = next || 0)}
         >
-          <Icon>A</Icon>
+          <Icon>&#8635;</Icon>
           <CustomInput
             value={node.rotate.toString()}
             onChange={(next) => {
@@ -156,47 +183,43 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
         </Scrubber>
       </ElementsRow>
       {node instanceof Area ? (
-        <div>
-          <label>
+        <ElementsRow>
+          <Label className="clip-content">
             <input
               type="checkbox"
               checked={node.clipContent}
               onChange={(e) => (node.clipContent = e.currentTarget.checked)}
             />
-            Clip content
-          </label>
-        </div>
+            Обрезать контент
+          </Label>
+        </ElementsRow>
       ) : null}
       {node.parentNode ? (
         <>
-          <div>
-            H Constraint
-            <select
+          <ElementsRow>
+            <Select
+              className="horizontal-constraint"
               value={node.horizontalConstraint}
-              onChange={(e) =>
-                (node.horizontalConstraint = Number(e.currentTarget.value))
-              }
+              onChange={(next) => (node.horizontalConstraint = next)}
+              format={formatHorizontalConstraint}
             >
-              <option value={Constraint.Left}>Left</option>
-              <option value={Constraint.Center}>Center</option>
-              <option value={Constraint.Right}>Right</option>
-              <option value={Constraint.Scale}>SCALE</option>
-            </select>
-          </div>
-          <div>
-            V Constraint
-            <select
+              <Option value={Constraint.Left} />
+              <Option value={Constraint.Center} />
+              <Option value={Constraint.Right} />
+              <Option value={Constraint.Scale} />
+            </Select>
+            <Select
+              className="vertical-constraint"
               value={node.verticalConstraint}
-              onChange={(e) =>
-                (node.verticalConstraint = Number(e.currentTarget.value))
-              }
+              onChange={(next) => (node.verticalConstraint = next)}
+              format={formatVerticalConstraint}
             >
-              <option value={Constraint.Top}>Top</option>
-              <option value={Constraint.Center}>Center</option>
-              <option value={Constraint.Bottom}>Bottom</option>
-              <option value={Constraint.Scale}>SCALE</option>
-            </select>
-          </div>
+              <Option value={Constraint.Top} />
+              <Option value={Constraint.Center} />
+              <Option value={Constraint.Bottom} />
+              <Option value={Constraint.Scale} />
+            </Select>
+          </ElementsRow>
         </>
       ) : null}
       {node instanceof Area || node instanceof Figure ? (
@@ -258,18 +281,27 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
               <Option value={TextAlign.Center} />
               <Option value={TextAlign.Right} />
             </Select>
-          </ElementsRow>
-          <div>
-            FontSize:
-            <input
-              type="number"
-              step={1}
+            <Scrubber
+              className="font-size"
+              speed={1}
               value={node.fontSize}
-              onChange={(e) =>
-                (node.fontSize = Number(e.currentTarget.value) || 0)
-              }
-            />
-          </div>
+              onChange={(next) => (node.fontSize = next || 0)}
+            >
+              <Icon>aA</Icon>
+              <CustomInput
+                value={node.fontSize?.toString()}
+                onChange={(next) => {
+                  const value = Number(next);
+
+                  if (Number.isNaN(value)) return false;
+
+                  node.fontSize = value;
+
+                  return true;
+                }}
+              />
+            </Scrubber>
+          </ElementsRow>
           <div>
             Font family:
             <input
@@ -277,9 +309,9 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
               onChange={(e) => (node.fontFamily = e.currentTarget.value)}
             />
           </div>
-          <div>
-            Font weight:
+          <ElementsRow>
             <Select
+              className="font-weight"
               value={node.fontWeight}
               onChange={(next) => (node.fontWeight = next)}
               format={formatFontWeight}
@@ -294,7 +326,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
               <Option value={FontWeight.ExtraBold} />
               <Option value={FontWeight.Black} />
             </Select>
-          </div>
+          </ElementsRow>
           <div>
             <label>
               <input

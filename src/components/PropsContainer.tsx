@@ -36,7 +36,28 @@ export const PropsContainer = styled.div.withConfig({ displayName: "props-contai
       grid-column-start: 13;
     }
 
-    ${Select}.text-align {
+    .clip-content {
+      grid-column-end: span 28;
+    }
+
+    .vertical-constraint, .horizontal-constraint {
+      grid-column-end: span 13;
+    }
+
+    .vertical-constraint {
+      grid-column-start: 15;
+    }
+
+    .font-size {
+      grid-column-end: span 9;
+      grid-column-start: 15;
+    }
+
+    .text-align {
+      grid-column-end: span 13;
+    }
+
+    .font-weight {
       grid-column-end: span 13;
     }
   }
