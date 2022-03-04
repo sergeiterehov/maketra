@@ -20,6 +20,29 @@ function formatTextAlign(value: TextAlign): string {
   }
 }
 
+function formatFontWeight(value: FontWeight): string {
+  switch (value) {
+    case FontWeight.Thin:
+      return "Thin (Hairline)";
+    case FontWeight.ExtraLight:
+      return "Extra Light (Ultra Light)";
+    case FontWeight.Light:
+      return "Light";
+    case FontWeight.Normal:
+      return "Normal (Regular)";
+    case FontWeight.Medium:
+      return "Medium";
+    case FontWeight.SemiBold:
+      return "Semi Bold (Demi Bold)";
+    case FontWeight.Bold:
+      return "Bold";
+    case FontWeight.ExtraBold:
+      return "Extra Bold (Ultra Bold)";
+    case FontWeight.Black:
+      return "Black (Heavy)";
+  }
+}
+
 export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
   return (
     <>
@@ -256,22 +279,21 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           </div>
           <div>
             Font weight:
-            <select
+            <Select
               value={node.fontWeight}
-              onChange={(e) =>
-                (node.fontWeight = e.currentTarget.value as FontWeight)
-              }
+              onChange={(next) => (node.fontWeight = next)}
+              format={formatFontWeight}
             >
-              <option value="100">Thin (Hairline)</option>
-              <option value="200">Extra Light (Ultra Light)</option>
-              <option value="300">Light</option>
-              <option value="normal">Normal (Regular)</option>
-              <option value="500">Medium</option>
-              <option value="600">Semi Bold (Demi Bold)</option>
-              <option value="bold">Bold</option>
-              <option value="800">Extra Bold (Ultra Bold)</option>
-              <option value="900">Black (Heavy)</option>
-            </select>
+              <Option value={FontWeight.Thin} />
+              <Option value={FontWeight.ExtraLight} />
+              <Option value={FontWeight.Light} />
+              <Option value={FontWeight.Normal} />
+              <Option value={FontWeight.Medium} />
+              <Option value={FontWeight.SemiBold} />
+              <Option value={FontWeight.Bold} />
+              <Option value={FontWeight.ExtraBold} />
+              <Option value={FontWeight.Black} />
+            </Select>
           </div>
           <div>
             <label>

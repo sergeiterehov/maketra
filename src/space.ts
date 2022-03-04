@@ -3,7 +3,7 @@ import { Figure } from "./models/Figure";
 import { Project } from "./models/Project";
 import { Section } from "./models/Section";
 import { Space } from "./models/Space";
-import { Text } from "./models/Text";
+import { FontWeight, Text } from "./models/Text";
 
 const space = Object.assign(new Space(), {
   projects: [
@@ -51,8 +51,7 @@ space.projects[0].sections[0].nodes[0].add(
         name: "Star",
         x: 5,
         y: 5,
-        // path: "M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855l2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
-        path: "M 20,20 l 10,10 l 0,-30 z",
+        path: "M15.422,18.129l-5.264-2.768l-5.265,2.768l1.006-5.863L1.64,8.114l5.887-0.855l2.632-5.334l2.633,5.334l5.885,0.855l-4.258,4.152L15.422,18.129z",
         backgroundColor: "#AAF",
         strokeWidth: 0,
       })
@@ -62,7 +61,7 @@ space.projects[0].sections[0].nodes[0].add(
       x: 20,
       y: 150,
       fontSize: 24,
-      fontWeight: "bold",
+      fontWeight: FontWeight.Regular,
       fontFamily: "sans-serif",
       text: "Hello, world!\nHow are you?",
       textColor: "#272",

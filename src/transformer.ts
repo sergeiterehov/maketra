@@ -32,17 +32,17 @@ const constraintProps: Partial<Figure> = {
 }
 
 const transformerGroup = Object.assign(new Group(), { name: "Transformer" }).add(
-  // Borders
+  // Грани
   Object.assign(new Figure(), borderProps, { name: "T" }),
   Object.assign(new Figure(), borderProps, { name: "B" }),
   Object.assign(new Figure(), borderProps, { name: "L" }),
   Object.assign(new Figure(), borderProps, { name: "R" }),
-  // Corners
+  // Углы
   Object.assign(new Figure(), cornerProps, { name: "TL" }),
   Object.assign(new Figure(), cornerProps, { name: "BR" }),
   Object.assign(new Figure(), cornerProps, { name: "BL" }),
   Object.assign(new Figure(), cornerProps, { name: "TR" }),
-  // Constraints
+  // Ограничения
   Object.assign(new Figure(), constraintProps, { name: "CV" }),
   Object.assign(new Figure(), constraintProps, { name: "CH" })
 );
@@ -150,12 +150,12 @@ export const transformer = makeAutoObservable(
       const { x, y, width, height, group, relative, target } = transformer;
       const { T, L, R, B, TL, BR, TR, BL, CH, CV } = transformer.nodes;
 
-      // Location
+      // Перемещаем группу
 
       group.x = x;
       group.y = y;
 
-      // Borders
+      // Грани
 
       T.path = `M 0,0 l ${width},0`;
 
@@ -167,9 +167,9 @@ export const transformer = makeAutoObservable(
       R.x = width;
       R.path = `M 0,0 l 0,${height}`;
 
-      // Corners
+      // Углы
 
-      // TL maintain
+      // TL остается на месте
 
       BR.x = width + cornerOffset;
       BR.y = height + cornerOffset;
@@ -178,7 +178,7 @@ export const transformer = makeAutoObservable(
 
       TR.x = width + cornerOffset;
 
-      // Constraints
+      // Ограничения
 
       if (relative && target) {
         const { width: rw, height: rh } = relative.size;
