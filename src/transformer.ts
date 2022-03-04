@@ -1,5 +1,5 @@
 import { action, makeAutoObservable, observe } from "mobx";
-import { Figure, StrokeStyle } from "./models/Figure";
+import { Figure, FPoint, StrokeStyle } from "./models/Figure";
 import { Group } from "./models/Group";
 import { Constraint, MkNode } from "./models/MkNode";
 
@@ -12,7 +12,7 @@ const cornerOffset = -cornerSize / 2;
 
 function getBorderProps(): Partial<Figure> {
   return {
-    points: Figure.createLine(0, 0, 0, 0),
+    points: FPoint.createLine(0, 0, 0, 0),
     strokeColor: borderColor,
   };
 }
@@ -21,7 +21,7 @@ function getCornerProps(): Partial<Figure> {
   return {
     x: cornerOffset,
     y: cornerOffset,
-    points: Figure.createRect(0, 0, cornerSize, cornerSize),
+    points: FPoint.createRect(0, 0, cornerSize, cornerSize),
     strokeColor: borderColor,
     backgroundColor: cornerColor,
   };
@@ -30,7 +30,7 @@ function getCornerProps(): Partial<Figure> {
 function getConstraintProps(): Partial<Figure> {
   return {
     interactive: false,
-    points: Figure.createLine(0, 0, 0, 0),
+    points: FPoint.createLine(0, 0, 0, 0),
     strokeStyle: StrokeStyle.Dash,
     strokeDash: 5,
     strokeColor: constraintColor,
@@ -165,15 +165,15 @@ export const transformer = makeAutoObservable(
 
       // Грани
 
-      T.points = Figure.createLine(0, 0, width, 0);
+      T.points = FPoint.createLine(0, 0, width, 0);
 
       B.y = height;
-      B.points = Figure.createLine(0, 0, width, 0);
+      B.points = FPoint.createLine(0, 0, width, 0);
 
-      L.points = Figure.createLine(0, 0, 0, height);
+      L.points = FPoint.createLine(0, 0, 0, height);
 
       R.x = width;
-      R.points = Figure.createLine(0, 0, 0, height);
+      R.points = FPoint.createLine(0, 0, 0, height);
 
       // Углы
 
@@ -202,15 +202,15 @@ export const transformer = makeAutoObservable(
         switch (target.horizontalConstraint) {
           case Constraint.Left:
             CH.x = -dx;
-            CH.points = Figure.createLine(0, 0, dx, 0);
+            CH.points = FPoint.createLine(0, 0, dx, 0);
             break;
           case Constraint.Right:
             CH.x = width;
-            CH.points = Figure.createLine(rw - width - dx, 0, 0, 0);
+            CH.points = FPoint.createLine(rw - width - dx, 0, 0, 0);
             break;
           case Constraint.Center:
             CH.x = -dx;
-            CH.points = Figure.createLine(0, 0, rw, 0);
+            CH.points = FPoint.createLine(0, 0, rw, 0);
             break;
           default:
             CH.points = [];
@@ -219,15 +219,15 @@ export const transformer = makeAutoObservable(
         switch (target.verticalConstraint) {
           case Constraint.Top:
             CV.y = -dy;
-            CV.points = Figure.createLine(0, 0, 0, dy);
+            CV.points = FPoint.createLine(0, 0, 0, dy);
             break;
           case Constraint.Right:
             CV.y = height;
-            CV.points = Figure.createLine(0, rh - height - dy, 0, 0);
+            CV.points = FPoint.createLine(0, rh - height - dy, 0, 0);
             break;
           case Constraint.Center:
             CV.y = -dy;
-            CV.points = Figure.createLine(0, 0, 0, rh);
+            CV.points = FPoint.createLine(0, 0, 0, rh);
             break;
           default:
             CH.points = [];

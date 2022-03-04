@@ -1,4 +1,11 @@
-import { action, computed, makeObservable, observable, observe } from "mobx";
+import {
+  action,
+  computed,
+  intercept,
+  makeObservable,
+  observable,
+  observe,
+} from "mobx";
 import { Primitive } from "./Primitive";
 
 export class FPoint {
@@ -10,6 +17,25 @@ export class FPoint {
    */
   public static start(x: number = 0, y: number = 0) {
     return new FPoint(x, y);
+  }
+
+  public static createLine(
+    ax: number,
+    ay: number,
+    bx: number,
+    by: number
+  ): FPoint[] {
+    return FPoint.start(ax, ay).lineTo(bx, by).allPoints;
+  }
+
+  public static createRect(
+    x: number,
+    y: number,
+    w: number,
+    h: number
+  ): FPoint[] {
+    return FPoint.start(x, y).line(w, 0).line(0, h).line(-w, 0).loop()
+      .allPoints;
   }
 
   @observable public parentPoint?: FPoint = undefined;
@@ -145,25 +171,6 @@ export enum StrokeStyle {
 }
 
 export class Figure extends Primitive {
-  public static createLine(
-    ax: number,
-    ay: number,
-    bx: number,
-    by: number
-  ): FPoint[] {
-    return FPoint.start(ax, ay).lineTo(bx, by).allPoints;
-  }
-
-  public static createRect(
-    x: number,
-    y: number,
-    w: number,
-    h: number
-  ): FPoint[] {
-    return FPoint.start(x, y).line(w, 0).line(0, h).line(-w, 0).loop()
-      .allPoints;
-  }
-
   public name: string = "Figure";
 
   @observable public points: FPoint[] = [];
@@ -174,12 +181,36 @@ export class Figure extends Primitive {
   @observable public strokeDash: number = 10;
   @observable public strokeDashGap?: number = undefined;
 
+  /** Блокирует автоматическое масштабирование точек при изменении размеров. */
+  private lockScaleOnResize = false;
+
   constructor() {
     super();
 
     makeObservable(this);
 
     observe(this, "points", () => this.adjustPointsAndSize());
+
+    intercept(this, (change) => {
+      if (this.lockScaleOnResize) return change;
+
+      if (change.type !== "update") return change;
+
+      if (!(change.name === "width" || change.name === "height")) return change;
+
+      const isWidth = change.name === "width";
+      const diff = change.newValue - change.object[change.name];
+
+      for (const point of this.points) {
+        if (isWidth) {
+          point.x += diff * point.x / (this.width || 1);
+        } else {
+          point.y += diff * point.y / (this.height || 1);
+        }
+      }
+
+      return change;
+    });
   }
 
   @action
@@ -206,8 +237,11 @@ export class Figure extends Primitive {
       }
     }
 
+    // Блокируем масштабирование точек, потому что адаптируемся под них.
+    this.lockScaleOnResize = true;
     this.width = xMax - xMin;
     this.height = yMax - yMin;
+    this.lockScaleOnResize = false;
   }
 
   protected renderPathData(ctx: CanvasRenderingContext2D): void {
