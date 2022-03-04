@@ -12,16 +12,24 @@ export const figureEditor = observable(
   {
     group: figureEditorGroup,
     /** Соответствие точке трансформерам. */
-    transformers: new Map<FPoint, Figure>(),
+    points: new Map<FPoint, Figure>(),
+    /** Трансформеры кривых. */
+    curves: [] as Figure[],
     /** Соединяющие линии. */
     lines: [] as Figure[],
 
     adjust(figure?: Figure) {
-      for (const t of Array.from(this.transformers.values())) {
+      for (const t of Array.from(this.points.values())) {
         t.destroy();
       }
 
-      this.transformers.clear();
+      this.points.clear();
+
+      for (const c of this.curves) {
+        c.destroy();
+      }
+
+      this.curves.splice(0, this.curves.length);
 
       for (const l of this.lines) {
         l.destroy();
@@ -55,13 +63,37 @@ export const figureEditor = observable(
       // Поверх линий накладываем трансформеры.
 
       for (const p of figure.points) {
+        if (p.xAfter && p.yAfter) {
+          const ac = Object.assign(new Figure(), {
+            points: FPoint.createRect(0, 0, 3, 3),
+            x: x + p.x + p.xAfter - 1.5,
+            y: y + p.y + p.yAfter - 1.5,
+          });
+
+          this.curves.push(ac);
+          ac.moveTo(this.group);
+        }
+
+        if (p.xBefore && p.yBefore) {
+          const bc = Object.assign(new Figure(), {
+            points: FPoint.createRect(0, 0, 3, 3),
+            x: x + p.x + p.xBefore - 1.5,
+            y: y + p.y + p.yBefore - 1.5,
+          });
+
+          this.curves.push(bc);
+          bc.moveTo(this.group);
+        }
+      }
+
+      for (const p of figure.points) {
         const t = Object.assign(new Figure(), {
           points: FPoint.createRect(0, 0, 6, 6),
           x: x + p.x - 3,
           y: y + p.y - 3,
         });
 
-        this.transformers.set(p, t);
+        this.points.set(p, t);
         t.moveTo(this.group);
       }
     },

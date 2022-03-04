@@ -78,7 +78,19 @@ space.projects[0].sections[0].nodes[0].add(
       text: "Hello, world!\nHow are you?",
       textColor: "#272",
     })
-  )
+  ),
+  Object.assign(new Figure(), {
+    name: "Figure",
+    x: 5,
+    y: 5,
+    points: new FPoint(0, 0, 30, -30)
+      .next(new FPoint(60, 0, 30, 30))
+      .next(new FPoint(60, 60, -30, 30))
+      .next(new FPoint(0, 60, -30, -30))
+      .loop().allPoints,
+    backgroundColor: "#AAF",
+    strokeWidth: 2,
+  })
 );
 
 export default space;
