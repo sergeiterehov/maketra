@@ -1,5 +1,6 @@
 import { action, makeAutoObservable, observe } from "mobx";
-import { Figure, FPoint, StrokeStyle } from "./models/Figure";
+import { Figure, StrokeStyle } from "./models/Figure";
+import { FPoint } from "./models/FPoint";
 import { Group } from "./models/Group";
 import { Constraint, MkNode } from "./models/MkNode";
 

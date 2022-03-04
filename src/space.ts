@@ -1,5 +1,6 @@
 import { Area } from "./models/Area";
-import { Figure, FPoint } from "./models/Figure";
+import { Figure } from "./models/Figure";
+import { FPoint } from "./models/FPoint";
 import { Project } from "./models/Project";
 import { Section } from "./models/Section";
 import { Space } from "./models/Space";
