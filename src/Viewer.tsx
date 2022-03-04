@@ -8,8 +8,10 @@ import React, {
   useState,
 } from "react";
 import { useEffect } from "react";
+import { Figure } from "./models/Figure";
 import { MkNode } from "./models/MkNode";
 import { Section } from "./models/Section";
+import { figureEditor } from "./figureEditor";
 import { transformer } from "./transformer";
 import { Transform } from "./utils/Transform";
 
@@ -63,17 +65,25 @@ const Viewer = observer<{
     if (selected) {
       transformer.group.draw(ctxView, ctxHit, baseTransform);
     }
+
+    figureEditor.group.draw(ctxView, ctxHit, baseTransform);
   }, [baseTransform, hitCanvas, section, selected]);
 
   // TODO: Здесь нужен планировщик отрисовки, так как отслеживается КАЖДОЕ изменение ВЕЗДЕ.
   useEffect(() => autorun(() => draw()), [draw, section]);
 
   useEffect(() => {
-    if (!selected) return;
+    if (!selected) {
+      figureEditor.adjust();
 
+      return;
+    }
+
+    figureEditor.adjust(selected instanceof Figure ? selected : undefined);
     transformer.adjust(selected);
 
     const stop = observe(selected, () => {
+      figureEditor.adjust(selected instanceof Figure ? selected : undefined);
       transformer.adjust(selected).realign();
     });
 
