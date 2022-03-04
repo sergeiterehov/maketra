@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { ElementsRow } from "./ElementsRow";
 import { ScrubberContainer } from "./Scrubber";
-import { Select, SelectContainer, SelectValue } from "./Select";
+import { SelectContainer, SelectValue } from "./Select";
 
 export const PropsContainer = styled.div.withConfig({ displayName: "props-container" })`
   ${ScrubberContainer}, ${SelectContainer} {

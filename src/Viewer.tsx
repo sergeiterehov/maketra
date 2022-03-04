@@ -1,4 +1,3 @@
-import { Transform } from "konva/lib/Util";
 import { autorun, observe, runInAction } from "mobx";
 import { observer } from "mobx-react-lite";
 import React, {
@@ -12,6 +11,7 @@ import { useEffect } from "react";
 import { MkNode } from "./models/MkNode";
 import { Section } from "./models/Section";
 import { transformer } from "./transformer";
+import { Transform } from "./utils/Transform";
 
 const Viewer = observer<{
   section: Section;
@@ -65,6 +65,7 @@ const Viewer = observer<{
     }
   }, [baseTransform, hitCanvas, section, selected]);
 
+  // TODO: Здесь нужен планировщик отрисовки, так как отслеживается КАЖДОЕ изменение ВЕЗДЕ.
   useEffect(() => autorun(() => draw()), [draw, section]);
 
   useEffect(() => {

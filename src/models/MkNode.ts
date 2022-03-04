@@ -1,6 +1,6 @@
-import { Transform } from "konva/lib/Util";
 import { action, computed, makeObservable, observable } from "mobx";
 import { randomString } from "../utils/randomString";
+import { Transform } from "../utils/Transform";
 import { Section } from "./Section";
 
 export enum Constraint {
