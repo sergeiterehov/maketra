@@ -127,6 +127,13 @@ export class MkNode {
   }
 
   @action public destroy() {
+    if (this.parentNode) {
+      const index = this.parentNode.children.indexOf(this);
+
+      this.parentNode.children.splice(index, 1);
+      this.parentNode = undefined;
+    }
+
     MkNode.reservedColors.delete(this.hitColorKey);
     this.hitColorKey = "transparent";
   }
@@ -190,13 +197,13 @@ export class MkNode {
     if (visible) {
       this.drawView(ctxView);
 
+      for (const child of children) {
+        child.draw(ctxView, ctxHit, baseTransform);
+      }
+
       if (interactive) {
         this.drawHit(ctxHit);
       }
-    }
-
-    for (const child of children) {
-      child.draw(ctxView, ctxHit, baseTransform);
     }
 
     ctxView.restore();
