@@ -5,11 +5,12 @@ import { Icon } from "./components/Icon";
 import { Label } from "./components/Label";
 import { Scrubber } from "./components/Scrubber";
 import { Option, Select } from "./components/Select";
-import { SizePropInput } from "./components/SizePropInput";
+import { PropSizeInput } from "./components/PropSizeInput";
 import { Area } from "./models/Area";
 import { Figure } from "./models/Figure";
 import { Constraint, MkNode } from "./models/MkNode";
 import { FontStyle, FontWeight, Text, TextAlign } from "./models/Text";
+import { PropLocationInput } from "./components/PropLocationInput";
 
 function formatTextAlign(value: TextAlign): string {
   switch (value) {
@@ -82,44 +83,12 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
         />
       </div>
       <ElementsRow>
-        <Scrubber value={node.x} onChange={(next) => (node.x = next || 0)}>
-          <Icon>&#8614;</Icon>
-          <CustomInput
-            value={node.x.toString()}
-            onChange={(next) => {
-              const value = Number(next);
-
-              if (Number.isNaN(value)) return false;
-
-              node.x = value;
-
-              return true;
-            }}
-          />
-        </Scrubber>
-        <Scrubber
-          className="second-in-row"
-          value={node.y}
-          onChange={(next) => (node.y = next || 0)}
-        >
-          <Icon>&#8615;</Icon>
-          <CustomInput
-            value={node.y.toString()}
-            onChange={(next) => {
-              const value = Number(next);
-
-              if (Number.isNaN(value)) return false;
-
-              node.y = value;
-
-              return true;
-            }}
-          />
-        </Scrubber>
+        <PropLocationInput node={node} property="x" />
+        <PropLocationInput className="second-in-row" node={node} property="y" />
       </ElementsRow>
       <ElementsRow>
-        <SizePropInput property="width" node={node} />
-        <SizePropInput
+        <PropSizeInput property="width" node={node} />
+        <PropSizeInput
           className="second-in-row"
           property="height"
           node={node}

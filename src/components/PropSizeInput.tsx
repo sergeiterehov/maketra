@@ -7,7 +7,7 @@ import { CustomInput } from "./CustomInput";
 import { Icon } from "./Icon";
 import { Scrubber } from "./Scrubber";
 
-export const SizePropInput = styled<
+export const PropSizeInput = styled<
   FC<{
     className?: string;
     node: MkNode;
@@ -17,7 +17,7 @@ export const SizePropInput = styled<
   observer(({ className, node, property }) => {
     const locationProperty = property === "width" ? "x" : "y";
 
-    const onScrubHandler = useCallback(
+    const scrubHandler = useCallback(
       (next: number) =>
         runInAction(() => {
           node[property] = next;
@@ -77,7 +77,7 @@ export const SizePropInput = styled<
       <Scrubber
         className={className}
         value={node[property]}
-        onChange={onScrubHandler}
+        onChange={scrubHandler}
       >
         {property === "width" ? <Icon>&#8660;</Icon> : <Icon>&#8661;</Icon>}
         <CustomInput
@@ -87,4 +87,4 @@ export const SizePropInput = styled<
       </Scrubber>
     );
   })
-)``;
+).withConfig({ displayName: "prop-size-input" })``;
