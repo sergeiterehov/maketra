@@ -61,6 +61,11 @@ export const SizePropInput = styled<
           value = (node.parentNode.size[property] * num) / 100;
         }
 
+        // Если указан знак, то будет добавляться или вычитаться.
+        if ((next[0] === "+" || next[0] === "-") && node[property]) {
+          value = node[property]! + value;
+        }
+
         runInAction(() => (node[property] = value));
 
         return true;
