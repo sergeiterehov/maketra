@@ -5,6 +5,7 @@ import { Icon } from "./components/Icon";
 import { Label } from "./components/Label";
 import { Scrubber } from "./components/Scrubber";
 import { Option, Select } from "./components/Select";
+import { SizePropInput } from "./components/SizePropInput";
 import { Area } from "./models/Area";
 import { Figure } from "./models/Figure";
 import { Constraint, MkNode } from "./models/MkNode";
@@ -117,50 +118,12 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
         </Scrubber>
       </ElementsRow>
       <ElementsRow>
-        <Scrubber value={node.width} onChange={(next) => (node.width = next)}>
-          <Icon>&#8660;</Icon>
-          <CustomInput
-            value={node.width?.toString()}
-            onChange={(next) => {
-              if (!next) {
-                node.width = undefined;
-
-                return true;
-              }
-              const value = Number(next);
-
-              if (Number.isNaN(value)) return false;
-
-              node.width = value;
-
-              return true;
-            }}
-          />
-        </Scrubber>
-        <Scrubber
+        <SizePropInput property="width" node={node} />
+        <SizePropInput
           className="second-in-row"
-          value={node.height}
-          onChange={(next) => (node.height = next)}
-        >
-          <Icon>&#8661;</Icon>
-          <CustomInput
-            value={node.height?.toString()}
-            onChange={(next) => {
-              if (!next) {
-                node.height = undefined;
-
-                return true;
-              }
-              const value = Number(next);
-
-              if (Number.isNaN(value)) return false;
-
-              node.height = value;
-
-              return true;
-            }}
-          />
-        </Scrubber>
+          property="height"
+          node={node}
+        />
       </ElementsRow>
       <ElementsRow>
         <Scrubber

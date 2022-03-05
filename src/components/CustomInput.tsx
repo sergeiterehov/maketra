@@ -35,13 +35,9 @@ export const CustomInput: FC<{
 
   const onChangeApply = useCallback(
     (newValue?: string): boolean => {
-      const applied = onChange ? onChange(newValue) : false;
+      setText(valueRef.current || "");
 
-      if (applied) {
-        // ok
-      } else {
-        setText(valueRef.current || "");
-      }
+      const applied = onChange ? onChange(newValue) : false;
 
       return applied;
     },
