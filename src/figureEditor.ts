@@ -1,41 +1,37 @@
-import { action, observable } from "mobx";
+import { action, observable, runInAction } from "mobx";
 import { Figure } from "./models/Figure";
 import { FPoint } from "./models/FPoint";
 import { Group } from "./models/Group";
+import { MkNode } from "./models/MkNode";
 
 const figureEditorGroup = Object.assign(new Group(), { name: "FigureEdit" });
-
-// TODO:
-figureEditorGroup.interactive = false;
 
 export const figureEditor = observable(
   {
     group: figureEditorGroup,
     /** Соответствие точке трансформерам. */
-    points: new Map<FPoint, Figure>(),
+    points: new Map<Figure, FPoint>(),
     /** Трансформеры кривых. */
-    curves: [] as Figure[],
+    curvesBefore: new Map<Figure, FPoint>(),
+    curvesAfter: new Map<Figure, FPoint>(),
     /** Соединяющие линии. */
-    lines: [] as Figure[],
+    lines: new Map<Figure, FPoint>(),
+
+    target: undefined as Figure | undefined,
+
+    has(node: MkNode): boolean {
+      return this.group.allNodes.includes(node);
+    },
 
     adjust(figure?: Figure) {
-      for (const t of Array.from(this.points.values())) {
-        t.destroy();
-      }
+      for (const c of [...this.group.children]) c.destroy();
 
       this.points.clear();
+      this.curvesAfter.clear();
+      this.curvesBefore.clear();
+      this.lines.clear();
 
-      for (const c of this.curves) {
-        c.destroy();
-      }
-
-      this.curves.splice(0, this.curves.length);
-
-      for (const l of this.lines) {
-        l.destroy();
-      }
-
-      this.lines.splice(0, this.lines.length);
+      this.target = figure;
 
       if (!figure) return;
 
@@ -48,6 +44,7 @@ export const figureEditor = observable(
         if (!p.parentPoint) continue;
 
         const l = Object.assign(new Figure(), {
+          interactive: false, // TODO:
           points: FPoint.createLine(
             x + p.parentPoint.x,
             y + p.parentPoint.y,
@@ -56,7 +53,7 @@ export const figureEditor = observable(
           ),
         });
 
-        this.lines.push(l);
+        this.lines.set(l, p);
         l.moveTo(this.group);
       }
 
@@ -70,7 +67,7 @@ export const figureEditor = observable(
             y: y + p.y + p.yAfter - 1.5,
           });
 
-          this.curves.push(ac);
+          this.curvesAfter.set(ac, p);
           ac.moveTo(this.group);
         }
 
@@ -81,7 +78,7 @@ export const figureEditor = observable(
             y: y + p.y + p.yBefore - 1.5,
           });
 
-          this.curves.push(bc);
+          this.curvesBefore.set(bc, p);
           bc.moveTo(this.group);
         }
       }
@@ -93,12 +90,112 @@ export const figureEditor = observable(
           y: y + p.y - 3,
         });
 
-        this.points.set(p, t);
+        this.points.set(t, p);
         t.moveTo(this.group);
       }
+
+      console.log(this);
+    },
+
+    realign() {
+      const figure = this.target;
+
+      if (!figure) return;
+
+      const at = figure.absoluteTransform;
+      const { x, y } = at.decompose();
+
+      // Линии
+
+      for (const l of this.lines.keys()) {
+        const p = this.lines.get(l);
+
+        if (!p) continue;
+
+        Object.assign(l.points[0], {
+          x: x + p.parentPoint!.x,
+          y: y + p.parentPoint!.y,
+        });
+
+        Object.assign(l.points[1], {
+          x: x + p.x,
+          y: y + p.y,
+        });
+
+        Object.assign(l, {
+          x: 0,
+          y: 0,
+        });
+      }
+
+      // Кривые до
+
+      for (const ac of this.curvesAfter.keys()) {
+        const p = this.curvesAfter.get(ac);
+
+        if (!p) continue;
+
+        Object.assign(ac, {
+          x: x + p.x + p.xAfter - 1.5,
+          y: y + p.y + p.yAfter - 1.5,
+        });
+      }
+
+      // Кривые после
+
+      for (const ab of this.curvesBefore.keys()) {
+        const p = this.curvesBefore.get(ab);
+
+        if (!p) continue;
+
+        Object.assign(ab, {
+          x: x + p.x + p.xBefore - 1.5,
+          y: y + p.y + p.yBefore - 1.5,
+        });
+      }
+
+      // Сами точки
+
+      for (const t of this.points.keys()) {
+        const p = this.points.get(t);
+
+        if (!p) continue;
+
+        Object.assign(t, {
+          x: x + p.x - 3,
+          y: y + p.y - 3,
+        });
+      }
+    },
+
+    moveControlBy(node: MkNode, dx: number, dy: number) {
+      const point = this.points.get(node as Figure);
+      const curveAfter = this.curvesAfter.get(node as Figure);
+      const curveBefore = this.curvesBefore.get(node as Figure);
+
+      if (curveAfter) {
+        curveAfter.xAfter += dx;
+        curveAfter.yAfter += dy;
+      } else if (curveBefore) {
+        curveBefore.xBefore += dx;
+        curveBefore.yBefore += dy;
+      } else if (point) {
+        point.x += dx;
+        point.y += dy;
+      } else {
+        return;
+      }
+
+      if (this.target) {
+        this.target.adjustPointsAndSize();
+      }
+
+      this.realign();
     },
   },
   {
     adjust: action,
+    moveControlBy: action,
+    realign: action,
   }
 );

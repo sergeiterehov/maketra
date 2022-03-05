@@ -126,6 +126,15 @@ export class MkNode {
     makeObservable(this);
   }
 
+  @action public remove() {
+    if (!this.parentNode) return;
+
+    const index = this.parentNode.children.indexOf(this);
+
+    this.parentNode.children.splice(index, 1);
+    this.parentNode = undefined;
+  }
+
   @action public destroy() {
     if (this.parentNode) {
       const index = this.parentNode.children.indexOf(this);
@@ -133,6 +142,9 @@ export class MkNode {
       this.parentNode.children.splice(index, 1);
       this.parentNode = undefined;
     }
+
+    // Нужно пройти по копии массива, так как он изменяется.
+    for (const child of [...this.children]) child.destroy();
 
     MkNode.reservedColors.delete(this.hitColorKey);
     this.hitColorKey = "transparent";

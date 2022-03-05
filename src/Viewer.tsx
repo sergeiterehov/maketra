@@ -83,7 +83,7 @@ const Viewer = observer<{
     transformer.adjust(selected);
 
     const stop = observe(selected, () => {
-      figureEditor.adjust(selected instanceof Figure ? selected : undefined);
+      figureEditor.realign();
       transformer.adjust(selected).realign();
     });
 
@@ -138,6 +138,7 @@ const Viewer = observer<{
     y: 0,
     dragging: false,
     transformerControl: undefined as undefined | MkNode,
+    figureEditorControl: undefined as undefined | MkNode,
   });
 
   const mouseDownHandler = useCallback(
@@ -158,8 +159,13 @@ const Viewer = observer<{
       // Если это трансформер, то не выделять его не нужно.
       if (node && transformer.has(node)) {
         mouseRef.current.transformerControl = node;
+        mouseRef.current.figureEditorControl = undefined;
+      } else if (node && figureEditor.has(node)) {
+        mouseRef.current.figureEditorControl = node;
+        mouseRef.current.transformerControl = undefined;
       } else {
         mouseRef.current.transformerControl = undefined;
+        mouseRef.current.figureEditorControl = undefined;
         onSelect?.(node);
       }
 
@@ -178,20 +184,21 @@ const Viewer = observer<{
       const y = e.clientY - rect.top;
 
       if (mouseRef.current.dragging) {
-        const { transformerControl } = mouseRef.current;
+        const { transformerControl, figureEditorControl } = mouseRef.current;
+
+        const dx = x - mouseRef.current.x;
+        const dy = y - mouseRef.current.y;
 
         if (transformerControl) {
-          transformer.moveControlBy(
-            transformerControl,
-            x - mouseRef.current.x,
-            y - mouseRef.current.y
-          );
+          transformer.moveControlBy(transformerControl, dx, dy);
 
           if (selected) transformer.applyTo(selected);
+        } else if (figureEditorControl) {
+          figureEditor.moveControlBy(figureEditorControl, dx, dy);
         } else if (selected) {
           runInAction(() => {
-            selected.x += x - mouseRef.current.x;
-            selected.y += y - mouseRef.current.y;
+            selected.x += dx;
+            selected.y += dy;
           });
         }
       }

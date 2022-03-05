@@ -121,7 +121,7 @@ export class Figure extends Primitive {
   }
 
   @action
-  protected adjustPointsAndSize() {
+  public adjustPointsAndSize() {
     let xMin = +Infinity;
     let yMin = +Infinity;
     let xMax = -Infinity;
