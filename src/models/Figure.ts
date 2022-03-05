@@ -18,7 +18,7 @@ export class Figure extends Primitive {
   public name: string = "Figure";
 
   @observable public points: FPoint[] = [];
-  @observable public backgroundColor: string = "#AAAAAA";
+  @observable public backgroundColor?: string = "#AAAAAA";
   @observable public strokeColor: string = "#000000";
   @observable public strokeWidth: number = 1;
   @observable public strokeStyle: StrokeStyle = StrokeStyle.Solid;
@@ -185,7 +185,12 @@ export class Figure extends Primitive {
 
     if (isClosed) {
       ctx.closePath();
-      ctx.fill();
+
+      const { backgroundColor } = this;
+
+      if (backgroundColor) {
+        ctx.fill();
+      }
     }
   }
 
@@ -199,7 +204,9 @@ export class Figure extends Primitive {
       strokeDashGap,
     } = this;
 
-    ctx.fillStyle = backgroundColor;
+    if (backgroundColor) {
+      ctx.fillStyle = backgroundColor;
+    }
 
     this.renderPathData(ctx);
 

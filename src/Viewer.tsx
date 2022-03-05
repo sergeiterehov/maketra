@@ -69,8 +69,25 @@ const Viewer = observer<{
     figureEditor.group.draw(ctxView, ctxHit, baseTransform);
   }, [baseTransform, hitCanvas, section, selected]);
 
+  useEffect(() => {
+    const next = section.nodes[0].findOneByName<Figure>("DrawMe")!;
+
+    mouseRef.current.figureEditorControl = figureEditor.newPoint;
+    mouseRef.current.transformerControl = undefined;
+
+    onSelect?.(next);
+
+    figureEditor.newPointParent = next.points[0];
+  }, [onSelect, section]);
+
   // TODO: Здесь нужен планировщик отрисовки, так как отслеживается КАЖДОЕ изменение ВЕЗДЕ.
-  useEffect(() => autorun(() => draw()), [draw, section]);
+  useEffect(() => {
+    return autorun(() => draw());
+  }, [draw]);
+
+  useLayoutEffect(() => {
+    draw();
+  });
 
   useEffect(() => {
     if (!selected) {
@@ -129,10 +146,6 @@ const Viewer = observer<{
     };
   }, [pixelRatio]);
 
-  useLayoutEffect(() => {
-    draw();
-  });
-
   const mouseRef = useRef({
     x: 0,
     y: 0,
@@ -160,6 +173,15 @@ const Viewer = observer<{
       if (node && transformer.has(node)) {
         mouseRef.current.transformerControl = node;
         mouseRef.current.figureEditorControl = undefined;
+      } else if (figureEditor.newPointParent) {
+        // Находимся в режиме добавления точки
+        const point = figureEditor.points.get(node as Figure);
+
+        if (point) {
+          figureEditor.createPoint(point);
+        } else {
+          figureEditor.createPoint();
+        }
       } else if (node && figureEditor.has(node)) {
         mouseRef.current.figureEditorControl = node;
         mouseRef.current.transformerControl = undefined;
@@ -183,12 +205,12 @@ const Viewer = observer<{
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
+      const dx = x - mouseRef.current.x;
+      const dy = y - mouseRef.current.y;
+
+      const { transformerControl, figureEditorControl } = mouseRef.current;
+
       if (mouseRef.current.dragging) {
-        const { transformerControl, figureEditorControl } = mouseRef.current;
-
-        const dx = x - mouseRef.current.x;
-        const dy = y - mouseRef.current.y;
-
         if (transformerControl) {
           transformer.moveControlBy(transformerControl, dx, dy);
 
@@ -201,6 +223,8 @@ const Viewer = observer<{
             selected.y += dy;
           });
         }
+      } else if (figureEditor.newPointParent) {
+        figureEditor.moveNewPoint(dx, dy);
       }
 
       mouseRef.current.x = x;

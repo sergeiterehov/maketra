@@ -161,7 +161,10 @@ export class MkNode {
   @action moveTo(parentNode: MkNode) {
     this.parentNode = parentNode;
     this.moveToSection(parentNode.parentSection);
-    parentNode.children.push(this);
+
+    if (!parentNode.children.includes(this)) {
+      parentNode.children.push(this);
+    }
 
     return this;
   }
@@ -176,13 +179,13 @@ export class MkNode {
     return this;
   }
 
-  public findOneByName(name: string): MkNode | undefined {
+  public findOneByName<T extends MkNode>(name: string): T | undefined {
     const pool: MkNode[] = [...this.children];
 
     while (pool.length) {
       const node = pool.pop()!;
 
-      if (node.name === name) return node;
+      if (node.name === name) return node as T;
 
       pool.push(...node.children);
     }

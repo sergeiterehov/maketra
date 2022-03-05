@@ -96,18 +96,18 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
       </ElementsRow>
       <ElementsRow>
         <Scrubber
-          value={node.rotate}
-          onChange={(next) => (node.rotate = next || 0)}
+          value={(node.rotate / Math.PI) * 180}
+          onChange={(next) => (node.rotate = ((next || 0) / 180) * Math.PI)}
         >
           <Icon>&#8635;</Icon>
           <CustomInput
-            value={node.rotate.toString()}
+            value={((node.rotate / Math.PI) * 180).toString()}
             onChange={(next) => {
               const value = Number(next);
 
               if (Number.isNaN(value)) return false;
 
-              node.rotate = value;
+              node.rotate = value / 180 * Math.PI;
 
               return true;
             }}

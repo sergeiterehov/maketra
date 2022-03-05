@@ -47,26 +47,30 @@ space.projects[0].sections[0].nodes[0].add(
       width: 40,
       height: 60,
       backgroundColor: "#AFA",
+      clipContent: false,
     }).add(
-      Object.assign(new Figure(), {
-        name: "Star",
-        x: 5,
-        y: 5,
-        points: FPoint.start(15.422, 18.129)
-          .line(-5.264, -2.768)
-          .line(-5.265, 2.768)
-          .line(1.006, -5.863)
-          .lineTo(1.64, 8.114)
-          .line(5.887, -0.855)
-          .line(2.632, -5.334)
-          .line(2.633, 5.334)
-          .line(5.885, 0.855)
-          .line(-4.258, 4.152)
-          .lineTo(15.422, 18.129)
-          .loop().allPoints,
-        backgroundColor: "#AAF",
-        strokeWidth: 0,
-      })
+      Object.assign(
+        new Figure(),
+        {
+          name: "Star",
+          x: 5,
+          y: 5,
+          points: FPoint.start(15.422, 18.129)
+            .line(-5.264, -2.768)
+            .line(-5.265, 2.768)
+            .line(1.006, -5.863)
+            .lineTo(1.64, 8.114)
+            .line(5.887, -0.855)
+            .line(2.632, -5.334)
+            .line(2.633, 5.334)
+            .line(5.885, 0.855)
+            .line(-4.258, 4.152)
+            .loop().allPoints,
+          backgroundColor: "#AAF",
+          strokeWidth: 0,
+        },
+        { width: 50, height: 50 }
+      )
     ),
     Object.assign(new Text(), {
       name: "Label 1",
@@ -76,7 +80,7 @@ space.projects[0].sections[0].nodes[0].add(
       fontWeight: FontWeight.Regular,
       fontFamily: "sans-serif",
       text: "Hello, world!\nHow are you?",
-      textColor: "#272",
+      textColor: "#722",
     })
   ),
   Object.assign(new Figure(), {
@@ -89,7 +93,15 @@ space.projects[0].sections[0].nodes[0].add(
       .next(new FPoint(0, 110, -30, -30))
       .loop().allPoints,
     backgroundColor: "#AAF",
-    strokeWidth: 2,
+    strokeWidth: 4,
+  }),
+  Object.assign(new Figure(), {
+    name: "DrawMe",
+    x: 200,
+    y: 50,
+    points: new FPoint(0, 0, 0, 0).line(50, 50).allPoints,
+    backgroundColor: "#AAF",
+    strokeWidth: 10,
   })
 );
 
