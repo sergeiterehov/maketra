@@ -94,14 +94,6 @@ space.projects[0].sections[0].nodes[0].add(
       .loop().allPoints,
     backgroundColor: "#AAF",
     strokeWidth: 4,
-  }),
-  Object.assign(new Figure(), {
-    name: "DrawMe",
-    x: 200,
-    y: 50,
-    points: new FPoint(0, 0, 0, 0).line(50, 50).allPoints,
-    backgroundColor: "#AAF",
-    strokeWidth: 10,
   })
 );
 

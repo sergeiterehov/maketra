@@ -14,13 +14,14 @@ import { Section } from "./models/Section";
 import { figureEditor } from "./figureEditor";
 import { transformer } from "./transformer";
 import { Transform } from "./utils/Transform";
+import { FPoint } from "./models/FPoint";
 
 const Viewer = observer<{
   section: Section;
   width: number;
   height: number;
   selected?: MkNode;
-  onSelect?(node?: MkNode): void;
+  onSelect(node?: MkNode): void;
 }>(({ width, height, section, selected, onSelect }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -69,17 +70,6 @@ const Viewer = observer<{
     figureEditor.group.draw(ctxView, ctxHit, baseTransform);
   }, [baseTransform, hitCanvas, section, selected]);
 
-  useEffect(() => {
-    const next = section.nodes[0].findOneByName<Figure>("DrawMe")!;
-
-    mouseRef.current.figureEditorControl = figureEditor.newPoint;
-    mouseRef.current.transformerControl = undefined;
-
-    onSelect?.(next);
-
-    figureEditor.newPointParent = next.points[0];
-  }, [onSelect, section]);
-
   // TODO: Здесь нужен планировщик отрисовки, так как отслеживается КАЖДОЕ изменение ВЕЗДЕ.
   useEffect(() => {
     return autorun(() => draw());
@@ -96,8 +86,8 @@ const Viewer = observer<{
       return;
     }
 
-    figureEditor.adjust(selected instanceof Figure ? selected : undefined);
     transformer.adjust(selected);
+    figureEditor.adjust(selected instanceof Figure ? selected : undefined);
 
     const stop = observe(selected, () => {
       figureEditor.realign();
@@ -179,6 +169,7 @@ const Viewer = observer<{
 
         if (point) {
           figureEditor.createPoint(point);
+          onSelect(figureEditor.target);
         } else {
           figureEditor.createPoint();
         }
@@ -188,7 +179,7 @@ const Viewer = observer<{
       } else {
         mouseRef.current.transformerControl = undefined;
         mouseRef.current.figureEditorControl = undefined;
-        onSelect?.(node);
+        onSelect(node);
       }
 
       mouseRef.current.x = x;
@@ -224,13 +215,26 @@ const Viewer = observer<{
           });
         }
       } else if (figureEditor.newPointParent) {
-        figureEditor.moveNewPoint(dx, dy);
+        figureEditor.moveNewPoint(
+          baseTransform
+            .copy()
+            .multiply(figureEditor.target!.absoluteTransform)
+            .multiply(
+              new Transform().translate(
+                figureEditor.newPointParent.x,
+                figureEditor.newPointParent.y
+              )
+            )
+            .invert()
+            .scale(pixelRatio, pixelRatio)
+            .point({ x, y })
+        );
       }
 
       mouseRef.current.x = x;
       mouseRef.current.y = y;
     },
-    [selected]
+    [selected, baseTransform, pixelRatio]
   );
 
   const mouseUpHandler = useCallback(
@@ -239,6 +243,38 @@ const Viewer = observer<{
     },
     []
   );
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const { x, y } = mouseRef.current;
+
+      if (e.code === "KeyF") {
+        const figure = new Figure();
+
+        const vec2d = baseTransform
+          .copy()
+          .multiply(section.nodes[0].absoluteTransform)
+          .invert()
+          .scale(pixelRatio, pixelRatio)
+          .point({ x, y });
+
+        figure.points = [new FPoint(vec2d.x, vec2d.y)];
+
+        section.nodes[0].add(figure);
+
+        onSelect(undefined);
+
+        figureEditor.adjust(figure);
+        figureEditor.showNewPoint();
+      }
+    };
+
+    window.addEventListener("keydown", handler);
+
+    return () => {
+      window.removeEventListener("keydown", handler);
+    };
+  }, [baseTransform, onSelect, pixelRatio, section]);
 
   return (
     <>

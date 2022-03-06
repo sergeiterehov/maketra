@@ -3,12 +3,21 @@ import { Figure } from "./models/Figure";
 import { FPoint } from "./models/FPoint";
 import { Group } from "./models/Group";
 import { MkNode } from "./models/MkNode";
+import { Vector2d } from "./utils/Transform";
 
 const linesColor = "#0FF";
 const pointsColor = "#DEF";
 const pointsBorderColor = "#0AF";
 
-const figureEditorGroup = Object.assign(new Group(), { name: "FigureEdit" });
+const newPointLine = Object.assign(new Figure(), {
+  interactive: false,
+  points: FPoint.createLine(0, 0, 1, 1),
+  strokeColor: linesColor,
+});
+const controlsGroup = new Group();
+const figureEditorGroup = Object.assign(new Group(), {
+  name: "FigureEdit",
+}).add(controlsGroup, newPointLine);
 
 export const figureEditor = observable(
   {
@@ -25,23 +34,15 @@ export const figureEditor = observable(
 
     /** Точка после которой будет выполняться дорисовка. */
     newPointParent: undefined as FPoint | undefined,
-    newPointDiffPos: { x: 0, y: 0 },
-    newPoint: Object.assign(new Figure(), {
-      points: FPoint.createRect(0, 0, 6, 6),
-      x: -3,
-      y: -3,
-    }),
+    newPointOffset: { x: 0, y: 0 } as Vector2d,
 
     has(node: MkNode): boolean {
-      return this.group.allNodes.includes(node);
+      return controlsGroup.allNodes.includes(node);
     },
 
     adjust(figure?: Figure) {
-      for (const c of [...this.group.children]) {
-        if (c === this.newPoint) continue;
-
-        c.destroy();
-      }
+      // Остальные объекты уничтожаются.
+      for (const c of [...controlsGroup.children]) c.destroy();
 
       this.points.clear();
       this.curvesAfter.clear();
@@ -54,10 +55,6 @@ export const figureEditor = observable(
 
       const at = figure.absoluteTransform;
       const { x, y } = at.decompose();
-
-      // Указатель новой точки
-
-      this.newPoint.moveTo(this.group);
 
       // Сперва создаем соединительные линии.
 
@@ -76,7 +73,7 @@ export const figureEditor = observable(
         });
 
         this.lines.set(l, p);
-        l.moveTo(this.group);
+        l.moveTo(controlsGroup);
       }
 
       // Поверх линий накладываем трансформеры.
@@ -89,7 +86,7 @@ export const figureEditor = observable(
         });
 
         this.curvesAfter.set(ac, p);
-        ac.moveTo(this.group);
+        ac.moveTo(controlsGroup);
 
         const bc = Object.assign(new Figure(), {
           points: FPoint.createRect(0, 0, 3, 3),
@@ -98,7 +95,7 @@ export const figureEditor = observable(
         });
 
         this.curvesBefore.set(bc, p);
-        bc.moveTo(this.group);
+        bc.moveTo(controlsGroup);
       }
 
       for (const p of figure.points) {
@@ -111,7 +108,7 @@ export const figureEditor = observable(
         });
 
         this.points.set(t, p);
-        t.moveTo(this.group);
+        t.moveTo(controlsGroup);
       }
     },
 
@@ -188,17 +185,20 @@ export const figureEditor = observable(
       // Новая точка
 
       if (this.newPointParent) {
-        this.newPoint.x =
-          x +
-          this.newPointParent.x +
-          this.newPointDiffPos.x -
-          (this.newPoint.width || 0) / 2;
+        newPointLine.visible = true;
 
-        this.newPoint.y =
-          y +
-          this.newPointParent.y +
-          this.newPointDiffPos.y -
-          (this.newPoint.height || 0) / 2;
+        newPointLine.x = x + this.newPointParent.x;
+        newPointLine.y = y + this.newPointParent.y;
+
+        newPointLine.points[0].x = 0;
+        newPointLine.points[0].y = 0;
+
+        newPointLine.points[1].x = this.newPointOffset.x;
+        newPointLine.points[1].y = this.newPointOffset.y;
+
+        newPointLine.points = [...newPointLine.points];
+      } else {
+        newPointLine.visible = false;
       }
     },
 
@@ -227,9 +227,28 @@ export const figureEditor = observable(
       this.realign();
     },
 
-    moveNewPoint(dx: number, dy: number) {
-      this.newPointDiffPos.x += dx;
-      this.newPointDiffPos.y += dy;
+    showNewPoint() {
+      const { target } = this;
+
+      if (!target) return;
+
+      const { isClosed, points } = target.lines;
+
+      if (isClosed) return;
+
+      this.newPointParent = points[points.length - 1];
+
+      if (!this.newPointParent) return;
+
+      this.newPointOffset.x = 0;
+      this.newPointOffset.y = 0;
+
+      this.realign();
+    },
+
+    moveNewPoint(newPosition: Vector2d) {
+      this.newPointOffset.x = newPosition.x;
+      this.newPointOffset.y = newPosition.y;
 
       this.realign();
     },
@@ -239,16 +258,14 @@ export const figureEditor = observable(
 
       if (!this.target) return;
 
-      const { x, y } = this.newPointDiffPos;
+      const { x, y } = this.newPointOffset;
 
-      this.newPointDiffPos.x = 0;
-      this.newPointDiffPos.y = 0;
+      this.newPointOffset.x = 0;
+      this.newPointOffset.y = 0;
 
       if (toPoint) {
         toPoint.parentPoint = this.newPointParent;
         this.newPointParent = undefined;
-
-        console.log(111)
       } else {
         const next = this.newPointParent.line(x, y);
 
@@ -266,5 +283,6 @@ export const figureEditor = observable(
     realign: action,
     moveNewPoint: action,
     createPoint: action,
+    showNewPoint: action,
   }
 );
