@@ -30,7 +30,7 @@ export class FPoint {
       .allPoints;
   }
 
-  @observable public parentPoint?: FPoint = undefined;
+  @observable public links: FPoint[] = [];
 
   @observable public x: number = 0;
   @observable public y: number = 0;
@@ -49,9 +49,12 @@ export class FPoint {
     yAfter: number = 0,
     xBefore?: number,
     yBefore?: number,
-    parentPoint?: FPoint
+    parent?: FPoint
   ) {
-    this.parentPoint = parentPoint;
+    if (parent) {
+      this.links.push(parent);
+      parent.links.push(this);
+    }
 
     this.x = x;
     this.y = y;
@@ -67,13 +70,15 @@ export class FPoint {
   /** Все точки по связям. */
   @computed public get allPoints(): FPoint[] {
     const result: FPoint[] = [];
-    let lookup: FPoint | undefined = this;
+    let lookup: FPoint[] = [this];
 
-    while (lookup) {
-      if (result.includes(lookup)) break;
+    while (lookup.length) {
+      const point = lookup.pop()!;
 
-      result.push(lookup);
-      lookup = lookup.parentPoint;
+      if (result.includes(point)) continue;
+
+      result.push(point);
+      lookup.push(...point.links);
     }
 
     return result;
@@ -85,7 +90,8 @@ export class FPoint {
    * @param parent Родительская точка.
    */
   public after(parent: FPoint) {
-    this.parentPoint = parent;
+    this.links.push(parent);
+    parent.links.push(this);
 
     return this;
   }
@@ -97,7 +103,8 @@ export class FPoint {
    */
   public before(...children: FPoint[]) {
     for (const child of children) {
-      child.parentPoint = this;
+      child.links.push(this);
+      this.links.push(child);
     }
 
     return this;
@@ -109,7 +116,8 @@ export class FPoint {
    * @param next Присоединяемая точка.
    */
   public next(next: FPoint) {
-    next.parentPoint = this;
+    next.links.push(this);
+    this.links.push(next);
 
     return next;
   }
@@ -119,18 +127,21 @@ export class FPoint {
    */
   public loop() {
     const checked: FPoint[] = [this];
-    let lookup = this.parentPoint;
+    let lookup = [...this.links];
 
-    while (lookup) {
-      if (checked.includes(lookup)) break;
+    while (lookup.length) {
+      const point = lookup.pop()!;
 
-      if (!lookup.parentPoint) {
-        lookup.parentPoint = this;
+      if (checked.includes(point)) continue;
+
+      if (point.links.length <= 1) {
+        point.links.push(this);
+        this.links.push(point);
         break;
       }
 
-      checked.push(lookup);
-      lookup = lookup.parentPoint;
+      checked.push(point);
+      lookup.push(...point.links);
     }
 
     return this;

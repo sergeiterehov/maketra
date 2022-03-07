@@ -16,9 +16,18 @@ export const Scrubber: FC<{
   className?: string;
   value?: number;
   speed?: number;
-  units?: string;
-  onChange?(newValue?: number, units?: string): void;
-}> = ({ children, value, units, onChange, className, speed = 1 }) => {
+  min?: number;
+  max?: number;
+  onChange?(newValue?: number): void;
+}> = ({
+  children,
+  value,
+  min = -Infinity,
+  max = +Infinity,
+  onChange,
+  className,
+  speed = 1,
+}) => {
   const valueRef = useRef(value);
 
   valueRef.current = value;
@@ -41,7 +50,7 @@ export const Scrubber: FC<{
       const dy = e.movementY;
 
       if (valueRef.current !== undefined) {
-        onChange(valueRef.current + dx * speed);
+        onChange(Math.max(min, Math.min(max, valueRef.current + dx * speed)));
       }
     };
 
@@ -52,7 +61,7 @@ export const Scrubber: FC<{
       window.removeEventListener("mouseup", mouseUpRawHandler, true);
       window.removeEventListener("mousemove", mouseMoveRawHandler, true);
     };
-  }, [onChange, speed]);
+  }, [max, min, onChange, speed]);
 
   const mouseDownHandler: React.MouseEventHandler<HTMLLabelElement> =
     useCallback((e) => {
@@ -64,7 +73,7 @@ export const Scrubber: FC<{
   const mouseUpHandler: React.MouseEventHandler<HTMLLabelElement> = useCallback(
     (e) => {
       document.exitPointerLock();
-      
+
       if (!trackingRef.current) return;
 
       trackingRef.current = false;

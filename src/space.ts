@@ -87,6 +87,7 @@ space.projects[0].sections[0].nodes[0].add(
     name: "Curved Circle",
     x: 140,
     y: 240,
+    cornerRadius: 40,
     points: new FPoint(0, 0, 30, -30)
       .next(new FPoint(110, 0, 30, 30))
       .next(new FPoint(110, 110, -30, 30))

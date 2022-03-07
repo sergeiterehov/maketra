@@ -14,10 +14,17 @@ export enum StrokeStyle {
   Dash,
 }
 
+export interface PointTriad {
+  from_p?: FPoint;
+  p: FPoint;
+  p_to?: FPoint;
+}
+
 export class Figure extends Primitive {
   public name: string = "Figure";
 
   @observable public points: FPoint[] = [];
+  @observable public cornerRadius: number = 0;
   @observable public backgroundColor?: string = "#AAAAAA";
   @observable public strokeColor: string = "#000000";
   @observable public strokeWidth: number = 1;
@@ -76,48 +83,21 @@ export class Figure extends Primitive {
    *
    * Проверяет и возвращает замкнутость фигуры. TODO: вынести в отдельный get.
    */
-  @computed public get lines(): { points: FPoint[]; isClosed: boolean } {
-    let isClosed = false;
-    const points: FPoint[] = [];
+  @computed public get triads(): PointTriad[] {
+    const { points } = this;
 
-    const reserve: FPoint[] = [];
-    const pool: FPoint[] = [];
+    const triads: PointTriad[] = [];
 
-    for (const p of this.points) {
-      if (!p.parentPoint) {
-        pool.push(p);
-      } else {
-        reserve.push(p);
-      }
+    const probEntryPoints = [...points];
+    const entryPoints: FPoint[] = [];
+
+    while (probEntryPoints.length) {
+      const probEntry = probEntryPoints.pop()!;
+
+      // идем к началу или к самому себе
     }
 
-    // Если нет ни одной начальной точки, то это замкнутая фигура.
-    if (this.points.length && !pool.length) {
-      isClosed = true;
-      // Можно начать рисование с любой точки.
-      pool.push(reserve.pop()!);
-    }
-
-    while (pool.length) {
-      const p = pool.pop()!;
-
-      points.push(p);
-
-      // Далее находим связанные с текущей точки.
-      for (let i = 0; i < reserve.length; i += 1) {
-        const other = reserve[i];
-
-        if (other.parentPoint === p) {
-          pool.push(other);
-          // Удаляем из резерва.
-          reserve.splice(i, 1);
-          i -= 1;
-          continue;
-        }
-      }
-    }
-
-    return { points, isClosed };
+    return triads;
   }
 
   @action
@@ -153,43 +133,76 @@ export class Figure extends Primitive {
     this.lockScaleOnResize = false;
   }
 
-  protected renderPathData(ctx: CanvasRenderingContext2D): void {
-    if (!this.points.length) return;
+  protected renderPathData(
+    ctx: CanvasRenderingContext2D,
+    final: () => void
+  ): void {
+    const { points, cornerRadius } = this;
 
-    ctx.beginPath();
+    if (!points) return;
 
-    const { isClosed, points } = this.lines;
+    // TODO: drawing
 
-    if (!points.length) return;
+    const drawn: FPoint[] = [];
+    const willPass: FPoint[] = [points[0]]; // TODO: each entry point
 
-    // Если это замкнутая фигура, то нужно сперва перейти
-    if (points[0].parentPoint) {
-      ctx.moveTo(points[0].parentPoint.x, points[0].parentPoint.y);
-    }
+    function pass(p: FPoint) {
+      if (drawn.includes(p)) {
+        ctx.closePath();
+        return;
+      }
 
-    for (const p of points) {
-      if (p.parentPoint) {
-        // Можно рисовать lineTo для отображения скелета.
-        ctx.bezierCurveTo(
-          p.parentPoint.x + p.parentPoint.xAfter,
-          p.parentPoint.y + p.parentPoint.yAfter,
-          p.x + p.xBefore,
-          p.y + p.yBefore,
-          p.x,
-          p.y
-        );
-      } else {
-        ctx.moveTo(p.x, p.y);
+      drawn.push(p);
+
+      if (p.links.length === 2) {
+        const [a, b] = p.links;
+        const p_to = drawn.includes(a) ? b : a;
+        const from_p = p_to === a ? b : a;
+
+        if (!drawn.includes(from_p)) {
+          ctx.moveTo(from_p.x, from_p.y);
+        }
+
+        ctx.arcTo(p.x, p.y, p_to.x, p_to.y, cornerRadius);
+
+        pass(p_to);
       }
     }
 
-    if (isClosed) {
-      ctx.closePath();
+    for (const p of willPass) {
+      ctx.beginPath();
+      ctx.moveTo(p.x, p.y);
 
-      const { backgroundColor } = this;
+      pass(p);
+      final();
+    }
 
-      if (backgroundColor) {
-        ctx.fill();
+    if (1 === 1) return;
+    drawn.length = 0;
+
+    for (const p of points) {
+      for (const from_p of p.links) {
+        drawn.push(p);
+
+        if (drawn.includes(from_p)) continue;
+
+        if (cornerRadius && p.links.length === 2) {
+          for (const p_to of p.links) {
+            if (from_p === p_to || drawn.includes(p_to)) continue;
+
+            ctx.beginPath();
+            ctx.moveTo(from_p.x, from_p.y);
+            ctx.arcTo(p.x, p.y, p_to.x, p_to.y, cornerRadius);
+
+            final();
+          }
+        } else {
+          ctx.beginPath();
+          ctx.moveTo(from_p.x, from_p.y);
+          ctx.lineTo(p.x, p.y);
+
+          final();
+        }
       }
     }
   }
@@ -208,24 +221,40 @@ export class Figure extends Primitive {
       ctx.fillStyle = backgroundColor;
     }
 
-    this.renderPathData(ctx);
+    this.renderPathData(ctx, () => {
+      if (this.backgroundColor) ctx.fill();
 
-    if (strokeWidth) {
-      ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = strokeColor;
+      if (strokeWidth) {
+        ctx.lineWidth = strokeWidth;
+        ctx.strokeStyle = strokeColor;
 
-      if (strokeStyle === StrokeStyle.Dash) {
-        ctx.setLineDash([strokeDash, strokeDashGap ?? strokeDash]);
+        if (strokeStyle === StrokeStyle.Dash) {
+          ctx.setLineDash([strokeDash, strokeDashGap ?? strokeDash]);
+        }
+
+        ctx.stroke();
       }
+    });
 
-      ctx.stroke();
-    }
+    // FIXME:
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(this.size.width, 0);
+    ctx.lineTo(this.size.width, this.size.height);
+    ctx.lineTo(0, this.size.height);
+    ctx.closePath();
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = "#F005";
+    ctx.stroke();
   }
 
   protected drawHit(ctx: CanvasRenderingContext2D): void {
-    this.renderPathData(ctx);
+    this.renderPathData(ctx, () => {
+      if (this.backgroundColor) ctx.fill();
 
-    ctx.lineWidth = 8;
-    ctx.stroke();
+      ctx.lineWidth = 8;
+      ctx.stroke();
+    });
   }
 }

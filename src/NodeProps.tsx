@@ -107,12 +107,34 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
 
               if (Number.isNaN(value)) return false;
 
-              node.rotate = value / 180 * Math.PI;
+              node.rotate = (value / 180) * Math.PI;
 
               return true;
             }}
           />
         </Scrubber>
+        {node instanceof Figure ? (
+          <Scrubber
+            className="second-in-row"
+            min={0}
+            value={node.cornerRadius}
+            onChange={(next) => (node.cornerRadius = next || 0)}
+          >
+            <Icon>&#8978;</Icon>
+            <CustomInput
+              value={node.cornerRadius.toString()}
+              onChange={(next) => {
+                const value = Number(next);
+
+                if (Number.isNaN(value)) return false;
+
+                node.cornerRadius = Math.max(0, value);
+
+                return true;
+              }}
+            />
+          </Scrubber>
+        ) : null}
       </ElementsRow>
       {node instanceof Area ? (
         <ElementsRow>
@@ -167,6 +189,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
         <>
           <Scrubber
             speed={0.02}
+            min={0}
             value={node.strokeWidth}
             onChange={(next) => (node.strokeWidth = next || 0)}
           >

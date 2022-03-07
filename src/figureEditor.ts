@@ -58,16 +58,13 @@ export const figureEditor = observable(
 
       // Сперва создаем соединительные линии.
 
-      for (const p of figure.lines.points) {
-        if (!p.parentPoint) continue;
+      for (const p of figure.points) {
+        if (!p.links.length) continue;
 
         const l = Object.assign(new Figure(), {
           interactive: false, // TODO:
-          points: FPoint.createLine(
-            x + p.parentPoint.x,
-            y + p.parentPoint.y,
-            x + p.x,
-            y + p.y
+          points: p.links.flatMap((pp) =>
+            FPoint.createLine(x + p.x, y + p.y, x + pp.x, y + pp.y)
           ),
           strokeColor: linesColor,
         });
@@ -127,14 +124,15 @@ export const figureEditor = observable(
 
         if (!p) continue;
 
-        Object.assign(l.points[0], {
-          x: x + p.parentPoint!.x,
-          y: y + p.parentPoint!.y,
-        });
-
-        Object.assign(l.points[1], {
-          x: x + p.x,
-          y: y + p.y,
+        p.links.forEach((pp, i) => {
+          Object.assign(l.points[i * 2], {
+            x: x + p.x,
+            y: y + p.y,
+          });
+          Object.assign(l.points[i * 2 + 1], {
+            x: x + pp.x,
+            y: y + pp.y,
+          });
         });
 
         Object.assign(l, {
@@ -232,9 +230,7 @@ export const figureEditor = observable(
 
       if (!target) return;
 
-      const { isClosed, points } = target.lines;
-
-      if (isClosed) return;
+      const { points } = target;
 
       this.newPointParent = points[points.length - 1];
 
@@ -264,7 +260,7 @@ export const figureEditor = observable(
       this.newPointOffset.y = 0;
 
       if (toPoint) {
-        toPoint.parentPoint = this.newPointParent;
+        this.newPointParent.after(toPoint);
         this.newPointParent = undefined;
       } else {
         const next = this.newPointParent.line(x, y);
@@ -286,3 +282,6 @@ export const figureEditor = observable(
     showNewPoint: action,
   }
 );
+
+//TODO:
+Object.assign(window, { figureEditor });
