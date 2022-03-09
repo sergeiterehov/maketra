@@ -248,24 +248,33 @@ const Viewer = observer<{
     const handler = (e: KeyboardEvent) => {
       const { x, y } = mouseRef.current;
 
-      if (e.code === "KeyF") {
-        const figure = new Figure();
+      switch (e.code) {
+        case "KeyF": {
+          const figure = new Figure();
 
-        const vec2d = baseTransform
-          .copy()
-          .multiply(section.nodes[0].absoluteTransform)
-          .invert()
-          .scale(pixelRatio, pixelRatio)
-          .point({ x, y });
+          const vec2d = baseTransform
+            .copy()
+            .multiply(section.nodes[0].absoluteTransform)
+            .invert()
+            .scale(pixelRatio, pixelRatio)
+            .point({ x, y });
 
-        figure.points = [new FPoint(vec2d.x, vec2d.y)];
+          figure.points = [new FPoint(vec2d.x, vec2d.y)];
 
-        section.nodes[0].add(figure);
+          section.nodes[0].add(figure);
 
-        onSelect(undefined);
+          onSelect(undefined);
 
-        figureEditor.adjust(figure);
-        figureEditor.showNewPoint();
+          figureEditor.adjust(figure);
+          figureEditor.showNewPoint();
+
+          break;
+        }
+        case "KeyR": {
+          draw();
+
+          break;
+        }
       }
     };
 
@@ -274,7 +283,7 @@ const Viewer = observer<{
     return () => {
       window.removeEventListener("keydown", handler);
     };
-  }, [baseTransform, onSelect, pixelRatio, section]);
+  }, [baseTransform, draw, onSelect, pixelRatio, section]);
 
   return (
     <>

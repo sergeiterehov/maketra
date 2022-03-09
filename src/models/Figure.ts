@@ -6,7 +6,7 @@ import {
   observable,
   observe,
 } from "mobx";
-import { FPoint } from "./FPoint";
+import { FLink, FPoint } from "./FPoint";
 import { Primitive } from "./Primitive";
 
 export enum StrokeStyle {
@@ -57,19 +57,29 @@ export class Figure extends Primitive {
       const isWidth = change.name === "width";
       const diff = change.newValue - change.object[change.name];
 
+      let dx = 0;
+      let dy = 0;
+
+      if (isWidth) {
+        dx = diff;
+      } else {
+        dy = diff;
+      }
+
+      const changedLinks: FLink[] = [];
+
       for (const point of this.points) {
-        if (isWidth) {
-          const k = diff / (this.width || 1);
+        const kx = dx / (this.width || 1);
+        const ky = dy / (this.height || 1);
 
-          point.x += k * point.x;
-          point.xAfter += k * point.xAfter;
-          point.xBefore += k * point.xBefore;
-        } else {
-          const k = diff / (this.height || 1);
+        point.x += kx * point.x;
+        point.y += ky * point.y;
 
-          point.y += k * point.y;
-          point.yAfter += k * point.yAfter;
-          point.yBefore += k * point.yBefore;
+        for (const link of point.links) {
+          if (!changedLinks.includes(link)) {
+            link.aControl.x += kx * link.aControl.x;
+            link.aControl.y += ky * link.aControl.y;
+          }
         }
       }
 
@@ -139,71 +149,67 @@ export class Figure extends Primitive {
   ): void {
     const { points, cornerRadius } = this;
 
-    if (!points) return;
+    if (!points.length) return;
 
     // TODO: drawing
 
-    const drawn: FPoint[] = [];
-    const willPass: FPoint[] = [points[0]]; // TODO: each entry point
+    const reserved: FPoint[] = [...this.points];
+    const paths: FPoint[][] = [];
 
-    function pass(p: FPoint) {
-      if (drawn.includes(p)) {
-        ctx.closePath();
-        return;
-      }
+    function pass(point: FPoint, from?: FPoint, path: FPoint[] = []) {
+      path.push(point);
+      reserved.splice(reserved.indexOf(point), 1);
 
-      drawn.push(p);
+      const linked = point.linkedPoints;
 
-      if (p.links.length === 2) {
-        const [a, b] = p.links;
-        const p_to = drawn.includes(a) ? b : a;
-        const from_p = p_to === a ? b : a;
+      for (const next of linked) {
+        // Пропускам связи к предыдущей точке.
+        if (from === next) {
+          // Но если нет других связей, то это конец пути.
+          if (linked.length === 1) {
+            paths.push(path);
 
-        if (!drawn.includes(from_p)) {
-          ctx.moveTo(from_p.x, from_p.y);
-        }
-
-        ctx.arcTo(p.x, p.y, p_to.x, p_to.y, cornerRadius);
-
-        pass(p_to);
-      }
-    }
-
-    for (const p of willPass) {
-      ctx.beginPath();
-      ctx.moveTo(p.x, p.y);
-
-      pass(p);
-      final();
-    }
-
-    if (1 === 1) return;
-    drawn.length = 0;
-
-    for (const p of points) {
-      for (const from_p of p.links) {
-        drawn.push(p);
-
-        if (drawn.includes(from_p)) continue;
-
-        if (cornerRadius && p.links.length === 2) {
-          for (const p_to of p.links) {
-            if (from_p === p_to || drawn.includes(p_to)) continue;
-
-            ctx.beginPath();
-            ctx.moveTo(from_p.x, from_p.y);
-            ctx.arcTo(p.x, p.y, p_to.x, p_to.y, cornerRadius);
-
-            final();
+            break;
           }
-        } else {
-          ctx.beginPath();
-          ctx.moveTo(from_p.x, from_p.y);
-          ctx.lineTo(p.x, p.y);
 
-          final();
+          continue;
+        }
+
+        const branchPath = [...path];
+
+        if (path.includes(next)) {
+          // Фигура замкнулась
+          // TODO: Нужно отделить линию до цикла!
+          branchPath.push(next);
+          paths.push(branchPath);
+        } else if (reserved.includes(next)) {
+          pass(next, point, branchPath);
         }
       }
+    }
+
+    for (let i = 0; i < reserved.length; i += 1) {
+      pass(reserved[i]);
+    }
+
+    for (const path of paths) {
+      ctx.beginPath();
+
+      const start = path.pop()!;
+
+      ctx.moveTo(start.x, start.y);
+
+      for (const point of path) {
+        ctx.lineTo(point.x, point.y);
+      }
+
+      const end = path.shift();
+
+      if (start === end) {
+        ctx.closePath();
+      }
+
+      final();
     }
   }
 

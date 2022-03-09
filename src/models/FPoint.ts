@@ -1,5 +1,33 @@
 import { computed, makeObservable, observable } from "mobx";
 
+export class FControl {
+  @observable public x: number;
+  @observable public y: number;
+
+  constructor(x: number = 0, y: number = x) {
+    this.x = x;
+    this.y = y;
+
+    makeObservable(this);
+  }
+}
+
+export class FLink {
+  @observable public a: FPoint;
+  @observable public b: FPoint;
+  @observable public aControl: FControl;
+  @observable public bControl: FControl;
+
+  constructor(a: FPoint, b: FPoint) {
+    this.a = a;
+    this.b = b;
+    this.aControl = new FControl();
+    this.bControl = new FControl();
+
+    makeObservable(this);
+  }
+}
+
 export class FPoint {
   /**
    * Создает начальную точку и возвращает ее.
@@ -30,44 +58,43 @@ export class FPoint {
       .allPoints;
   }
 
-  @observable public links: FPoint[] = [];
-
   @observable public x: number = 0;
   @observable public y: number = 0;
-
-  @observable public xBefore: number = 0;
-  @observable public yBefore: number = 0;
-  @observable public xAfter: number = 0;
-  @observable public yAfter: number = 0;
-
+  
+  @observable public links: FLink[] = [];
+  
   // TODO: corner radius
 
   constructor(
     x: number,
     y: number,
-    xAfter: number = 0,
-    yAfter: number = 0,
-    xBefore?: number,
-    yBefore?: number,
-    parent?: FPoint
   ) {
-    if (parent) {
-      this.links.push(parent);
-      parent.links.push(this);
-    }
-
     this.x = x;
     this.y = y;
-
-    this.xAfter = xAfter;
-    this.yAfter = yAfter;
-    this.xBefore = xBefore === undefined ? -xAfter : 0;
-    this.yBefore = yBefore === undefined ? -yAfter : 0;
 
     makeObservable(this);
   }
 
-  /** Все точки по связям. */
+  /**
+   * Возвращает все соседние точки.
+   */
+  @computed public get linkedPoints(): FPoint[] {
+    const points: FPoint[] = [];
+
+    for (const link of this.links) {
+      const point = link.a === this ? link.b : link.a;
+
+      if (!points.includes(point)) {
+        points.push(point);
+      }
+    }
+
+    return points;
+  }
+
+  /**
+   * Все точки по связям.
+   */
   @computed public get allPoints(): FPoint[] {
     const result: FPoint[] = [];
     let lookup: FPoint[] = [this];
@@ -78,34 +105,22 @@ export class FPoint {
       if (result.includes(point)) continue;
 
       result.push(point);
-      lookup.push(...point.links);
+      lookup.push(...point.linkedPoints);
     }
 
     return result;
   }
 
   /**
-   * Присоединяет себя к начальной точке.
+   * Присоединяет точку.
    *
-   * @param parent Родительская точка.
+   * @param other Присоединяемая точка.
    */
-  public after(parent: FPoint) {
-    this.links.push(parent);
-    parent.links.push(this);
+  public connect(other: FPoint) {
+    const link = new FLink(this, other);
 
-    return this;
-  }
-
-  /**
-   * Присоединяет продолжающие точки и возвращает себя.
-   *
-   * @param children Присоединяемые точки.
-   */
-  public before(...children: FPoint[]) {
-    for (const child of children) {
-      child.links.push(this);
-      this.links.push(child);
-    }
+    this.links.push(link);
+    other.links.push(link);
 
     return this;
   }
@@ -116,8 +131,7 @@ export class FPoint {
    * @param next Присоединяемая точка.
    */
   public next(next: FPoint) {
-    next.links.push(this);
-    this.links.push(next);
+    this.connect(next);
 
     return next;
   }
@@ -127,7 +141,7 @@ export class FPoint {
    */
   public loop() {
     const checked: FPoint[] = [this];
-    let lookup = [...this.links];
+    let lookup = [...this.linkedPoints];
 
     while (lookup.length) {
       const point = lookup.pop()!;
@@ -135,13 +149,12 @@ export class FPoint {
       if (checked.includes(point)) continue;
 
       if (point.links.length <= 1) {
-        point.links.push(this);
-        this.links.push(point);
+        point.connect(this);
         break;
       }
 
       checked.push(point);
-      lookup.push(...point.links);
+      lookup.push(...point.linkedPoints);
     }
 
     return this;

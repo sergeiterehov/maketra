@@ -24,9 +24,6 @@ export const figureEditor = observable(
     group: figureEditorGroup,
     /** Соответствие точке трансформерам. */
     points: new Map<Figure, FPoint>(),
-    /** Трансформеры кривых. */
-    curvesBefore: new Map<Figure, FPoint>(),
-    curvesAfter: new Map<Figure, FPoint>(),
     /** Соединяющие линии. */
     lines: new Map<Figure, FPoint>(),
 
@@ -45,8 +42,6 @@ export const figureEditor = observable(
       for (const c of [...controlsGroup.children]) c.destroy();
 
       this.points.clear();
-      this.curvesAfter.clear();
-      this.curvesBefore.clear();
       this.lines.clear();
 
       this.target = figure;
@@ -63,7 +58,7 @@ export const figureEditor = observable(
 
         const l = Object.assign(new Figure(), {
           interactive: false, // TODO:
-          points: p.links.flatMap((pp) =>
+          points: p.linkedPoints.flatMap((pp) =>
             FPoint.createLine(x + p.x, y + p.y, x + pp.x, y + pp.y)
           ),
           strokeColor: linesColor,
@@ -74,26 +69,6 @@ export const figureEditor = observable(
       }
 
       // Поверх линий накладываем трансформеры.
-
-      for (const p of figure.points) {
-        const ac = Object.assign(new Figure(), {
-          points: FPoint.createRect(0, 0, 3, 3),
-          x: x + p.x + p.xAfter - 1.5,
-          y: y + p.y + p.yAfter - 1.5,
-        });
-
-        this.curvesAfter.set(ac, p);
-        ac.moveTo(controlsGroup);
-
-        const bc = Object.assign(new Figure(), {
-          points: FPoint.createRect(0, 0, 3, 3),
-          x: x + p.x + p.xBefore - 1.5,
-          y: y + p.y + p.yBefore - 1.5,
-        });
-
-        this.curvesBefore.set(bc, p);
-        bc.moveTo(controlsGroup);
-      }
 
       for (const p of figure.points) {
         const t = Object.assign(new Figure(), {
@@ -124,7 +99,7 @@ export const figureEditor = observable(
 
         if (!p) continue;
 
-        p.links.forEach((pp, i) => {
+        p.linkedPoints.forEach((pp, i) => {
           Object.assign(l.points[i * 2], {
             x: x + p.x,
             y: y + p.y,
@@ -138,32 +113,6 @@ export const figureEditor = observable(
         Object.assign(l, {
           x: 0,
           y: 0,
-        });
-      }
-
-      // Кривые до
-
-      for (const ac of this.curvesAfter.keys()) {
-        const p = this.curvesAfter.get(ac);
-
-        if (!p) continue;
-
-        Object.assign(ac, {
-          x: x + p.x + p.xAfter - 1.5,
-          y: y + p.y + p.yAfter - 1.5,
-        });
-      }
-
-      // Кривые после
-
-      for (const ab of this.curvesBefore.keys()) {
-        const p = this.curvesBefore.get(ab);
-
-        if (!p) continue;
-
-        Object.assign(ab, {
-          x: x + p.x + p.xBefore - 1.5,
-          y: y + p.y + p.yBefore - 1.5,
         });
       }
 
@@ -202,16 +151,8 @@ export const figureEditor = observable(
 
     moveControlBy(node: MkNode, dx: number, dy: number) {
       const point = this.points.get(node as Figure);
-      const curveAfter = this.curvesAfter.get(node as Figure);
-      const curveBefore = this.curvesBefore.get(node as Figure);
 
-      if (curveAfter) {
-        curveAfter.xAfter += dx;
-        curveAfter.yAfter += dy;
-      } else if (curveBefore) {
-        curveBefore.xBefore += dx;
-        curveBefore.yBefore += dy;
-      } else if (point) {
+      if (point) {
         point.x += dx;
         point.y += dy;
       } else {
@@ -260,7 +201,7 @@ export const figureEditor = observable(
       this.newPointOffset.y = 0;
 
       if (toPoint) {
-        this.newPointParent.after(toPoint);
+        this.newPointParent.connect(toPoint);
         this.newPointParent = undefined;
       } else {
         const next = this.newPointParent.line(x, y);
