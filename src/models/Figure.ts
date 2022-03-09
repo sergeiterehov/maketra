@@ -145,7 +145,7 @@ export class Figure extends Primitive {
 
   protected renderPathData(
     ctx: CanvasRenderingContext2D,
-    final: () => void
+    final: (info: { isClosed: boolean }) => void
   ): void {
     const { points, cornerRadius } = this;
 
@@ -176,12 +176,21 @@ export class Figure extends Primitive {
         }
 
         const branchPath = [...path];
+        const loopIndex = path.indexOf(next);
 
-        if (path.includes(next)) {
-          // Фигура замкнулась
-          // TODO: Нужно отделить линию до цикла!
-          branchPath.push(next);
-          paths.push(branchPath);
+        if (loopIndex !== -1) {
+          // Фигура замкнулась.
+          // Сперва отделяем незамкнутую часть,
+          const loopPath = branchPath.splice(loopIndex);
+
+          loopPath.push(next);
+          paths.push(loopPath);
+
+          // затем - подходящую прямую
+          if (branchPath.length) {
+            branchPath.push(loopPath[0]);
+            paths.push(branchPath);
+          }
         } else if (reserved.includes(next)) {
           pass(next, point, branchPath);
         }
@@ -192,10 +201,15 @@ export class Figure extends Primitive {
       pass(reserved[i]);
     }
 
+    // console.log(
+    //   this.name,
+    //   paths.map((ps) => ps.map(({ x, y }) => ({ x, y })))
+    // );
+
     for (const path of paths) {
       ctx.beginPath();
 
-      const start = path.pop()!;
+      const start = path.shift()!;
 
       ctx.moveTo(start.x, start.y);
 
@@ -203,13 +217,14 @@ export class Figure extends Primitive {
         ctx.lineTo(point.x, point.y);
       }
 
-      const end = path.shift();
+      const end = path.pop();
+      const isClosed = start === end;
 
-      if (start === end) {
+      if (isClosed) {
         ctx.closePath();
       }
 
-      final();
+      final({ isClosed });
     }
   }
 
@@ -227,8 +242,8 @@ export class Figure extends Primitive {
       ctx.fillStyle = backgroundColor;
     }
 
-    this.renderPathData(ctx, () => {
-      if (this.backgroundColor) ctx.fill();
+    this.renderPathData(ctx, ({ isClosed }) => {
+      if (isClosed && this.backgroundColor) ctx.fill();
 
       if (strokeWidth) {
         ctx.lineWidth = strokeWidth;
@@ -256,8 +271,8 @@ export class Figure extends Primitive {
   }
 
   protected drawHit(ctx: CanvasRenderingContext2D): void {
-    this.renderPathData(ctx, () => {
-      if (this.backgroundColor) ctx.fill();
+    this.renderPathData(ctx, ({ isClosed }) => {
+      if (isClosed && this.backgroundColor) ctx.fill();
 
       ctx.lineWidth = 8;
       ctx.stroke();

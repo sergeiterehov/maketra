@@ -252,6 +252,8 @@ const Viewer = observer<{
         case "KeyF": {
           const figure = new Figure();
 
+          figure.name = "New Figure";
+
           const vec2d = baseTransform
             .copy()
             .multiply(section.nodes[0].absoluteTransform)

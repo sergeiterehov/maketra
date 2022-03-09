@@ -31,6 +31,27 @@ const space = Object.assign(new Space(), {
   ],
 });
 
+const cp = [
+  [2, 2],
+  [5, 2],
+  [3, 4],
+  [5, 6],
+  [7, 6],
+  [7, 8],
+  [3, 8],
+  [1, 6],
+].map(([x, y]) => new FPoint(x * 30, y * 30));
+
+cp[0].connect(cp[1]);
+cp[0].connect(cp[2]);
+cp[2].connect(cp[7]);
+cp[2].connect(cp[3]);
+cp[3].connect(cp[7]);
+cp[3].connect(cp[6]);
+cp[3].connect(cp[4]);
+cp[4].connect(cp[5]);
+cp[6].connect(cp[7]);
+
 space.projects[0].sections[0].nodes[0].add(
   Object.assign(new Area(), {
     name: "Internal Area",
@@ -95,7 +116,16 @@ space.projects[0].sections[0].nodes[0].add(
       .loop().allPoints,
     backgroundColor: "#AAF",
     strokeWidth: 4,
-  })
+  }),
+  Object.assign(new Figure(), {
+    name: "Complex Path",
+    x: 10,
+    y: 10,
+    cornerRadius: 8,
+    points: cp,
+    backgroundColor: "#F70",
+    strokeWidth: 2,
+  }),
 );
 
 export default space;
