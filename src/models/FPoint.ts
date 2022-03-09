@@ -26,6 +26,12 @@ export class FLink {
 
     makeObservable(this);
   }
+
+  getControlFor(point: FPoint) {
+    if (point === this.a) return this.aControl;
+
+    return this.bControl;
+  }
 }
 
 export class FPoint {
@@ -109,6 +115,14 @@ export class FPoint {
     }
 
     return result;
+  }
+
+  public getLinkWith(point: FPoint): FLink | undefined {
+    for (const link of this.links) {
+      if (link.a === point || link.b === point) {
+        return link;
+      }
+    }
   }
 
   /**

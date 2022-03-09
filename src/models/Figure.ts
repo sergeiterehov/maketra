@@ -6,6 +6,7 @@ import {
   observable,
   observe,
 } from "mobx";
+import { roundedPath } from "../utils/roundedPath";
 import { FLink, FPoint } from "./FPoint";
 import { Primitive } from "./Primitive";
 
@@ -21,6 +22,8 @@ export interface PointTriad {
 }
 
 export class Figure extends Primitive {
+  public static debug = false;
+
   public name: string = "Figure";
 
   @observable public points: FPoint[] = [];
@@ -153,48 +156,67 @@ export class Figure extends Primitive {
 
     // TODO: drawing
 
-    const reserved: FPoint[] = [...this.points];
+    const reserved: FPoint[] = [...this.points].sort(
+      (a, b) => a.links.length - b.links.length
+    );
     const paths: FPoint[][] = [];
 
+    function savePath(path: FPoint[]) {
+      paths.push([...path]);
+    }
+
     function pass(point: FPoint, from?: FPoint, path: FPoint[] = []) {
-      path.push(point);
-      reserved.splice(reserved.indexOf(point), 1);
+      if (!reserved.includes(point)) return;
 
-      const linked = point.linkedPoints;
+      const loopIndex = path.indexOf(point);
 
-      for (const next of linked) {
-        // Пропускам связи к предыдущей точке.
-        if (from === next) {
-          // Но если нет других связей, то это конец пути.
-          if (linked.length === 1) {
-            paths.push(path);
+      if (loopIndex !== -1) {
+        // Фигура замкнулась.
+        // Сперва отделяем незамкнутую часть,
+        const loopPath = path.splice(loopIndex);
 
-            break;
-          }
+        loopPath.push(point);
+        savePath(loopPath);
 
-          continue;
+        // затем - подходящую прямую
+        if (path.length) {
+          path.push(loopPath[0]);
+          savePath(path);
         }
 
-        const branchPath = [...path];
-        const loopIndex = path.indexOf(next);
+        return;
+      }
 
-        if (loopIndex !== -1) {
-          // Фигура замкнулась.
-          // Сперва отделяем незамкнутую часть,
-          const loopPath = branchPath.splice(loopIndex);
+      path.push(point);
 
-          loopPath.push(next);
-          paths.push(loopPath);
+      const linked: FPoint[] = point.linkedPoints;
 
-          // затем - подходящую прямую
-          if (branchPath.length) {
-            branchPath.push(loopPath[0]);
-            paths.push(branchPath);
-          }
-        } else if (reserved.includes(next)) {
-          pass(next, point, branchPath);
+      if (linked.length === 1) {
+        if (linked[0] === from) {
+          savePath(path);
+        } else {
+          // Начало пути.
+          pass(linked[0], point, path);
+        }
+      } else if (linked.length === 2) {
+        // Это обычная проходящая точка.
+        const next = linked[0] === from ? linked[1] : linked[0];
+
+        pass(next, point, path);
+      } else {
+        // Это развилка. Каждый путь начинается отсюда.
+        for (const next of linked) {
+          if (next === from) continue;
+
+          const pathBranch = [...path];
+
+          pass(next, point, pathBranch);
         }
       }
+
+      reserved.splice(reserved.indexOf(point), 1);
+
+      // passed.
     }
 
     for (let i = 0; i < reserved.length; i += 1) {
@@ -206,23 +228,21 @@ export class Figure extends Primitive {
     //   paths.map((ps) => ps.map(({ x, y }) => ({ x, y })))
     // );
 
+    // console.log(
+    //   this.name,
+    //   paths.map((ps) => ps.map((p) => this.points.indexOf(p)))
+    // );
+
     for (const path of paths) {
       ctx.beginPath();
 
-      const start = path.shift()!;
-
-      ctx.moveTo(start.x, start.y);
-
-      for (const point of path) {
-        ctx.lineTo(point.x, point.y);
-      }
-
-      const end = path.pop();
+      const start = path[0];
+      const end = path[path.length - 1];
       const isClosed = start === end;
 
-      if (isClosed) {
-        ctx.closePath();
-      }
+      roundedPath(ctx, cornerRadius, path);
+
+      if (isClosed) ctx.closePath();
 
       final({ isClosed });
     }
@@ -257,17 +277,17 @@ export class Figure extends Primitive {
       }
     });
 
-    // FIXME:
-
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(this.size.width, 0);
-    ctx.lineTo(this.size.width, this.size.height);
-    ctx.lineTo(0, this.size.height);
-    ctx.closePath();
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "#F005";
-    ctx.stroke();
+    if (Figure.debug) {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(this.size.width, 0);
+      ctx.lineTo(this.size.width, this.size.height);
+      ctx.lineTo(0, this.size.height);
+      ctx.closePath();
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = "#F005";
+      ctx.stroke();
+    }
   }
 
   protected drawHit(ctx: CanvasRenderingContext2D): void {

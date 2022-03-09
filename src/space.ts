@@ -52,6 +52,9 @@ cp[3].connect(cp[4]);
 cp[4].connect(cp[5]);
 cp[6].connect(cp[7]);
 
+// cp[7].getLinkWith(cp[3])!.aControl.x = 20;
+// cp[7].getLinkWith(cp[3])!.aControl.y = -40;
+
 space.projects[0].sections[0].nodes[0].add(
   Object.assign(new Area(), {
     name: "Internal Area",
