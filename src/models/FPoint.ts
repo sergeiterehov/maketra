@@ -1,4 +1,5 @@
-import { computed, makeObservable, observable } from "mobx";
+import { action, computed, makeObservable, observable } from "mobx";
+import { Vector2d } from "../utils/Transform";
 
 export class FControl {
   @observable public x: number;
@@ -27,6 +28,10 @@ export class FLink {
     makeObservable(this);
   }
 
+  /**
+   * Возвращает ближайшую контрольную точку FControl для точки FPoint.
+   * @param point Точка
+   */
   getControlFor(point: FPoint) {
     if (point === this.a) return this.aControl;
 
@@ -37,7 +42,6 @@ export class FLink {
 export class FPoint {
   /**
    * Создает начальную точку и возвращает ее.
-   *
    * @param x X
    * @param y Y
    */
@@ -66,15 +70,12 @@ export class FPoint {
 
   @observable public x: number = 0;
   @observable public y: number = 0;
-  
+
   @observable public links: FLink[] = [];
-  
+
   // TODO: corner radius
 
-  constructor(
-    x: number,
-    y: number,
-  ) {
+  constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
 
@@ -127,11 +128,23 @@ export class FPoint {
 
   /**
    * Присоединяет точку.
-   *
    * @param other Присоединяемая точка.
+   * @param thisControl
+   * @param otherControl
    */
-  public connect(other: FPoint) {
+  @action
+  public connect(other: FPoint, thisControl?: Vector2d, otherControl?: Vector2d) {
     const link = new FLink(this, other);
+
+    if (thisControl) {
+      link.aControl.x = thisControl.x;
+      link.aControl.y = thisControl.y;
+    }
+
+    if (otherControl) {
+      link.bControl.x = otherControl.x;
+      link.bControl.y = otherControl.y;
+    }
 
     this.links.push(link);
     other.links.push(link);
@@ -141,19 +154,23 @@ export class FPoint {
 
   /**
    * Присоединяет точку и возвращает ее.
-   *
    * @param next Присоединяемая точка.
+   * @param thisControl
+   * @param otherControl
    */
-  public next(next: FPoint) {
-    this.connect(next);
+  public next(next: FPoint, thisControl?: Vector2d, otherControl?: Vector2d) {
+    this.connect(next, thisControl, otherControl);
 
     return next;
   }
 
   /**
    * Замыкает текущую точку на Еву.
+   * @param thisControl
+   * @param otherControl
    */
-  public loop() {
+  @action
+  public loop(thisControl?: Vector2d, otherControl?: Vector2d) {
     const checked: FPoint[] = [this];
     let lookup = [...this.linkedPoints];
 
@@ -163,7 +180,7 @@ export class FPoint {
       if (checked.includes(point)) continue;
 
       if (point.links.length <= 1) {
-        point.connect(this);
+        this.connect(point, thisControl, otherControl);
         break;
       }
 
@@ -176,7 +193,6 @@ export class FPoint {
 
   /**
    * Формирует линию до указанных координат и возвращает следующую точку.
-   *
    * @param x X.
    * @param y Y.
    */
@@ -186,7 +202,6 @@ export class FPoint {
 
   /**
    * Формирует линию смещением и возвращает следующую точку.
-   *
    * @param dx Смещение X.
    * @param dy Смещение Y.
    */

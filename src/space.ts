@@ -112,11 +112,11 @@ space.projects[0].sections[0].nodes[0].add(
     x: 140,
     y: 240,
     cornerRadius: 40,
-    points: new FPoint(0, 0) // , 30, -30
-      .next(new FPoint(110, 0)) // , 30, 30
-      .next(new FPoint(110, 110)) // , -30, 30
-      .next(new FPoint(0, 110)) // , -30, -30
-      .loop().allPoints,
+    points: new FPoint(0, 0)
+      .next(new FPoint(110, 0), { x: 30, y: -30 }, { x: -30, y: -30 })
+      .next(new FPoint(110, 110), { x: 30, y: 30 }, { x: 30, y: -30 })
+      .next(new FPoint(0, 110), { x: -30, y: 30 }, { x: 30, y: 30 })
+      .loop({ x: -30, y: -30 }, { x: -30, y: 30 }).allPoints,
     backgroundColor: "#AAF",
     strokeWidth: 4,
   }),
@@ -128,7 +128,7 @@ space.projects[0].sections[0].nodes[0].add(
     points: cp,
     backgroundColor: "#F70",
     strokeWidth: 2,
-  }),
+  })
 );
 
 export default space;

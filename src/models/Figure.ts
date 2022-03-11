@@ -6,6 +6,7 @@ import {
   observable,
   observe,
 } from "mobx";
+import { CollisionDetection } from "../utils/CollisionDetection";
 import { FLink, FPoint } from "./FPoint";
 import { Primitive } from "./Primitive";
 
@@ -148,8 +149,12 @@ export class Figure extends Primitive {
   protected renderPathData(ctx: CanvasRenderingContext2D): void {
     const { points, cornerRadius } = this;
 
+    // Находим все замкнутые области
+
+    // TODO:
+
     // рисуем все линии
-    
+
     const pairs = new Map<FPoint, FPoint[]>();
 
     for (const point of points) {
