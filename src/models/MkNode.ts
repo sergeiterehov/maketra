@@ -2,6 +2,7 @@ import { action, computed, makeObservable, observable } from "mobx";
 import { randomString } from "../utils/randomString";
 import { Transform } from "../utils/Transform";
 import { BlendMode, Fill } from "./Fill";
+import { Filter } from "./Filter";
 import { Section } from "./Section";
 
 export enum Constraint {
@@ -68,6 +69,7 @@ export class MkNode {
   @observable public opacity: number = 1;
 
   @observable public fills: Fill[] = [];
+  @observable public filters: Filter[] = [];
 
   @observable public x: number = 0;
   @observable public y: number = 0;
@@ -202,13 +204,23 @@ export class MkNode {
     ctxHit: CanvasRenderingContext2D | undefined,
     baseTransform: Transform
   ) {
-    const { absoluteTransform, hitColorKey, children, visible, interactive } =
-      this;
+    const {
+      absoluteTransform,
+      hitColorKey,
+      children,
+      visible,
+      interactive,
+      filters,
+    } = this;
 
     const m = baseTransform.copy().multiply(absoluteTransform).getMatrix();
 
     ctxView.save();
     ctxView.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
+
+    for (const filter of filters) {
+      filter.apply(ctxView);
+    }
 
     // TODO: для корректного применения операции предыдущий слой должен быть нарисован через ctx.drawImage(ctx.canvas)
     ctxView.globalCompositeOperation = this.blendMode as any;

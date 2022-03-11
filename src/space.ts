@@ -1,6 +1,7 @@
 import { Area } from "./models/Area";
 import { Figure } from "./models/Figure";
 import { BlendMode, ColorFill, LinearGradientFill } from "./models/Fill";
+import { BlurFilter } from "./models/Filter";
 import { FPoint } from "./models/FPoint";
 import { Project } from "./models/Project";
 import { Section } from "./models/Section";
@@ -94,6 +95,7 @@ space.projects[0].sections[0].nodes[0].add(
             .loop().allPoints,
           fills: [new ColorFill("#E7F")],
           strokeWidth: 0,
+          filters: [new BlurFilter()],
         },
         { width: 50, height: 50 }
       )
