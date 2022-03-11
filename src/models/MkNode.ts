@@ -215,19 +215,8 @@ export class MkNode {
 
     const m = baseTransform.copy().multiply(absoluteTransform).getMatrix();
 
-    ctxView.save();
-    ctxView.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
-
-    for (const filter of filters) {
-      filter.apply(ctxView);
-    }
-
-    // TODO: для корректного применения операции предыдущий слой должен быть нарисован через ctx.drawImage(ctx.canvas)
-    ctxView.globalCompositeOperation = this.blendMode as any;
-    ctxView.globalAlpha *= this.opacity;
-
     if (ctxHit) {
-      ctxHit?.save();
+      ctxHit.save();
       ctxHit.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
 
       ctxHit.fillStyle = hitColorKey;
@@ -235,7 +224,21 @@ export class MkNode {
     }
 
     if (visible) {
+      ctxView.save();
+      ctxView.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
+
+      // TODO: для корректного применения операции предыдущий слой должен быть нарисован через ctx.drawImage(ctx.canvas)
+      ctxView.globalCompositeOperation = this.blendMode as any;
+      ctxView.globalAlpha *= this.opacity;
+
+      // TODO: Должно применяться уже после отрисовки слоя целиком
+      for (const filter of filters) {
+        filter.apply(ctxView);
+      }
+
       this.drawView(ctxView);
+
+      ctxView.filter = "none";
 
       if (interactive && ctxHit) {
         this.drawHit(ctxHit);
@@ -245,9 +248,9 @@ export class MkNode {
         // Если элемент не интерактивный, то не передаем контекст для рисования маски.
         child.draw(ctxView, interactive ? ctxHit : undefined, baseTransform);
       }
-    }
 
-    ctxView.restore();
+      ctxView.restore();
+    }
 
     if (ctxHit) {
       ctxHit.restore();

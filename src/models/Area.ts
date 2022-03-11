@@ -72,7 +72,7 @@ export class Area extends Group {
   }
 
   protected drawView(ctx: CanvasRenderingContext2D): void {
-    const { width, height } = this;
+    const { width, height, fills } = this;
 
     ctx.beginPath();
     ctx.moveTo(0, 0);
@@ -81,7 +81,7 @@ export class Area extends Group {
     ctx.lineTo(0, height);
     ctx.closePath();
 
-    for (const fill of this.fills) {
+    for (const fill of fills) {
       fill.apply(ctx);
       ctx.fill();
     }

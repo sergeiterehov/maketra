@@ -1,7 +1,7 @@
 import { Area } from "./models/Area";
 import { Figure } from "./models/Figure";
 import { BlendMode, ColorFill, LinearGradientFill } from "./models/Fill";
-import { BlurFilter } from "./models/Filter";
+import { BlurFilter, DropShadowFilter } from "./models/Filter";
 import { FPoint } from "./models/FPoint";
 import { Project } from "./models/Project";
 import { Section } from "./models/Section";
@@ -65,6 +65,7 @@ space.projects[0].sections[0].nodes[0].add(
     width: 100,
     height: 240,
     fills: [new ColorFill("#FAA"), new LinearGradientFill()],
+    filters: [new DropShadowFilter()],
   }).add(
     Object.assign(new Area(), {
       name: "End Area",
