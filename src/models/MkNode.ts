@@ -16,6 +16,36 @@ export enum Constraint {
   Bottom = End,
 }
 
+export enum BlendMode {
+  Color = "color",
+  ColorBurn = "color-burn",
+  ColorDodge = "color-dodge",
+  Copy = "copy",
+  Darken = "darken",
+  DestinationAtop = "destination-atop",
+  DestinationIn = "destination-in",
+  DestinationOut = "destination-out",
+  DestinationOver = "destination-over",
+  Difference = "difference",
+  Exclusion = "exclusion",
+  HardLight = "hard-light",
+  Hue = "hue",
+  Lighten = "lighten",
+  Lighter = "lighter",
+  Luminosity = "luminosity",
+  Multiply = "multiply",
+  Overlay = "overlay",
+  Saturation = "saturation",
+  Screen = "screen",
+  SoftLight = "soft-light",
+  SourceAtop = "source-atop",
+  SourceIn = "source-in",
+  SourceOut = "source-out",
+  SourceOver = "source-over",
+  Xor = "xor",
+  Normal = SourceOver,
+}
+
 export interface Size {
   width: number;
   height: number;
@@ -62,6 +92,9 @@ export class MkNode {
 
   @observable public visible: boolean = true;
   @observable public interactive: boolean = true;
+
+  @observable public blendMode: BlendMode = BlendMode.Normal;
+  @observable public opacity: number = 1;
 
   @observable public x: number = 0;
   @observable public y: number = 0;
@@ -203,6 +236,9 @@ export class MkNode {
 
     ctxView.save();
     ctxView.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
+
+    ctxView.globalCompositeOperation = this.blendMode as any;
+    ctxView.globalAlpha *= this.opacity;
 
     if (ctxHit) {
       ctxHit?.save();

@@ -1,7 +1,7 @@
 import styled from "styled-components";
-import { ElementsRow } from "./ElementsRow";
-import { ScrubberContainer } from "./Scrubber";
-import { SelectContainer, SelectValue } from "./Select";
+import { ElementsRow } from "./components/ElementsRow";
+import { ScrubberContainer } from "./components/Scrubber";
+import { SelectContainer, SelectValue } from "./components/Select";
 
 export const PropsContainer = styled.div.withConfig({ displayName: "props-container" })`
   ${ScrubberContainer}, ${SelectContainer} {
@@ -46,6 +46,15 @@ export const PropsContainer = styled.div.withConfig({ displayName: "props-contai
 
     .vertical-constraint {
       grid-column-start: 15;
+    }
+
+    .opacity {
+      grid-column-end: span 7;
+      grid-column-start: 17;
+    }
+
+    .blend-mode {
+      grid-column-end: span 15;
     }
 
     .font-size {

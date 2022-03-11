@@ -2,7 +2,7 @@ import { observer } from "mobx-react-lite";
 import { useCallback, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
-import { PropsContainer } from "./components/PropsContainer";
+import { PropsContainer } from "./PropsContainer";
 import { MkNode } from "./models/MkNode";
 import { Project } from "./models/Project";
 import { Section } from "./models/Section";

@@ -1,6 +1,7 @@
 import { Area } from "./models/Area";
 import { Figure } from "./models/Figure";
 import { FPoint } from "./models/FPoint";
+import { BlendMode } from "./models/MkNode";
 import { Project } from "./models/Project";
 import { Section } from "./models/Section";
 import { Space } from "./models/Space";
@@ -72,6 +73,7 @@ space.projects[0].sections[0].nodes[0].add(
       height: 60,
       backgroundColor: "#AFA",
       clipContent: false,
+      opacity: 0.3,
     }).add(
       Object.assign(
         new Figure(),
@@ -105,6 +107,7 @@ space.projects[0].sections[0].nodes[0].add(
       fontFamily: "sans-serif",
       text: "Hello, world!\nHow are you?",
       textColor: "#722",
+      blendMode: BlendMode.Multiply,
     })
   ),
   Object.assign(new Figure(), {

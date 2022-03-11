@@ -8,7 +8,7 @@ import { Option, Select } from "./components/Select";
 import { PropSizeInput } from "./components/PropSizeInput";
 import { Area } from "./models/Area";
 import { Figure } from "./models/Figure";
-import { Constraint, MkNode } from "./models/MkNode";
+import { BlendMode, Constraint, MkNode } from "./models/MkNode";
 import { FontStyle, FontWeight, Text, TextAlign } from "./models/Text";
 import { PropLocationInput } from "./components/PropLocationInput";
 
@@ -69,6 +69,45 @@ function formatHorizontalConstraint(value: Constraint): string {
       return "Горизонтально";
     case Constraint.Scale:
       return "Расширять";
+  }
+}
+
+function formatBlendMode(value: BlendMode): string {
+  switch (value) {
+    case BlendMode.Normal:
+      return "Нормальный";
+    case BlendMode.Lighten:
+      return "Замена светлым";
+    case BlendMode.Screen:
+      return "Экран";
+    case BlendMode.ColorDodge:
+      return "Осветление основы";
+    case BlendMode.Darken:
+      return "Затемнение";
+    case BlendMode.Multiply:
+      return "Умножение";
+    case BlendMode.ColorBurn:
+      return "Затемнение основы";
+    case BlendMode.Overlay:
+      return "Перекрытие";
+    case BlendMode.SoftLight:
+      return "Мягкий свет";
+    case BlendMode.HardLight:
+      return "Жесткий свет";
+    case BlendMode.Difference:
+      return "Разница";
+    case BlendMode.Exclusion:
+      return "Исключение";
+    case BlendMode.Hue:
+      return "Тон";
+    case BlendMode.Saturation:
+      return "Насыщенность";
+    case BlendMode.Color:
+      return "Цветность";
+    case BlendMode.Luminosity:
+      return "Яркость";
+    default:
+      return value;
   }
 }
 
@@ -176,6 +215,58 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           </ElementsRow>
         </>
       ) : null}
+      <ElementsRow>
+        <Select
+          className="blend-mode"
+          value={node.blendMode}
+          onChange={(next) => (node.blendMode = next)}
+          format={formatBlendMode}
+        >
+          <Option value={BlendMode.Normal} />
+          <hr />
+          <Option value={BlendMode.Lighten} />
+          <Option value={BlendMode.Screen} />
+          <Option value={BlendMode.ColorDodge} />
+          <hr />
+          <Option value={BlendMode.Darken} />
+          <Option value={BlendMode.Multiply} />
+          <Option value={BlendMode.ColorBurn} />
+          <hr />
+          <Option value={BlendMode.Overlay} />
+          <Option value={BlendMode.SoftLight} />
+          <Option value={BlendMode.HardLight} />
+          <hr />
+          <Option value={BlendMode.Difference} />
+          <Option value={BlendMode.Exclusion} />
+          <hr />
+          <Option value={BlendMode.Hue} />
+          <Option value={BlendMode.Saturation} />
+          <Option value={BlendMode.Color} />
+          <Option value={BlendMode.Luminosity} />
+        </Select>
+        <Scrubber
+          className="opacity"
+          speed={0.01}
+          min={0}
+          max={1}
+          value={node.opacity}
+          onChange={(next) => (node.opacity = next || 0)}
+        >
+          <Icon>В</Icon>
+          <CustomInput
+            value={node.opacity.toString()}
+            onChange={(next) => {
+              const value = Number(next);
+
+              if (Number.isNaN(value)) return false;
+
+              node.opacity = Math.min(1, Math.max(0, value));
+
+              return true;
+            }}
+          />
+        </Scrubber>
+      </ElementsRow>
       {node instanceof Area || node instanceof Figure ? (
         <div>
           Background color:
