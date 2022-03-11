@@ -52,6 +52,9 @@ export class CollisionDetection {
         const a = links[ia];
         const b = links[ib];
 
+        // Пропускаем связанные точки
+        if (a.a === b.a || a.a === b.b || a.b === b.a || a.b === b.b) continue;
+
         const intersection = this.vector2(a.a, a.b, b.a, b.b);
 
         if (intersection) {
@@ -72,7 +75,12 @@ export class CollisionDetection {
 
     // Начинаем с 1, так как кольцо.
     for (let i = 1; i < path.length; i += 1) {
-      const intersection = this.vector2(point, pointToInf, path[i - 1], path[i]);
+      const intersection = this.vector2(
+        point,
+        pointToInf,
+        path[i - 1],
+        path[i]
+      );
 
       if (intersection) {
         counter += 1;

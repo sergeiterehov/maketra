@@ -118,6 +118,23 @@ export class FPoint {
     return result;
   }
 
+  /**
+   * Все связи по связям.
+   */
+  @computed public get allLinks(): FLink[] {
+    const result: FLink[] = [];
+
+    for (const point of this.allPoints) {
+      for (const link of point.links) {
+        if (!result.includes(link)) {
+          result.push(link);
+        }
+      }
+    }
+
+    return result;
+  }
+
   public getLinkWith(point: FPoint): FLink | undefined {
     for (const link of this.links) {
       if (link.a === point || link.b === point) {
@@ -133,7 +150,11 @@ export class FPoint {
    * @param otherControl
    */
   @action
-  public connect(other: FPoint, thisControl?: Vector2d, otherControl?: Vector2d) {
+  public connect(
+    other: FPoint,
+    thisControl?: Vector2d,
+    otherControl?: Vector2d
+  ) {
     const link = new FLink(this, other);
 
     if (thisControl) {
