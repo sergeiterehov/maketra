@@ -6,7 +6,6 @@ import {
   observable,
   observe,
 } from "mobx";
-import { roundedPath } from "../utils/roundedPath";
 import { FLink, FPoint } from "./FPoint";
 import { Primitive } from "./Primitive";
 
@@ -146,105 +145,30 @@ export class Figure extends Primitive {
     this.lockScaleOnResize = false;
   }
 
-  protected renderPathData(
-    ctx: CanvasRenderingContext2D,
-    final: (info: { isClosed: boolean }) => void
-  ): void {
+  protected renderPathData(ctx: CanvasRenderingContext2D): void {
     const { points, cornerRadius } = this;
 
-    if (!points.length) return;
+    // рисуем все линии
+    
+    const pairs = new Map<FPoint, FPoint[]>();
 
-    // TODO: drawing
-
-    const reserved: FPoint[] = [...this.points].sort(
-      (a, b) => a.links.length - b.links.length
-    );
-    const paths: FPoint[][] = [];
-
-    function savePath(path: FPoint[]) {
-      paths.push([...path]);
+    for (const point of points) {
+      pairs.set(point, point.linkedPoints);
     }
 
-    function pass(point: FPoint, from?: FPoint, path: FPoint[] = []) {
-      if (!reserved.includes(point)) return;
+    for (const point of points) {
+      const linked = pairs.get(point)!;
 
-      const loopIndex = path.indexOf(point);
+      for (const pair of linked) {
+        const pairLinked = pairs.get(pair)!;
 
-      if (loopIndex !== -1) {
-        // Фигура замкнулась.
-        // Сперва отделяем незамкнутую часть,
-        const loopPath = path.splice(loopIndex);
+        pairLinked.slice(pairLinked.indexOf(point, 1));
 
-        loopPath.push(point);
-        savePath(loopPath);
-
-        // затем - подходящую прямую
-        if (path.length) {
-          path.push(loopPath[0]);
-          savePath(path);
-        }
-
-        return;
+        ctx.beginPath();
+        ctx.moveTo(point.x, point.y);
+        ctx.lineTo(pair.x, pair.y);
+        ctx.stroke();
       }
-
-      path.push(point);
-
-      const linked: FPoint[] = point.linkedPoints;
-
-      if (linked.length === 1) {
-        if (linked[0] === from) {
-          savePath(path);
-        } else {
-          // Начало пути.
-          pass(linked[0], point, path);
-        }
-      } else if (linked.length === 2) {
-        // Это обычная проходящая точка.
-        const next = linked[0] === from ? linked[1] : linked[0];
-
-        pass(next, point, path);
-      } else {
-        // Это развилка. Каждый путь начинается отсюда.
-        for (const next of linked) {
-          if (next === from) continue;
-
-          const pathBranch = [...path];
-
-          pass(next, point, pathBranch);
-        }
-      }
-
-      reserved.splice(reserved.indexOf(point), 1);
-
-      // passed.
-    }
-
-    for (let i = 0; i < reserved.length; i += 1) {
-      pass(reserved[i]);
-    }
-
-    // console.log(
-    //   this.name,
-    //   paths.map((ps) => ps.map(({ x, y }) => ({ x, y })))
-    // );
-
-    // console.log(
-    //   this.name,
-    //   paths.map((ps) => ps.map((p) => this.points.indexOf(p)))
-    // );
-
-    for (const path of paths) {
-      ctx.beginPath();
-
-      const start = path[0];
-      const end = path[path.length - 1];
-      const isClosed = start === end;
-
-      roundedPath(ctx, cornerRadius, path);
-
-      if (isClosed) ctx.closePath();
-
-      final({ isClosed });
     }
   }
 
@@ -262,20 +186,16 @@ export class Figure extends Primitive {
       ctx.fillStyle = backgroundColor;
     }
 
-    this.renderPathData(ctx, ({ isClosed }) => {
-      if (isClosed && this.backgroundColor) ctx.fill();
+    if (strokeWidth) {
+      ctx.lineWidth = strokeWidth;
+      ctx.strokeStyle = strokeColor;
 
-      if (strokeWidth) {
-        ctx.lineWidth = strokeWidth;
-        ctx.strokeStyle = strokeColor;
-
-        if (strokeStyle === StrokeStyle.Dash) {
-          ctx.setLineDash([strokeDash, strokeDashGap ?? strokeDash]);
-        }
-
-        ctx.stroke();
+      if (strokeStyle === StrokeStyle.Dash) {
+        ctx.setLineDash([strokeDash, strokeDashGap ?? strokeDash]);
       }
-    });
+    }
+
+    this.renderPathData(ctx);
 
     if (Figure.debug) {
       ctx.beginPath();
@@ -291,11 +211,8 @@ export class Figure extends Primitive {
   }
 
   protected drawHit(ctx: CanvasRenderingContext2D): void {
-    this.renderPathData(ctx, ({ isClosed }) => {
-      if (isClosed && this.backgroundColor) ctx.fill();
+    ctx.lineWidth = 8;
 
-      ctx.lineWidth = 8;
-      ctx.stroke();
-    });
+    this.renderPathData(ctx);
   }
 }
