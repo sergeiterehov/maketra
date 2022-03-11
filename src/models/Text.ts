@@ -47,8 +47,6 @@ export class Text extends Primitive {
   @observable public fontWeight: FontWeight = FontWeight.Regular;
   @observable public fontStyle: FontStyle = FontStyle.Normal;
 
-  @observable public textColor: string = "#000000";
-
   get size(): Size {
     return { width: this.computedTextWidth, height: this.computedTextHeight };
   }
@@ -89,16 +87,9 @@ export class Text extends Primitive {
   }
 
   protected drawView(ctx: CanvasRenderingContext2D): void {
-    const {
-      textColor,
-      font,
-      textLines,
-      fontSize,
-      textAlign,
-      computedTextWidth,
-    } = this;
+    const { fills, font, textLines, fontSize, textAlign, computedTextWidth } =
+      this;
 
-    ctx.fillStyle = textColor;
     ctx.font = font;
     ctx.textBaseline = "top";
     ctx.textAlign = textAlign as any;
@@ -118,7 +109,10 @@ export class Text extends Primitive {
     for (let i = 0; i < textLines.length; i += 1) {
       const line = textLines[i];
 
-      ctx.fillText(line, alignOffset, i * fontSize);
+      for (const fill of fills) {
+        fill.apply(ctx);
+        ctx.fillText(line, alignOffset, i * fontSize);
+      }
     }
   }
 

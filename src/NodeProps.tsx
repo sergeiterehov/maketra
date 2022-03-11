@@ -267,15 +267,6 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           />
         </Scrubber>
       </ElementsRow>
-      {node instanceof Area || node instanceof Figure ? (
-        <div>
-          Background color:
-          <input
-            value={node.backgroundColor}
-            onChange={(e) => (node.backgroundColor = e.currentTarget.value)}
-          />
-        </div>
-      ) : null}
       {node instanceof Figure ? (
         <>
           <Scrubber
@@ -386,13 +377,6 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
               />
               Italic
             </label>
-          </div>
-          <div>
-            Color:
-            <input
-              value={node.textColor}
-              onChange={(e) => (node.textColor = e.currentTarget.value)}
-            />
           </div>
         </>
       ) : null}

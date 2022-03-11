@@ -70,6 +70,13 @@ const DropDown = styled.div.withConfig({
   overflow: hidden;
   border-radius: 3px;
   box-shadow: 0 2px 6px #0006;
+
+  hr {
+    border: 0;
+    border-top: 1px solid #fff3;
+    margin-left: 8px;
+    margin-right: 8px;
+  }
 `;
 
 const DropDownOverlay = styled.div.withConfig({

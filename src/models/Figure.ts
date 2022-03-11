@@ -28,7 +28,6 @@ export class Figure extends Primitive {
 
   @observable public points: FPoint[] = [];
   @observable public cornerRadius: number = 0;
-  @observable public backgroundColor?: string = "#AAAAAA";
   @observable public strokeColor: string = "#000000";
   @observable public strokeWidth: number = 1;
   @observable public strokeStyle: StrokeStyle = StrokeStyle.Solid;
@@ -179,17 +178,13 @@ export class Figure extends Primitive {
 
   protected drawView(ctx: CanvasRenderingContext2D): void {
     const {
-      backgroundColor,
+      fills,
       strokeStyle,
       strokeWidth,
       strokeColor,
       strokeDash,
       strokeDashGap,
     } = this;
-
-    if (backgroundColor) {
-      ctx.fillStyle = backgroundColor;
-    }
 
     if (strokeWidth) {
       ctx.lineWidth = strokeWidth;

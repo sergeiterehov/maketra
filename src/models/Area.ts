@@ -1,4 +1,5 @@
 import { intercept, makeObservable, observable } from "mobx";
+import { ColorFill } from "./Fill";
 import { Group } from "./Group";
 import { Constraint, Size } from "./MkNode";
 
@@ -9,7 +10,6 @@ export class Area extends Group {
   public height: number = 0;
 
   @observable public clipContent: boolean = true;
-  @observable public backgroundColor: string = "#FFFFFF";
 
   get size(): Size {
     return { width: this.width, height: this.height };
@@ -17,6 +17,11 @@ export class Area extends Group {
 
   constructor() {
     super();
+
+    const baseFill = new ColorFill();
+
+    baseFill.color = "#FFF";
+    this.fills.push(baseFill);
 
     makeObservable(this);
 
@@ -67,10 +72,19 @@ export class Area extends Group {
   }
 
   protected drawView(ctx: CanvasRenderingContext2D): void {
-    const { width, height, backgroundColor } = this;
+    const { width, height } = this;
 
-    ctx.fillStyle = backgroundColor;
-    ctx.fillRect(0, 0, width, height);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(width, 0);
+    ctx.lineTo(width, height);
+    ctx.lineTo(0, height);
+    ctx.closePath();
+
+    for (const fill of this.fills) {
+      fill.apply(ctx);
+      ctx.fill();
+    }
 
     if (!this.parentNode) {
       ctx.fillStyle = "#000000";

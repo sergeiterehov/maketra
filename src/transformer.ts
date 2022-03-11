@@ -1,5 +1,6 @@
 import { action, makeAutoObservable, observe } from "mobx";
 import { Figure, StrokeStyle } from "./models/Figure";
+import { ColorFill } from "./models/Fill";
 import { FPoint } from "./models/FPoint";
 import { Group } from "./models/Group";
 import { Constraint, MkNode } from "./models/MkNode";
@@ -7,6 +8,8 @@ import { Constraint, MkNode } from "./models/MkNode";
 const borderColor = "#00F";
 const constraintColor = "#00F6";
 const cornerColor = "#FFF";
+
+const cornerFill = new ColorFill(cornerColor);
 
 const cornerSize: number = 6;
 const cornerOffset = -cornerSize / 2;
@@ -24,7 +27,7 @@ function getCornerProps(): Partial<Figure> {
     y: cornerOffset,
     points: FPoint.createRect(0, 0, cornerSize, cornerSize),
     strokeColor: borderColor,
-    backgroundColor: cornerColor,
+    fills: [cornerFill],
   };
 }
 

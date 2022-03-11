@@ -1,5 +1,6 @@
 import { Area } from "./models/Area";
 import { Figure } from "./models/Figure";
+import { ColorFill, LinearGradientFill } from "./models/Fill";
 import { FPoint } from "./models/FPoint";
 import { BlendMode } from "./models/MkNode";
 import { Project } from "./models/Project";
@@ -63,7 +64,7 @@ space.projects[0].sections[0].nodes[0].add(
     y: 30,
     width: 100,
     height: 240,
-    backgroundColor: "#FAA",
+    fills: [new ColorFill("#FAA"), new LinearGradientFill()],
   }).add(
     Object.assign(new Area(), {
       name: "End Area",
@@ -71,7 +72,7 @@ space.projects[0].sections[0].nodes[0].add(
       y: 30,
       width: 40,
       height: 60,
-      backgroundColor: "#AFA",
+      fills: [new ColorFill("#AFA")],
       clipContent: false,
       opacity: 0.3,
     }).add(
@@ -92,7 +93,7 @@ space.projects[0].sections[0].nodes[0].add(
             .line(5.885, 0.855)
             .line(-4.258, 4.152)
             .loop().allPoints,
-          backgroundColor: "#AAF",
+          fills: [new ColorFill("#E7F")],
           strokeWidth: 0,
         },
         { width: 50, height: 50 }
@@ -106,7 +107,7 @@ space.projects[0].sections[0].nodes[0].add(
       fontWeight: FontWeight.Regular,
       fontFamily: "sans-serif",
       text: "Hello, world!\nHow are you?",
-      textColor: "#0007",
+      fills: [new LinearGradientFill({ x: 0, y: 48 }, { x: 0, y: 0 })],
       blendMode: BlendMode.ColorBurn,
     })
   ),
@@ -120,7 +121,7 @@ space.projects[0].sections[0].nodes[0].add(
       .next(new FPoint(110, 110), { x: 30, y: 30 }, { x: 30, y: -30 })
       .next(new FPoint(0, 110), { x: -30, y: 30 }, { x: 30, y: 30 })
       .loop({ x: -30, y: -30 }, { x: -30, y: 30 }).allPoints,
-    backgroundColor: "#AAF",
+    fills: [new ColorFill("#AAF")],
     strokeWidth: 4,
   }),
   Object.assign(new Figure(), {
@@ -129,7 +130,7 @@ space.projects[0].sections[0].nodes[0].add(
     y: 10,
     cornerRadius: 8,
     points: cp,
-    backgroundColor: "#F70",
+    fills: [new ColorFill("#F70")],
     strokeWidth: 2,
   })
 );

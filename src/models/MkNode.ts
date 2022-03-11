@@ -1,6 +1,7 @@
 import { action, computed, makeObservable, observable } from "mobx";
 import { randomString } from "../utils/randomString";
 import { Transform } from "../utils/Transform";
+import { Fill } from "./Fill";
 import { Section } from "./Section";
 
 export enum Constraint {
@@ -95,6 +96,8 @@ export class MkNode {
 
   @observable public blendMode: BlendMode = BlendMode.Normal;
   @observable public opacity: number = 1;
+
+  @observable public fills: Fill[] = [];
 
   @observable public x: number = 0;
   @observable public y: number = 0;
