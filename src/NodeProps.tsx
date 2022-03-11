@@ -8,9 +8,10 @@ import { Option, Select } from "./components/Select";
 import { PropSizeInput } from "./components/PropSizeInput";
 import { Area } from "./models/Area";
 import { Figure } from "./models/Figure";
-import { BlendMode, Constraint, MkNode } from "./models/MkNode";
+import { Constraint, MkNode } from "./models/MkNode";
 import { FontStyle, FontWeight, Text, TextAlign } from "./models/Text";
 import { PropLocationInput } from "./components/PropLocationInput";
+import { BlendMode } from "./models/Fill";
 
 function formatTextAlign(value: TextAlign): string {
   switch (value) {

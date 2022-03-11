@@ -1,7 +1,7 @@
 import { action, computed, makeObservable, observable } from "mobx";
 import { randomString } from "../utils/randomString";
 import { Transform } from "../utils/Transform";
-import { Fill } from "./Fill";
+import { BlendMode, Fill } from "./Fill";
 import { Section } from "./Section";
 
 export enum Constraint {
@@ -15,36 +15,6 @@ export enum Constraint {
   Right = End,
   Top = Start,
   Bottom = End,
-}
-
-export enum BlendMode {
-  Color = "color",
-  ColorBurn = "color-burn",
-  ColorDodge = "color-dodge",
-  Copy = "copy",
-  Darken = "darken",
-  DestinationAtop = "destination-atop",
-  DestinationIn = "destination-in",
-  DestinationOut = "destination-out",
-  DestinationOver = "destination-over",
-  Difference = "difference",
-  Exclusion = "exclusion",
-  HardLight = "hard-light",
-  Hue = "hue",
-  Lighten = "lighten",
-  Lighter = "lighter",
-  Luminosity = "luminosity",
-  Multiply = "multiply",
-  Overlay = "overlay",
-  Saturation = "saturation",
-  Screen = "screen",
-  SoftLight = "soft-light",
-  SourceAtop = "source-atop",
-  SourceIn = "source-in",
-  SourceOut = "source-out",
-  SourceOver = "source-over",
-  Xor = "xor",
-  Normal = SourceOver,
 }
 
 export interface Size {

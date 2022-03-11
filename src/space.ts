@@ -1,8 +1,7 @@
 import { Area } from "./models/Area";
 import { Figure } from "./models/Figure";
-import { ColorFill, LinearGradientFill } from "./models/Fill";
+import { BlendMode, ColorFill, LinearGradientFill } from "./models/Fill";
 import { FPoint } from "./models/FPoint";
-import { BlendMode } from "./models/MkNode";
 import { Project } from "./models/Project";
 import { Section } from "./models/Section";
 import { Space } from "./models/Space";

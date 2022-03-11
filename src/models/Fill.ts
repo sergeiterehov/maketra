@@ -1,9 +1,49 @@
 import { action, makeObservable, observable } from "mobx";
 import { Vector2d } from "../utils/Transform";
 
+export enum BlendMode {
+  Color = "color",
+  ColorBurn = "color-burn",
+  ColorDodge = "color-dodge",
+  Copy = "copy",
+  Darken = "darken",
+  DestinationAtop = "destination-atop",
+  DestinationIn = "destination-in",
+  DestinationOut = "destination-out",
+  DestinationOver = "destination-over",
+  Difference = "difference",
+  Exclusion = "exclusion",
+  HardLight = "hard-light",
+  Hue = "hue",
+  Lighten = "lighten",
+  Lighter = "lighter",
+  Luminosity = "luminosity",
+  Multiply = "multiply",
+  Overlay = "overlay",
+  Saturation = "saturation",
+  Screen = "screen",
+  SoftLight = "soft-light",
+  SourceAtop = "source-atop",
+  SourceIn = "source-in",
+  SourceOut = "source-out",
+  SourceOver = "source-over",
+  Xor = "xor",
+  Normal = SourceOver,
+}
+
 export abstract class Fill {
+  @observable public blendMode?: BlendMode;
+
   constructor() {
     makeObservable(this);
+  }
+
+  protected applyBlendMode(ctx: CanvasRenderingContext2D) {
+    const { blendMode } = this;
+
+    if (blendMode) {
+      ctx.globalCompositeOperation = blendMode;
+    }
   }
 
   public abstract apply(ctx: CanvasRenderingContext2D): void;
@@ -21,6 +61,7 @@ export class ColorFill extends Fill {
   }
 
   public apply(ctx: CanvasRenderingContext2D): void {
+    this.applyBlendMode(ctx);
     ctx.fillStyle = this.color;
   }
 }
@@ -62,12 +103,14 @@ export class LinearGradientFill extends Fill {
 
   @action
   public add(offset: number, color: string) {
-    this.stops.push({offset, color});
+    this.stops.push({ offset, color });
 
     return this;
   }
 
   public apply(ctx: CanvasRenderingContext2D): void {
+    this.applyBlendMode(ctx);
+
     const { a, b, stops } = this;
 
     const gradient = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
