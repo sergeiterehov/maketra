@@ -106,8 +106,8 @@ space.projects[0].sections[0].nodes[0].add(
       fontWeight: FontWeight.Regular,
       fontFamily: "sans-serif",
       text: "Hello, world!\nHow are you?",
-      textColor: "#722",
-      blendMode: BlendMode.Multiply,
+      textColor: "#0007",
+      blendMode: BlendMode.ColorBurn,
     })
   ),
   Object.assign(new Figure(), {

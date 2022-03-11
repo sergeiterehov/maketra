@@ -237,6 +237,7 @@ export class MkNode {
     ctxView.save();
     ctxView.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
 
+    // TODO: для корректного применения операции предыдущий слой должен быть нарисован через ctx.drawImage(ctx.canvas)
     ctxView.globalCompositeOperation = this.blendMode as any;
     ctxView.globalAlpha *= this.opacity;
 
