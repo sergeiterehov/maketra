@@ -1,6 +1,9 @@
 import { action, makeObservable, observable } from "mobx";
 import { Vector2d } from "../utils/Transform";
 
+// TODO: image https://stackoverflow.com/questions/10791610/javascript-html5-using-image-to-fill-canvas
+// TODO: radial https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createRadialGradient
+
 export enum BlendMode {
   Color = "color",
   ColorBurn = "color-burn",

@@ -15,14 +15,13 @@ import { figureEditor } from "./figureEditor";
 import { transformer } from "./transformer";
 import { Transform } from "./utils/Transform";
 import { FPoint } from "./models/FPoint";
+import { editorState } from "./editorState";
 
 const Viewer = observer<{
   section: Section;
   width: number;
   height: number;
-  selected?: MkNode;
-  onSelect(node?: MkNode): void;
-}>(({ width, height, section, selected, onSelect }) => {
+}>(({ width, height, section }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const pixelRatio = devicePixelRatio;
@@ -39,6 +38,8 @@ const Viewer = observer<{
 
   hitCanvas.width = width * pixelRatio;
   hitCanvas.height = height * pixelRatio;
+
+  const { selected } = editorState;
 
   const draw = useCallback(() => {
     const ctxView = canvasRef.current!.getContext("2d")!;
@@ -169,7 +170,7 @@ const Viewer = observer<{
 
         if (point) {
           figureEditor.createPoint(point);
-          onSelect(figureEditor.target);
+          editorState.select(figureEditor.target);
         } else {
           figureEditor.createPoint();
         }
@@ -179,14 +180,14 @@ const Viewer = observer<{
       } else {
         mouseRef.current.transformerControl = undefined;
         mouseRef.current.figureEditorControl = undefined;
-        onSelect(node);
+        editorState.select(node);
       }
 
       mouseRef.current.x = x;
       mouseRef.current.y = y;
       mouseRef.current.dragging = true;
     },
-    [hitCanvas, onSelect, pixelRatio]
+    [hitCanvas, pixelRatio]
   );
 
   const mouseMoveHandler = useCallback(
@@ -265,7 +266,7 @@ const Viewer = observer<{
 
           section.nodes[0].add(figure);
 
-          onSelect(undefined);
+          editorState.select(undefined);
 
           figureEditor.adjust(figure);
           figureEditor.showNewPoint();
@@ -285,7 +286,7 @@ const Viewer = observer<{
     return () => {
       window.removeEventListener("keydown", handler);
     };
-  }, [baseTransform, draw, onSelect, pixelRatio, section]);
+  }, [baseTransform, draw, pixelRatio, section]);
 
   return (
     <>

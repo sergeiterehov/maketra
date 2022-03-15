@@ -76,6 +76,7 @@ space.projects[0].sections[0].nodes[0].add(
       fills: [new ColorFill("#AFA")],
       clipContent: false,
       opacity: 0.3,
+      filters: [new BlurFilter()],
     }).add(
       Object.assign(
         new Figure(),
@@ -109,7 +110,12 @@ space.projects[0].sections[0].nodes[0].add(
       fontWeight: FontWeight.Regular,
       fontFamily: "sans-serif",
       text: "Hello, world!\nHow are you?",
-      fills: [new LinearGradientFill({ x: 0, y: 48 }, { x: 0, y: 0 })],
+      fills: [
+        new LinearGradientFill({ x: 0, y: 48 }, { x: 0, y: 0 }, [
+          { offset: 0, color: "#F00" },
+          { offset: 1, color: "#0F0" },
+        ]),
+      ],
       blendMode: BlendMode.ColorBurn,
     })
   ),

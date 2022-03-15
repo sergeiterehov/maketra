@@ -9,6 +9,8 @@ import { Section } from "./models/Section";
 import { NodeProps } from "./NodeProps";
 import { useElementSize } from "./utils/useElementSize";
 import Viewer from "./Viewer";
+import { Preview } from "./Preview";
+import { editorState } from "./editorState";
 
 const SectionLink = styled(Link)`
   &.active {
@@ -55,9 +57,9 @@ const SectionsView = observer<{
 
 const NodesViewLevel = observer<{
   nodes: MkNode[];
-  selected?: MkNode;
-  onSelect(node: MkNode): void;
-}>(({ nodes, selected, onSelect }) => {
+}>(({ nodes }) => {
+  const { selected } = editorState;
+
   return (
     <ul>
       {nodes.map((n) => {
@@ -65,17 +67,11 @@ const NodesViewLevel = observer<{
           <li key={n.id}>
             <NodeListItem
               className={selected === n ? "active" : undefined}
-              onClick={() => onSelect(n)}
+              onClick={() => editorState.select(n)}
             >
               {n.name}
             </NodeListItem>
-            {n.children.length ? (
-              <NodesViewLevel
-                nodes={n.children}
-                selected={selected}
-                onSelect={onSelect}
-              />
-            ) : null}
+            {n.children.length ? <NodesViewLevel nodes={n.children} /> : null}
           </li>
         );
       })}
@@ -85,16 +81,8 @@ const NodesViewLevel = observer<{
 
 const NodesView = observer<{
   section: Section;
-  selected?: MkNode;
-  onSelect(node: MkNode): void;
-}>(({ section, selected, onSelect }) => {
-  return (
-    <NodesViewLevel
-      nodes={section.nodes}
-      selected={selected}
-      onSelect={onSelect}
-    />
-  );
+}>(({ section }) => {
+  return <NodesViewLevel nodes={section.nodes} />;
 });
 
 export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
@@ -103,13 +91,12 @@ export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
   const viewerContainerRef = useRef<HTMLDivElement>(null);
   const viewerContainerSize = useElementSize(viewerContainerRef);
 
-  const [selectedNode, setSelectedNode] = useState<MkNode>();
-
   const section = project.sections.find((s) => s.id === searchParams.get("s"));
 
-  const selectNodeHandler = useCallback((node: MkNode) => {
-    setSelectedNode(node);
-  }, []);
+  const selectNodeHandler = useCallback(
+    (node: MkNode) => editorState.select(node),
+    []
+  );
 
   return (
     <div
@@ -138,27 +125,22 @@ export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
           <div style={{ borderBottom: "solid 1px #0002" }}>
             <SectionsView sections={project.sections} activeId={section?.id} />
           </div>
-          <div>
-            {section ? (
-              <NodesView
-                section={section}
-                selected={selectedNode}
-                onSelect={selectNodeHandler}
-              />
-            ) : null}
-          </div>
+          <div>{section ? <NodesView section={section} /> : null}</div>
         </div>
         <div
           ref={viewerContainerRef}
           style={{ width: "100%", overflow: "hidden" }}
         >
+          {section ? (
+            <div style={{ position: "fixed", top: 0, left: 0 }}>
+              <Preview section={section} width={300} height={300} />
+            </div>
+          ) : null}
           {section && viewerContainerSize ? (
             <Viewer
               section={section}
               width={viewerContainerSize.width}
               height={viewerContainerSize.height}
-              selected={selectedNode}
-              onSelect={selectNodeHandler}
             />
           ) : null}
         </div>
@@ -172,7 +154,9 @@ export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
             flexShrink: 0,
           }}
         >
-          {selectedNode ? <NodeProps node={selectedNode} /> : null}
+          {editorState.selected ? (
+            <NodeProps node={editorState.selected} />
+          ) : null}
         </PropsContainer>
       </div>
     </div>

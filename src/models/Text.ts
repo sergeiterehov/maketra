@@ -51,13 +51,13 @@ export class Text extends Primitive {
     return { width: this.computedTextWidth, height: this.computedTextHeight };
   }
 
-  @computed protected get font(): string {
+  @computed public get font(): string {
     const { fontFamily, fontSizeUnit, fontSize, fontWeight, fontStyle } = this;
 
     return `${fontWeight} ${fontStyle} ${fontSize}${fontSizeUnit} ${fontFamily}`;
   }
 
-  @computed protected get computedTextWidth(): number {
+  @computed public get computedTextWidth(): number {
     const { textLines, font } = this;
     let width = 0;
 
@@ -68,7 +68,7 @@ export class Text extends Primitive {
     return width;
   }
 
-  @computed protected get computedTextHeight(): number {
+  @computed public get computedTextHeight(): number {
     const { textLines, fontSize } = this;
 
     return textLines.length * fontSize;
