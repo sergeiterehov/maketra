@@ -1,9 +1,9 @@
 import { intercept, makeObservable, observable } from "mobx";
 import { ColorFill } from "./Fill";
-import { Group } from "./Group";
 import { Constraint, Size } from "./MkNode";
+import { Primitive } from "./Primitive";
 
-export class Area extends Group {
+export class Area extends Primitive {
   public name: string = "Area";
 
   public width: number = 0;

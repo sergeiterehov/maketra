@@ -1,9 +1,10 @@
 import { action, makeAutoObservable, observe } from "mobx";
-import { Figure, StrokeStyle } from "./models/Figure";
+import { Figure } from "./models/Figure";
 import { ColorFill } from "./models/Fill";
 import { FPoint } from "./models/FPoint";
 import { Group } from "./models/Group";
 import { Constraint, MkNode } from "./models/MkNode";
+import { StrokeStyle } from "./models/Primitive";
 
 const borderColor = "#00F";
 const constraintColor = "#00F6";

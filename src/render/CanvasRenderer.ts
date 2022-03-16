@@ -1,9 +1,10 @@
 import { Area } from "../models/Area";
-import { Figure, StrokeStyle } from "../models/Figure";
+import { Figure } from "../models/Figure";
 import { BlendMode, ColorFill, Fill, LinearGradientFill } from "../models/Fill";
 import { BlurFilter, DropShadowFilter, Filter } from "../models/Filter";
 import { FPoint } from "../models/FPoint";
 import { MkNode } from "../models/MkNode";
+import { Primitive, StrokeStyle } from "../models/Primitive";
 import { Text, TextAlign } from "../models/Text";
 import { Transform } from "../utils/Transform";
 
@@ -36,7 +37,7 @@ export class CanvasRenderer {
       hitColorKey,
       interactive,
     } = node;
-    const { transform, ctx, hit, disableBlendMode, disableOpacity } = this;
+    const { transform, ctx, hit, disableOpacity } = this;
 
     if (!visible) return;
 
@@ -48,9 +49,7 @@ export class CanvasRenderer {
     ctx.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
     hit?.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
 
-    if (!disableBlendMode) {
-      ctx.globalCompositeOperation = blendMode as any;
-    }
+    this.applyBlendMode(blendMode);
 
     if (!disableOpacity) {
       ctx.globalAlpha *= opacity;
@@ -120,18 +119,19 @@ export class CanvasRenderer {
 
   protected renderArea(area: Area) {
     const { ctx, hit } = this;
-    const { width, height, fills, parentNode, clipContent, name } = area;
+    const { width, height, parentNode, clipContent, name, cornerRadius } = area;
 
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(width, 0);
-    ctx.lineTo(width, height);
-    ctx.lineTo(0, height);
-    ctx.closePath();
+    const path = new Path2D();
 
-    for (const fill of fills) {
-      this.applyFill(fill, () => ctx.fill());
-    }
+    path.moveTo(0 + cornerRadius, 0);
+    path.arcTo(width, 0, width, 0 + cornerRadius, cornerRadius);
+    path.arcTo(width, height, width - cornerRadius, height, cornerRadius);
+    path.arcTo(0, height, 0, 0 + cornerRadius, cornerRadius);
+    path.arcTo(0, 0, 0 + cornerRadius, 0, cornerRadius);
+    path.closePath();
+
+    this.applyFills(area, () => ctx.fill(path));
+    this.applyStroke(area, () => ctx.stroke(path));
 
     if (parentNode) {
       hit?.fillRect(0, 0, width, height);
@@ -146,19 +146,15 @@ export class CanvasRenderer {
     }
 
     if (clipContent) {
-      const clip = new Path2D();
+      ctx.clip(path);
 
-      clip.rect(0, 0, width, height);
-      ctx.clip(clip);
-
-      hit?.clip(clip);
+      hit?.clip(path);
     }
   }
 
   protected renderText(text: Text) {
     const { ctx, hit } = this;
     const {
-      fills,
       font,
       textLines,
       fontSize,
@@ -186,11 +182,12 @@ export class CanvasRenderer {
     for (let i = 0; i < textLines.length; i += 1) {
       const line = textLines[i];
 
-      for (const fill of fills) {
-        this.applyFill(fill, () =>
-          ctx.fillText(line, alignOffset, i * fontSize)
-        );
-      }
+      this.applyFills(text, () =>
+        ctx.fillText(line, alignOffset, i * fontSize)
+      );
+      this.applyStroke(text, () =>
+        ctx.strokeText(line, alignOffset, i * fontSize)
+      );
     }
 
     hit?.fillRect(0, 0, computedTextWidth, computedTextHeight);
@@ -198,25 +195,9 @@ export class CanvasRenderer {
 
   protected renderFigure(figure: Figure): void {
     const { ctx, hit } = this;
-    const {
-      fills,
-      strokeStyle,
-      strokeWidth,
-      strokeColor,
-      strokeDash,
-      strokeDashGap,
-      size,
-      points,
-    } = figure;
+    const { size, points } = figure;
 
-    if (strokeWidth) {
-      ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = strokeColor;
-
-      if (strokeStyle === StrokeStyle.Dash) {
-        ctx.setLineDash([strokeDash, strokeDashGap ?? strokeDash]);
-      }
-    }
+    this.applyStroke(figure, () => null);
 
     // Находим все замкнутые области
 
@@ -305,5 +286,28 @@ export class CanvasRenderer {
     action();
 
     this.applyBlendMode(prevBlendMode);
+  }
+
+  protected applyFills(node: MkNode, action: () => void) {
+    const { fills } = node;
+
+    for (const fill of fills) {
+      this.applyFill(fill, action);
+    }
+  }
+
+  protected applyStroke(node: Primitive, action: () => void) {
+    const { ctx } = this;
+    const { strokeColor, strokeDash, strokeStyle, strokeWidth, strokeDashGap } =
+      node;
+
+    if (!strokeWidth) return;
+
+    ctx.lineWidth = strokeWidth;
+    ctx.strokeStyle = strokeColor;
+
+    if (strokeStyle === StrokeStyle.Dash) {
+      ctx.setLineDash([strokeDash, strokeDashGap ?? strokeDash]);
+    }
   }
 }

@@ -12,6 +12,7 @@ import { Constraint, MkNode } from "./models/MkNode";
 import { FontStyle, FontWeight, Text, TextAlign } from "./models/Text";
 import { PropLocationInput } from "./components/PropLocationInput";
 import { BlendMode } from "./models/Fill";
+import { Primitive } from "./models/Primitive";
 
 function formatTextAlign(value: TextAlign): string {
   switch (value) {
@@ -153,7 +154,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
             }}
           />
         </Scrubber>
-        {node instanceof Figure ? (
+        {node instanceof Primitive ? (
           <Scrubber
             className="second-in-row"
             min={0}

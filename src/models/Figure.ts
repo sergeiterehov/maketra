@@ -2,23 +2,12 @@ import { action, intercept, makeObservable, observable, observe } from "mobx";
 import { FLink, FPoint } from "./FPoint";
 import { Primitive } from "./Primitive";
 
-export enum StrokeStyle {
-  Solid = 1,
-  Dash,
-}
-
 export class Figure extends Primitive {
   public static debug = false;
 
   public name: string = "Figure";
 
   @observable public points: FPoint[] = [];
-  @observable public cornerRadius: number = 0;
-  @observable public strokeColor: string = "#000000";
-  @observable public strokeWidth: number = 1;
-  @observable public strokeStyle: StrokeStyle = StrokeStyle.Solid;
-  @observable public strokeDash: number = 10;
-  @observable public strokeDashGap?: number = undefined;
 
   /** Блокирует автоматическое масштабирование точек при изменении размеров. */
   private lockScaleOnResize = false;
