@@ -6,7 +6,6 @@ import {
   observable,
   observe,
 } from "mobx";
-import { CollisionDetection } from "../utils/CollisionDetection";
 import { FLink, FPoint } from "./FPoint";
 import { Primitive } from "./Primitive";
 
@@ -143,76 +142,5 @@ export class Figure extends Primitive {
     this.x += x;
     this.y += y;
     this.lockScaleOnResize = false;
-  }
-
-  protected renderPathData(ctx: CanvasRenderingContext2D): void {
-    const { points, cornerRadius } = this;
-
-    // Находим все замкнутые области
-
-    // TODO:
-
-    // рисуем все линии
-
-    const pairs = new Map<FPoint, FPoint[]>();
-
-    for (const point of points) {
-      pairs.set(point, point.linkedPoints);
-    }
-
-    for (const point of points) {
-      const linked = pairs.get(point)!;
-
-      for (const pair of linked) {
-        const pairLinked = pairs.get(pair)!;
-
-        pairLinked.slice(pairLinked.indexOf(point, 1));
-
-        ctx.beginPath();
-        ctx.moveTo(point.x, point.y);
-        ctx.lineTo(pair.x, pair.y);
-        ctx.stroke();
-      }
-    }
-  }
-
-  protected drawView(ctx: CanvasRenderingContext2D): void {
-    const {
-      fills,
-      strokeStyle,
-      strokeWidth,
-      strokeColor,
-      strokeDash,
-      strokeDashGap,
-    } = this;
-
-    if (strokeWidth) {
-      ctx.lineWidth = strokeWidth;
-      ctx.strokeStyle = strokeColor;
-
-      if (strokeStyle === StrokeStyle.Dash) {
-        ctx.setLineDash([strokeDash, strokeDashGap ?? strokeDash]);
-      }
-    }
-
-    this.renderPathData(ctx);
-
-    if (Figure.debug) {
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.lineTo(this.size.width, 0);
-      ctx.lineTo(this.size.width, this.size.height);
-      ctx.lineTo(0, this.size.height);
-      ctx.closePath();
-      ctx.lineWidth = 1;
-      ctx.strokeStyle = "#F005";
-      ctx.stroke();
-    }
-  }
-
-  protected drawHit(ctx: CanvasRenderingContext2D): void {
-    ctx.lineWidth = 8;
-
-    this.renderPathData(ctx);
   }
 }

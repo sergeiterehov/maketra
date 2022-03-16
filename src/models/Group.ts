@@ -9,12 +9,4 @@ export class Group extends MkNode {
 
     makeObservable(this);
   }
-
-  protected drawView(ctx: CanvasRenderingContext2D): void {
-    // not implemented
-  }
-
-  protected drawHit(ctx: CanvasRenderingContext2D): void {
-    // not implemented
-  }
 }

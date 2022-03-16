@@ -85,40 +85,4 @@ export class Text extends Primitive {
 
     makeObservable(this);
   }
-
-  protected drawView(ctx: CanvasRenderingContext2D): void {
-    const { fills, font, textLines, fontSize, textAlign, computedTextWidth } =
-      this;
-
-    ctx.font = font;
-    ctx.textBaseline = "top";
-    ctx.textAlign = textAlign as any;
-
-    let alignOffset = 0;
-
-    switch (textAlign) {
-      case TextAlign.Center:
-        alignOffset = computedTextWidth / 2;
-        break;
-      case TextAlign.Right:
-        alignOffset = computedTextWidth;
-        break;
-      default:
-    }
-
-    for (let i = 0; i < textLines.length; i += 1) {
-      const line = textLines[i];
-
-      for (const fill of fills) {
-        fill.apply(ctx);
-        ctx.fillText(line, alignOffset, i * fontSize);
-      }
-    }
-  }
-
-  protected drawHit(ctx: CanvasRenderingContext2D): void {
-    const { computedTextHeight, computedTextWidth } = this;
-
-    ctx.fillRect(0, 0, computedTextWidth, computedTextHeight);
-  }
 }

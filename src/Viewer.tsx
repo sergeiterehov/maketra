@@ -1,12 +1,6 @@
 import { autorun, observe, runInAction } from "mobx";
 import { observer } from "mobx-react-lite";
-import React, {
-  useCallback,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useMemo, useRef } from "react";
 import { useEffect } from "react";
 import { Figure } from "./models/Figure";
 import { MkNode } from "./models/MkNode";
@@ -16,6 +10,7 @@ import { transformer } from "./transformer";
 import { Transform } from "./utils/Transform";
 import { FPoint } from "./models/FPoint";
 import { editorState } from "./editorState";
+import { CanvasRenderer } from "./render/CanvasRenderer";
 
 const Viewer = observer<{
   section: Section;
@@ -26,9 +21,7 @@ const Viewer = observer<{
 
   const pixelRatio = devicePixelRatio;
 
-  const [baseTransform, setBaseTransform] = useState(() =>
-    new Transform().scale(pixelRatio, pixelRatio)
-  );
+  const { baseTransform, selected } = editorState;
 
   const allSectionsNodes: MkNode[] = section.nodes.flatMap(
     (node) => node.allNodes
@@ -39,46 +32,46 @@ const Viewer = observer<{
   hitCanvas.width = width * pixelRatio;
   hitCanvas.height = height * pixelRatio;
 
-  const { selected } = editorState;
+  const rendererRef = useRef<CanvasRenderer>();
 
-  const draw = useCallback(() => {
-    const ctxView = canvasRef.current!.getContext("2d")!;
-    const ctxHit = hitCanvas.getContext("2d")!;
-
-    // Clear
-
-    ctxView.resetTransform();
-    ctxHit.resetTransform();
-
-    ctxHit.imageSmoothingEnabled = false;
-
-    ctxView.clearRect(0, 0, ctxView.canvas.width, ctxView.canvas.height);
-    ctxHit.clearRect(0, 0, ctxView.canvas.width, ctxView.canvas.height);
-
-    // Draw
-
-    ctxView.fillStyle = "#DDD";
-    ctxView.fillRect(0, 0, ctxView.canvas.width, ctxView.canvas.height);
-
-    for (const node of section.nodes) {
-      node.draw(ctxView, ctxHit, baseTransform);
-    }
-
-    if (selected) {
-      transformer.group.draw(ctxView, ctxHit, baseTransform);
-    }
-
-    figureEditor.group.draw(ctxView, ctxHit, baseTransform);
-  }, [baseTransform, hitCanvas, section, selected]);
-
-  // TODO: Здесь нужен планировщик отрисовки, так как отслеживается КАЖДОЕ изменение ВЕЗДЕ.
   useEffect(() => {
-    return autorun(() => draw());
-  }, [draw]);
+    if (!canvasRef.current) return;
 
-  useLayoutEffect(() => {
+    const context = canvasRef.current.getContext("2d");
+
+    if (!context) return;
+
+    rendererRef.current = new CanvasRenderer(
+      context,
+      hitCanvas.getContext("2d")!
+    );
+  }, [hitCanvas]);
+
+  useEffect(() => {
+    const renderer = rendererRef.current;
+
+    if (!renderer) return;
+
+    let animRequest = 0;
+
+    const draw = () => {
+      renderer.transform = editorState.baseTransform;
+      renderer.clear();
+
+      for (const node of section.nodes) {
+        renderer.renderNode(node);
+      }
+
+      renderer.renderNode(transformer.group);
+      renderer.renderNode(figureEditor.group);
+
+      animRequest = window.requestAnimationFrame(draw);
+    };
+
     draw();
-  });
+
+    return () => window.cancelAnimationFrame(animRequest);
+  }, [section]);
 
   useEffect(() => {
     if (!selected) {
@@ -107,7 +100,9 @@ const Viewer = observer<{
       e.preventDefault();
       e.stopPropagation();
 
-      setBaseTransform((prev) => {
+      runInAction(() => {
+        const prev = editorState.baseTransform;
+
         const next = new Transform();
         const { x, y, scaleX, scaleY } = prev.decompose();
 
@@ -126,7 +121,7 @@ const Viewer = observer<{
           next.scale(scaleX, scaleY);
         }
 
-        return next;
+        editorState.baseTransform = next;
       });
     }
 
@@ -273,11 +268,6 @@ const Viewer = observer<{
 
           break;
         }
-        case "KeyR": {
-          draw();
-
-          break;
-        }
       }
     };
 
@@ -286,7 +276,7 @@ const Viewer = observer<{
     return () => {
       window.removeEventListener("keydown", handler);
     };
-  }, [baseTransform, draw, pixelRatio, section]);
+  }, [baseTransform, pixelRatio, section]);
 
   return (
     <>

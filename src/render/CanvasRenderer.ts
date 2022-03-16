@@ -8,7 +8,8 @@ import { Transform } from "../utils/Transform";
 export class CanvasRenderer {
   private ctx: CanvasRenderingContext2D;
   private hit?: CanvasRenderingContext2D;
-  protected transform: Transform;
+  
+  transform: Transform;
 
   constructor(
     viewContext: CanvasRenderingContext2D,
@@ -17,8 +18,6 @@ export class CanvasRenderer {
     this.ctx = viewContext;
     this.hit = hitContext;
     this.transform = new Transform();
-
-    this.clear();
   }
 
   renderNode(node: MkNode) {
@@ -208,6 +207,8 @@ export class CanvasRenderer {
         ctx.stroke();
 
         if (hit) {
+          hit.lineWidth = 8;
+
           hit.beginPath();
           hit.moveTo(point.x, point.y);
           hit.lineTo(pair.x, pair.y);

@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useRef } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import styled from "styled-components";
 import { PropsContainer } from "./PropsContainer";
@@ -9,7 +9,6 @@ import { Section } from "./models/Section";
 import { NodeProps } from "./NodeProps";
 import { useElementSize } from "./utils/useElementSize";
 import Viewer from "./Viewer";
-import { Preview } from "./Preview";
 import { editorState } from "./editorState";
 
 const SectionLink = styled(Link)`
@@ -131,11 +130,6 @@ export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
           ref={viewerContainerRef}
           style={{ width: "100%", overflow: "hidden" }}
         >
-          {section ? (
-            <div style={{ position: "fixed", top: 0, left: 0 }}>
-              <Preview section={section} width={300} height={300} />
-            </div>
-          ) : null}
           {section && viewerContainerSize ? (
             <Viewer
               section={section}
