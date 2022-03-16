@@ -4,14 +4,6 @@ export abstract class Filter {
   constructor() {
     makeObservable(this);
   }
-
-  protected addFilter(ctx: CanvasRenderingContext2D, filter: string) {
-    ctx.filter = `${ctx.filter.replace("none", "")} ${filter}`;
-
-    return this;
-  }
-
-  public abstract apply(ctx: CanvasRenderingContext2D): void;
 }
 
 export class BlurFilter extends Filter {
@@ -23,10 +15,6 @@ export class BlurFilter extends Filter {
     this.radius = radius;
 
     makeObservable(this);
-  }
-
-  public apply(ctx: CanvasRenderingContext2D): void {
-    this.addFilter(ctx, `blur(${this.radius}px)`);
   }
 }
 
@@ -50,10 +38,5 @@ export class DropShadowFilter extends Filter {
     this.color = color;
 
     makeObservable(this);
-  }
-
-  public apply(ctx: CanvasRenderingContext2D): void {
-    const { x, y, radius, color } = this;
-    this.addFilter(ctx, `drop-shadow(${x}px ${y}px ${radius}px ${color})`);
   }
 }

@@ -1,5 +1,6 @@
 import { Area } from "../models/Area";
 import { Figure, StrokeStyle } from "../models/Figure";
+import { BlurFilter, DropShadowFilter, Filter } from "../models/Filter";
 import { FPoint } from "../models/FPoint";
 import { MkNode } from "../models/MkNode";
 import { Text, TextAlign } from "../models/Text";
@@ -8,7 +9,7 @@ import { Transform } from "../utils/Transform";
 export class CanvasRenderer {
   private ctx: CanvasRenderingContext2D;
   private hit?: CanvasRenderingContext2D;
-  
+
   transform: Transform;
 
   constructor(
@@ -51,7 +52,7 @@ export class CanvasRenderer {
     }
 
     for (const filter of filters) {
-      filter.apply(ctx);
+      this.applyFilter(filter);
     }
 
     if (!interactive) this.hit = undefined;
@@ -75,10 +76,32 @@ export class CanvasRenderer {
 
     ctx.resetTransform();
 
+    ctx.filter = "none";
     ctx.fillStyle = "#DDD";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     hit?.clearRect(0, 0, hit.canvas.width, hit.canvas.height);
+  }
+
+  protected addFilter(filter: string) {
+    const { ctx } = this;
+
+    ctx.filter = `${ctx.filter.replace("none", "")} ${filter}`;
+  }
+
+  protected applyBlurFilter(filter: BlurFilter) {
+    this.addFilter(`blur(${filter.radius}px)`);
+  }
+
+  protected applyDropShadowFilter(filter: DropShadowFilter) {
+    const { x, y, radius, color } = filter;
+    this.addFilter(`drop-shadow(${x}px ${y}px ${radius}px ${color})`);
+  }
+
+  protected applyFilter(filter: Filter) {
+    if (filter instanceof BlurFilter) this.applyBlurFilter(filter);
+    else if (filter instanceof DropShadowFilter)
+      this.applyDropShadowFilter(filter);
   }
 
   protected renderArea(area: Area) {
