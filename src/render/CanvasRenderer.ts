@@ -122,12 +122,13 @@ export class CanvasRenderer {
     const { width, height, parentNode, clipContent, name, cornerRadius } = area;
 
     const path = new Path2D();
+    const radius = Math.min(cornerRadius, width / 2, height / 2);
 
-    path.moveTo(0 + cornerRadius, 0);
-    path.arcTo(width, 0, width, 0 + cornerRadius, cornerRadius);
-    path.arcTo(width, height, width - cornerRadius, height, cornerRadius);
-    path.arcTo(0, height, 0, 0 + cornerRadius, cornerRadius);
-    path.arcTo(0, 0, 0 + cornerRadius, 0, cornerRadius);
+    path.moveTo(0 + radius, 0);
+    path.arcTo(width, 0, width, 0 + radius, radius);
+    path.arcTo(width, height, width - radius, height, radius);
+    path.arcTo(0, height, 0, 0 + radius, radius);
+    path.arcTo(0, 0, 0 + radius, 0, radius);
     path.closePath();
 
     this.applyFills(area, () => ctx.fill(path));
