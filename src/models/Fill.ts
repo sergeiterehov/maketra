@@ -1,9 +1,6 @@
 import { action, makeObservable, observable } from "mobx";
 import { Vector2d } from "../utils/Transform";
 
-// TODO: image https://stackoverflow.com/questions/10791610/javascript-html5-using-image-to-fill-canvas
-// TODO: radial https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createRadialGradient
-
 export enum BlendMode {
   Color = "color",
   ColorBurn = "color-burn",
@@ -40,16 +37,6 @@ export abstract class Fill {
   constructor() {
     makeObservable(this);
   }
-
-  protected applyBlendMode(ctx: CanvasRenderingContext2D) {
-    const { blendMode } = this;
-
-    if (blendMode) {
-      ctx.globalCompositeOperation = blendMode;
-    }
-  }
-
-  public abstract apply(ctx: CanvasRenderingContext2D): void;
 }
 
 export class ColorFill extends Fill {
@@ -61,11 +48,6 @@ export class ColorFill extends Fill {
     this.color = color;
 
     makeObservable(this);
-  }
-
-  public apply(ctx: CanvasRenderingContext2D): void {
-    this.applyBlendMode(ctx);
-    ctx.fillStyle = this.color;
   }
 }
 
@@ -109,19 +91,5 @@ export class LinearGradientFill extends Fill {
     this.stops.push({ offset, color });
 
     return this;
-  }
-
-  public apply(ctx: CanvasRenderingContext2D): void {
-    this.applyBlendMode(ctx);
-
-    const { a, b, stops } = this;
-
-    const gradient = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
-
-    for (const stop of stops) {
-      gradient.addColorStop(stop.offset, stop.color);
-    }
-
-    ctx.fillStyle = gradient;
   }
 }

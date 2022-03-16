@@ -1,5 +1,6 @@
 import { Area } from "../models/Area";
 import { Figure, StrokeStyle } from "../models/Figure";
+import { BlendMode, ColorFill, Fill, LinearGradientFill } from "../models/Fill";
 import { BlurFilter, DropShadowFilter, Filter } from "../models/Filter";
 import { FPoint } from "../models/FPoint";
 import { MkNode } from "../models/MkNode";
@@ -9,6 +10,10 @@ import { Transform } from "../utils/Transform";
 export class CanvasRenderer {
   private ctx: CanvasRenderingContext2D;
   private hit?: CanvasRenderingContext2D;
+
+  disableFilters: boolean = true;
+  disableBlendMode: boolean = false;
+  disableOpacity: boolean = false;
 
   transform: Transform;
 
@@ -31,7 +36,7 @@ export class CanvasRenderer {
       hitColorKey,
       interactive,
     } = node;
-    const { transform, ctx, hit } = this;
+    const { transform, ctx, hit, disableBlendMode, disableOpacity } = this;
 
     if (!visible) return;
 
@@ -43,8 +48,13 @@ export class CanvasRenderer {
     ctx.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
     hit?.setTransform(m[0], m[1], m[2], m[3], m[4], m[5]);
 
-    ctx.globalCompositeOperation = blendMode as any;
-    ctx.globalAlpha *= opacity;
+    if (!disableBlendMode) {
+      ctx.globalCompositeOperation = blendMode as any;
+    }
+
+    if (!disableOpacity) {
+      ctx.globalAlpha *= opacity;
+    }
 
     if (hit) {
       hit.fillStyle = hitColorKey;
@@ -79,6 +89,8 @@ export class CanvasRenderer {
     ctx.filter = "none";
     ctx.fillStyle = "#DDD";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
 
     hit?.clearRect(0, 0, hit.canvas.width, hit.canvas.height);
   }
@@ -99,6 +111,8 @@ export class CanvasRenderer {
   }
 
   protected applyFilter(filter: Filter) {
+    if (this.disableFilters) return;
+
     if (filter instanceof BlurFilter) this.applyBlurFilter(filter);
     else if (filter instanceof DropShadowFilter)
       this.applyDropShadowFilter(filter);
@@ -116,14 +130,13 @@ export class CanvasRenderer {
     ctx.closePath();
 
     for (const fill of fills) {
-      fill.apply(ctx);
-      ctx.fill();
+      this.applyFill(fill, () => ctx.fill());
     }
 
     if (parentNode) {
       hit?.fillRect(0, 0, width, height);
     } else {
-      ctx.fillStyle = "#000000";
+      ctx.fillStyle = "#000";
       ctx.textBaseline = "bottom";
       ctx.textAlign = "left";
       ctx.font = "14px monospace";
@@ -174,8 +187,9 @@ export class CanvasRenderer {
       const line = textLines[i];
 
       for (const fill of fills) {
-        fill.apply(ctx);
-        ctx.fillText(line, alignOffset, i * fontSize);
+        this.applyFill(fill, () =>
+          ctx.fillText(line, alignOffset, i * fontSize)
+        );
       }
     }
 
@@ -251,5 +265,45 @@ export class CanvasRenderer {
       ctx.strokeStyle = "#F005";
       ctx.stroke();
     }
+  }
+
+  protected applyBlendMode(mode: BlendMode) {
+    const { ctx, disableBlendMode } = this;
+
+    if (disableBlendMode) return;
+
+    ctx.globalCompositeOperation = mode;
+  }
+
+  protected applyFill(fill: Fill, action: () => void) {
+    const { ctx } = this;
+    const { blendMode } = fill;
+
+    const prevBlendMode = ctx.globalCompositeOperation as BlendMode;
+
+    if (blendMode) this.applyBlendMode(blendMode);
+
+    // TODO: image https://stackoverflow.com/questions/10791610/javascript-html5-using-image-to-fill-canvas
+    // TODO: radial https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/createRadialGradient
+
+    if (fill instanceof ColorFill) {
+      const { color } = fill;
+
+      ctx.fillStyle = color;
+    } else if (fill instanceof LinearGradientFill) {
+      const { a, b, stops } = fill;
+
+      const gradient = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
+
+      for (const stop of stops) {
+        gradient.addColorStop(stop.offset, stop.color);
+      }
+
+      ctx.fillStyle = gradient;
+    }
+
+    action();
+
+    this.applyBlendMode(prevBlendMode);
   }
 }

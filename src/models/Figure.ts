@@ -1,23 +1,10 @@
-import {
-  action,
-  computed,
-  intercept,
-  makeObservable,
-  observable,
-  observe,
-} from "mobx";
+import { action, intercept, makeObservable, observable, observe } from "mobx";
 import { FLink, FPoint } from "./FPoint";
 import { Primitive } from "./Primitive";
 
 export enum StrokeStyle {
   Solid = 1,
   Dash,
-}
-
-export interface PointTriad {
-  from_p?: FPoint;
-  p: FPoint;
-  p_to?: FPoint;
 }
 
 export class Figure extends Primitive {
@@ -86,29 +73,6 @@ export class Figure extends Primitive {
 
       return change;
     });
-  }
-
-  /**
-   * Возвращает набор точек в правильном порядке рисования.
-   * Линия рисуется от родителя к точке. Если нет родителя, это старт.
-   *
-   * Проверяет и возвращает замкнутость фигуры. TODO: вынести в отдельный get.
-   */
-  @computed public get triads(): PointTriad[] {
-    const { points } = this;
-
-    const triads: PointTriad[] = [];
-
-    const probEntryPoints = [...points];
-    const entryPoints: FPoint[] = [];
-
-    while (probEntryPoints.length) {
-      const probEntry = probEntryPoints.pop()!;
-
-      // идем к началу или к самому себе
-    }
-
-    return triads;
   }
 
   @action
