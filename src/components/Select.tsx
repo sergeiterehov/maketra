@@ -26,10 +26,10 @@ const OptionContainer = styled.div.withConfig({
   height: 30px;
 
   :hover {
-    background: #00F8;
+    background: var(--color-bg-drop-down-hover);
   }
   &[data-selected] {
-    background: #00F;
+    background: var(--color-bg-drop-down-selected);
   }
 `;
 

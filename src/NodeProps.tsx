@@ -11,8 +11,10 @@ import { Figure } from "./models/Figure";
 import { Constraint, MkNode } from "./models/MkNode";
 import { FontStyle, FontWeight, Text, TextAlign } from "./models/Text";
 import { PropLocationInput } from "./components/PropLocationInput";
-import { BlendMode } from "./models/Fill";
+import { BlendMode, ColorFill } from "./models/Fill";
 import { Primitive } from "./models/Primitive";
+import { ColorPicker } from "./components/ColorPicker";
+import { runInAction } from "mobx";
 
 function formatTextAlign(value: TextAlign): string {
   switch (value) {
@@ -262,36 +264,54 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           />
         </Scrubber>
       </ElementsRow>
-      {node instanceof Figure ? (
-        <>
-          <Scrubber
-            speed={0.02}
-            min={0}
-            value={node.strokeWidth}
-            onChange={(next) => (node.strokeWidth = next || 0)}
-          >
-            <Icon>sw</Icon>
-            <CustomInput
-              value={node.strokeWidth?.toString()}
-              onChange={(next) => {
-                const value = Number(next);
-
-                if (Number.isNaN(value)) return false;
-
-                node.strokeWidth = value;
-
-                return true;
-              }}
+      {node.fills
+        .filter((f): f is ColorFill => f instanceof ColorFill)
+        .map((f) => {
+          return (
+            <ColorPicker
+              onChange={(next) => runInAction(() => (f.color = next))}
             />
-          </Scrubber>
+          );
+        })}
+      {node instanceof Primitive ? (
+        <div>
+          <div>Обводка</div>
           <div>
-            Stroke color:
-            <input
-              value={node.strokeColor}
-              onChange={(e) => (node.strokeColor = e.currentTarget.value)}
-            />
+            {node.strokes.map((stroke, i) => {
+              return (
+                <ElementsRow key={i}>
+                  <Scrubber
+                    speed={0.02}
+                    min={0}
+                    value={stroke.width}
+                    onChange={(next) => (stroke.width = next || 0)}
+                  >
+                    <Icon>sw</Icon>
+                    <CustomInput
+                      value={stroke.width.toString()}
+                      onChange={(next) => {
+                        const value = Number(next);
+
+                        if (Number.isNaN(value)) return false;
+
+                        stroke.width = value;
+
+                        return true;
+                      }}
+                    />
+                  </Scrubber>
+                  <div>
+                    Stroke color:
+                    <input
+                      value={stroke.color}
+                      onChange={(e) => (stroke.color = e.currentTarget.value)}
+                    />
+                  </div>
+                </ElementsRow>
+              );
+            })}
           </div>
-        </>
+        </div>
       ) : null}
       {node instanceof Text ? (
         <>

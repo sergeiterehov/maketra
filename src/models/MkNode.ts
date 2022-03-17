@@ -134,6 +134,12 @@ export class MkNode {
     makeObservable(this);
   }
 
+  @action public configure(props: Partial<typeof this>) {
+    Object.assign(this, props);
+
+    return this;
+  }
+
   @action public remove() {
     if (!this.parentNode) return;
 

@@ -4,7 +4,7 @@ import { ColorFill } from "./models/Fill";
 import { FPoint } from "./models/FPoint";
 import { Group } from "./models/Group";
 import { Constraint, MkNode } from "./models/MkNode";
-import { StrokeStyle } from "./models/Primitive";
+import { Stroke, StrokeStyle } from "./models/Stroke";
 
 const borderColor = "#00F";
 const constraintColor = "#00F6";
@@ -18,7 +18,7 @@ const cornerOffset = -cornerSize / 2;
 function getBorderProps(): Partial<Figure> {
   return {
     points: FPoint.createLine(0, 0, 0, 0),
-    strokeColor: borderColor,
+    strokes: [new Stroke(StrokeStyle.Solid, 1, borderColor)],
   };
 }
 
@@ -27,7 +27,7 @@ function getCornerProps(): Partial<Figure> {
     x: cornerOffset,
     y: cornerOffset,
     points: FPoint.createRect(0, 0, cornerSize, cornerSize),
-    strokeColor: borderColor,
+    strokes: [new Stroke(StrokeStyle.Solid, 1, borderColor)],
     fills: [cornerFill],
   };
 }
@@ -36,9 +36,7 @@ function getConstraintProps(): Partial<Figure> {
   return {
     interactive: false,
     points: FPoint.createLine(0, 0, 0, 0),
-    strokeStyle: StrokeStyle.Dash,
-    strokeDash: 5,
-    strokeColor: constraintColor,
+    strokes: [new Stroke(StrokeStyle.Dash, 1, constraintColor, 5)],
   };
 }
 

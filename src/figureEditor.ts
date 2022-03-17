@@ -1,23 +1,27 @@
 import { action, observable } from "mobx";
 import { Figure } from "./models/Figure";
+import { ColorFill } from "./models/Fill";
 import { FPoint } from "./models/FPoint";
 import { Group } from "./models/Group";
 import { MkNode } from "./models/MkNode";
+import { Stroke, StrokeStyle } from "./models/Stroke";
 import { Vector2d } from "./utils/Transform";
 
 const linesColor = "#0FF";
 const pointsColor = "#DEF";
 const pointsBorderColor = "#0AF";
 
-const newPointLine = Object.assign(new Figure(), {
+const newPointLine = new Figure().configure({
   interactive: false,
   points: FPoint.createLine(0, 0, 1, 1),
-  strokeColor: linesColor,
+  strokes: [new Stroke(StrokeStyle.Solid, 1, linesColor)],
 });
 const controlsGroup = new Group();
-const figureEditorGroup = Object.assign(new Group(), {
-  name: "FigureEdit",
-}).add(controlsGroup, newPointLine);
+const figureEditorGroup = new Group()
+  .configure({
+    name: "FigureEdit",
+  })
+  .add(controlsGroup, newPointLine);
 
 export const figureEditor = observable(
   {
@@ -56,12 +60,12 @@ export const figureEditor = observable(
       for (const p of figure.points) {
         if (!p.links.length) continue;
 
-        const l = Object.assign(new Figure(), {
+        const l = new Figure().configure({
           interactive: false, // TODO:
           points: p.linkedPoints.flatMap((pp) =>
             FPoint.createLine(x + p.x, y + p.y, x + pp.x, y + pp.y)
           ),
-          strokeColor: linesColor,
+          strokes: [new Stroke(StrokeStyle.Solid, 1, linesColor)],
         });
 
         this.lines.set(l, p);
@@ -71,12 +75,12 @@ export const figureEditor = observable(
       // Поверх линий накладываем трансформеры.
 
       for (const p of figure.points) {
-        const t = Object.assign(new Figure(), {
+        const t = new Figure().configure({
           points: FPoint.createRect(0, 0, 6, 6),
           x: x + p.x - 3,
           y: y + p.y - 3,
-          strokeColor: pointsBorderColor,
-          backgroundColor: pointsColor,
+          strokes: [new Stroke(StrokeStyle.Solid, 1, pointsBorderColor)],
+          fills: [new ColorFill(pointsColor)],
         });
 
         this.points.set(t, p);

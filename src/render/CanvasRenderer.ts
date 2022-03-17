@@ -4,7 +4,8 @@ import { BlendMode, ColorFill, Fill, LinearGradientFill } from "../models/Fill";
 import { BlurFilter, DropShadowFilter, Filter } from "../models/Filter";
 import { FPoint } from "../models/FPoint";
 import { MkNode } from "../models/MkNode";
-import { Primitive, StrokeStyle } from "../models/Primitive";
+import { Primitive } from "../models/Primitive";
+import { StrokeStyle } from "../models/Stroke";
 import { Text, TextAlign } from "../models/Text";
 import { Transform } from "../utils/Transform";
 
@@ -299,16 +300,20 @@ export class CanvasRenderer {
 
   protected applyStroke(node: Primitive, action: () => void) {
     const { ctx } = this;
-    const { strokeColor, strokeDash, strokeStyle, strokeWidth, strokeDashGap } =
-      node;
 
-    if (!strokeWidth) return;
+    for (const stroke of node.strokes) {
+      const { width, color, style, dash, dashGap } = stroke;
 
-    ctx.lineWidth = strokeWidth;
-    ctx.strokeStyle = strokeColor;
+      if (!width) continue;
 
-    if (strokeStyle === StrokeStyle.Dash) {
-      ctx.setLineDash([strokeDash, strokeDashGap ?? strokeDash]);
+      ctx.lineWidth = width;
+      ctx.strokeStyle = color;
+
+      if (style === StrokeStyle.Dash) {
+        ctx.setLineDash([dash, dashGap ?? dash]);
+      }
+
+      action();
     }
   }
 }

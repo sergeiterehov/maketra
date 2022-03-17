@@ -8,11 +8,13 @@ import reportWebVitals from "./reportWebVitals";
 
 const CssVariablesStyle = createGlobalStyle`
   :root {
-    --color-focus: #00F;
+    --color-focus: #08F;
     --color-border: #DDD;
     --color-icon: #BBB;
     --color-bg-drop-down: #000;
     --color-fg-drop-down: #FFF;
+    --color-bg-drop-down-selected: #08F;
+    --color-bg-drop-down-hover: #08F5;
     --color-bg-hover: #0001;
     --color-bg-selected: #08F3;
   }

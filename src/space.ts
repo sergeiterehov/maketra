@@ -6,6 +6,7 @@ import { FPoint } from "./models/FPoint";
 import { Project } from "./models/Project";
 import { Section } from "./models/Section";
 import { Space } from "./models/Space";
+import { Stroke, StrokeStyle } from "./models/Stroke";
 import { FontWeight, Text } from "./models/Text";
 
 const space = Object.assign(new Space(), {
@@ -58,68 +59,70 @@ cp[6].connect(cp[7]);
 // cp[7].getLinkWith(cp[3])!.aControl.y = -40;
 
 space.projects[0].sections[0].nodes[0].add(
-  Object.assign(new Area(), {
-    name: "Internal Area",
-    x: 30,
-    y: 30,
-    width: 100,
-    height: 240,
-    fills: [new ColorFill("#FAA"), new LinearGradientFill()],
-    filters: [new DropShadowFilter()],
-  }).add(
-    Object.assign(new Area(), {
-      name: "End Area",
+  new Area()
+    .configure({
+      name: "Internal Area",
       x: 30,
       y: 30,
-      width: 40,
-      height: 60,
-      fills: [new ColorFill("#AFA")],
-      clipContent: false,
-      opacity: 0.3,
-      filters: [new BlurFilter()],
-    }).add(
-      Object.assign(
-        new Figure(),
-        {
-          name: "Star",
-          x: 5,
-          y: 5,
-          points: FPoint.start(15.422, 18.129)
-            .line(-5.264, -2.768)
-            .line(-5.265, 2.768)
-            .line(1.006, -5.863)
-            .lineTo(1.64, 8.114)
-            .line(5.887, -0.855)
-            .line(2.632, -5.334)
-            .line(2.633, 5.334)
-            .line(5.885, 0.855)
-            .line(-4.258, 4.152)
-            .loop().allPoints,
-          fills: [new ColorFill("#E7F")],
-          strokeWidth: 0,
-          filters: [new BlurFilter()],
-        },
-        { width: 50, height: 50 }
-      )
-    ),
-    Object.assign(new Text(), {
-      name: "Label 1",
-      x: 20,
-      y: 150,
-      fontSize: 24,
-      fontWeight: FontWeight.Regular,
-      fontFamily: "sans-serif",
-      text: "Hello, world!\nHow are you?",
-      fills: [
-        new LinearGradientFill({ x: 0, y: 48 }, { x: 0, y: 0 }, [
-          { offset: 0, color: "#F00" },
-          { offset: 1, color: "#0F0" },
-        ]),
-      ],
-      blendMode: BlendMode.ColorBurn,
+      width: 100,
+      height: 240,
+      fills: [new ColorFill("#FAA"), new LinearGradientFill()],
+      filters: [new DropShadowFilter()],
     })
-  ),
-  Object.assign(new Figure(), {
+    .add(
+      new Area()
+        .configure({
+          name: "End Area",
+          x: 30,
+          y: 30,
+          width: 40,
+          height: 60,
+          fills: [new ColorFill("#AFA")],
+          clipContent: false,
+          opacity: 0.3,
+          filters: [new BlurFilter()],
+        })
+        .add(
+          new Figure()
+            .configure({
+              name: "Star",
+              x: 5,
+              y: 5,
+              points: FPoint.start(15.422, 18.129)
+                .line(-5.264, -2.768)
+                .line(-5.265, 2.768)
+                .line(1.006, -5.863)
+                .lineTo(1.64, 8.114)
+                .line(5.887, -0.855)
+                .line(2.632, -5.334)
+                .line(2.633, 5.334)
+                .line(5.885, 0.855)
+                .line(-4.258, 4.152)
+                .loop().allPoints,
+              fills: [new ColorFill("#E7F")],
+              strokes: [new Stroke(StrokeStyle.Solid, 1)],
+              filters: [new BlurFilter()],
+            })
+            .configure({ width: 50, height: 50 })
+        ),
+      new Text().configure({
+        name: "Label 1",
+        x: 20,
+        y: 150,
+        fontSize: 24,
+        fontWeight: FontWeight.Regular,
+        fontFamily: "sans-serif",
+        text: "Hello, world!\nHow are you?",
+        fills: [
+          new LinearGradientFill({ x: 0, y: 48 }, { x: 0, y: 0 }, [
+            { offset: 0, color: "#F00" },
+            { offset: 1, color: "#0F0" },
+          ]),
+        ],
+        blendMode: BlendMode.ColorBurn,
+      })
+    ),
+  new Figure().configure({
     name: "Curved Circle",
     x: 140,
     y: 240,
@@ -130,16 +133,16 @@ space.projects[0].sections[0].nodes[0].add(
       .next(new FPoint(0, 110), { x: -30, y: 30 }, { x: 30, y: 30 })
       .loop({ x: -30, y: -30 }, { x: -30, y: 30 }).allPoints,
     fills: [new ColorFill("#AAF")],
-    strokeWidth: 4,
+    strokes: [new Stroke(StrokeStyle.Solid, 4)],
   }),
-  Object.assign(new Figure(), {
+  new Figure().configure({
     name: "Complex Path",
     x: 10,
     y: 10,
     cornerRadius: 8,
     points: cp,
     fills: [new ColorFill("#F70")],
-    strokeWidth: 2,
+    strokes: [new Stroke(StrokeStyle.Solid, 2)],
   })
 );
 
