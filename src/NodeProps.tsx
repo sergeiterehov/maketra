@@ -116,13 +116,6 @@ function formatBlendMode(value: BlendMode): string {
 export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
   return (
     <>
-      <div>
-        Name:
-        <input
-          value={node.name}
-          onChange={(e) => (node.name = e.currentTarget.value)}
-        />
-      </div>
       <ElementsRow>
         <PropLocationInput node={node} property="x" />
         <PropLocationInput className="second-in-row" node={node} property="y" />
