@@ -129,6 +129,7 @@ export const NodeTreeRow = styled<
           className={className}
           data-is-selected={selected ? "" : undefined}
           data-is-area={node instanceof Area ? "" : undefined}
+          data-is-root={!node.parentNode ? "" : undefined}
           onClick={clickHandler}
         >
           <Indent
@@ -151,10 +152,10 @@ export const NodeTreeRow = styled<
   user-select: none;
 
   &[data-is-selected] {
-    background-color: #00f2;
+    background-color: var(--color-bg-selected);
   }
 
-  &[data-is-area] ${RowSpanInput} {
+  &[data-is-area][data-is-root] ${RowSpanInput} {
     font-weight: bold;
   }
 `;

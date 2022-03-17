@@ -51,6 +51,10 @@ export const SectionListRow = styled<
   height: 32px;
   user-select: none;
 
+  &:hover {
+    background-color: var(--color-bg-hover);
+  }
+
   .section-list-row-marker {
     display: flex;
     justify-content: center;

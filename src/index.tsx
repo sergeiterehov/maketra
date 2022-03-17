@@ -13,6 +13,8 @@ const CssVariablesStyle = createGlobalStyle`
     --color-icon: #BBB;
     --color-bg-drop-down: #000;
     --color-fg-drop-down: #FFF;
+    --color-bg-hover: #0001;
+    --color-bg-selected: #08F3;
   }
 `;
 
