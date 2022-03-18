@@ -10,13 +10,14 @@ import { Area } from "./models/Area";
 import { Constraint, MkNode } from "./models/MkNode";
 import { FontStyle, FontWeight, Text, TextAlign } from "./models/Text";
 import { PropLocationInput } from "./components/PropLocationInput";
-import { BlendMode, ColorFill } from "./models/Fill";
+import { BlendMode, ColorFill, Fill, LinearGradientFill } from "./models/Fill";
 import { Primitive } from "./models/Primitive";
 import { runInAction } from "mobx";
 import { ColorPicker } from "./components/ColorPicker";
 import { PanelTitle } from "./components/PanelTitle";
 import { IconContainer } from "./components/IconContainer";
 import { IconButton } from "./components/IconButton";
+import { FillPicker } from "./components/FillPicker";
 
 function formatTextAlign(value: TextAlign): string {
   switch (value) {
@@ -114,6 +115,17 @@ function formatBlendMode(value: BlendMode): string {
       return "Яркость";
     default:
       return value;
+  }
+}
+
+function formatFillName(value: typeof Fill): string {
+  switch (value) {
+    case ColorFill:
+      return "Цвет";
+    case LinearGradientFill:
+      return "Линейный";
+    default:
+      return "???";
   }
 }
 
@@ -278,42 +290,45 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
         <ElementsRow>
           <PanelTitle>Заливка</PanelTitle>
         </ElementsRow>
-        {node.fills
-          .filter((fill): fill is ColorFill => fill instanceof ColorFill)
-          .map((fill, i) => {
-            return (
-              <ElementsRow
-                key={i}
-                data-disabled={fill.disabled ? "" : undefined}
-              >
+        {node.fills.map((fill, i) => {
+          return (
+            <ElementsRow key={i} data-disabled={fill.disabled ? "" : undefined}>
+              {fill instanceof ColorFill ? (
                 <ColorPicker
                   className="fill-paint"
                   color={fill.color}
                   onChange={(next) => runInAction(() => (fill.color = next))}
                 />
-                <IconContainer className="fill-paint-actions">
-                  <IconButton
-                    onClick={() => {
-                      runInAction(() => {
-                        fill.disabled = !fill.disabled;
-                      });
-                    }}
-                  >
-                    {fill.disabled ? "🙈" : "👀"}
-                  </IconButton>
-                  <IconButton
-                    onClick={() => {
-                      runInAction(() => {
-                        node.fills.splice(node.fills.indexOf(fill), 1);
-                      });
-                    }}
-                  >
-                    🗑
-                  </IconButton>
-                </IconContainer>
-              </ElementsRow>
-            );
-          })}
+              ) : (
+                <FillPicker
+                  className="fill-paint"
+                  name={formatFillName(fill.constructor.prototype.constructor)}
+                  preview="X"
+                />
+              )}
+              <IconContainer className="fill-paint-actions">
+                <IconButton
+                  onClick={() => {
+                    runInAction(() => {
+                      fill.disabled = !fill.disabled;
+                    });
+                  }}
+                >
+                  {fill.disabled ? "🙈" : "👀"}
+                </IconButton>
+                <IconButton
+                  onClick={() => {
+                    runInAction(() => {
+                      node.fills.splice(node.fills.indexOf(fill), 1);
+                    });
+                  }}
+                >
+                  🗑
+                </IconButton>
+              </IconContainer>
+            </ElementsRow>
+          );
+        })}
       </div>
       {node instanceof Primitive ? (
         <div>

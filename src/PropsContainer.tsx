@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { ColorPicker } from "./components/ColorPicker";
 import { ElementsRow } from "./components/ElementsRow";
+import { FillPicker } from "./components/FillPicker";
 import { IconButton } from "./components/IconButton";
 import { PanelTitle } from "./components/PanelTitle";
 import { ScrubberContainer } from "./components/Scrubber";
@@ -9,7 +10,7 @@ import { SelectContainer, SelectValue } from "./components/Select";
 export const PropsContainer = styled.div.withConfig({
   displayName: "props-container",
 })`
-  ${ScrubberContainer}, ${SelectContainer}, ${ColorPicker} {
+  ${ScrubberContainer}, ${SelectContainer}, ${ColorPicker}, ${FillPicker} {
     border: solid 1px transparent;
     outline: solid 1px transparent;
     outline-offset: -2px;
@@ -86,11 +87,11 @@ export const PropsContainer = styled.div.withConfig({
     }
 
     .fill-paint {
-      grid-column-end: span 18;
+      grid-column-end: span 19;
     }
 
     &[data-disabled] .fill-paint {
-      color: var(--color-fg-disabled)
+      color: var(--color-fg-disabled);
     }
 
     .fill-paint-actions {
