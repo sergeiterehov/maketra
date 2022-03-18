@@ -33,6 +33,8 @@ export enum BlendMode {
 }
 
 export abstract class Fill {
+  @observable public disabled: boolean = false;
+
   @observable public blendMode?: BlendMode;
 
   constructor() {

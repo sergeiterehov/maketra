@@ -34,6 +34,7 @@ export const ColorPicker = styled<
     <div ref={containerRef} className={className}>
       <ColorChit color={color} onClick={chitClickHandler} />
       <CustomInput
+        className="color-picker-hex"
         value={color.hex_string_no_alpha.slice(1)}
         onChange={(next) => {
           if (!next) return false;
@@ -54,6 +55,7 @@ export const ColorPicker = styled<
         }}
       />
       <CustomInput
+        className="color-picker-alpha"
         value={`${Math.round(color.a * 100)}%`}
         onChange={(next) => {
           if (!next) return false;
@@ -96,4 +98,13 @@ export const ColorPicker = styled<
   border-radius: var(--radius-ui);
   height: 28px;
   overflow: hidden;
+  padding: 0 8px;
+
+  ${ColorChit} {
+    margin-right: 8px;
+  }
+  
+  .color-picker-alpha {
+    width: 42px;
+  }
 `;

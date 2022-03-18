@@ -71,7 +71,7 @@ const Canvas: FC<{
   );
 };
 
-const ColorBlock = styled<
+const Saturation = styled<
   FC<{
     className?: string;
     size: number;
@@ -133,7 +133,7 @@ const ColorBlock = styled<
   );
 }).withConfig({ displayName: "ColorBlock" })``;
 
-const ColorHue = styled<
+const Hue = styled<
   FC<{
     className?: string;
     width: number;
@@ -181,7 +181,7 @@ const ColorHue = styled<
   );
 }).withConfig({ displayName: "ColorHue" })``;
 
-const ColorOpacity = styled<
+const Opacity = styled<
   FC<{
     className?: string;
     width: number;
@@ -252,18 +252,31 @@ export const ColorController = styled<
 
   return (
     <div className={className}>
-      <div>
-        <ColorBlock size={240} color={color} onChange={changeColorHandler} />
+      <div className="color-controller-saturation">
+        <Saturation size={240} color={color} onChange={changeColorHandler} />
       </div>
       <div>
-        <ColorHue width={240} color={color} onChange={changeColorHandler} />
+        <Hue width={240} color={color} onChange={changeColorHandler} />
       </div>
       <div>
-        <ColorOpacity width={240} color={color} onChange={changeColorHandler} />
+        <Opacity width={240} color={color} onChange={changeColorHandler} />
       </div>
-      <div>{color.rgba_string}</div>
-      <div>{color.hsla_string}</div>
-      <div>{color.hex_string}</div>
+      <div className="color-controller-names">
+        <div>{color.rgba_string}</div>
+        <div>{color.hsla_string}</div>
+        <div>{color.hex_string}</div>
+      </div>
     </div>
   );
-}).withConfig({ displayName: "ColorController" })``;
+}).withConfig({ displayName: "ColorController" })`
+  .color-controller-names {
+    padding: 4px 8px;
+
+    & > div {
+      padding: 4px 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  }
+`;

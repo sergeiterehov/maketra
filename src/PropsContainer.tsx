@@ -1,10 +1,14 @@
 import styled from "styled-components";
+import { ColorPicker } from "./components/ColorPicker";
 import { ElementsRow } from "./components/ElementsRow";
+import { PanelTitle } from "./components/PanelTitle";
 import { ScrubberContainer } from "./components/Scrubber";
 import { SelectContainer, SelectValue } from "./components/Select";
 
-export const PropsContainer = styled.div.withConfig({ displayName: "props-container" })`
-  ${ScrubberContainer}, ${SelectContainer} {
+export const PropsContainer = styled.div.withConfig({
+  displayName: "props-container",
+})`
+  ${ScrubberContainer}, ${SelectContainer}, ${ColorPicker} {
     border: solid 1px transparent;
     outline: solid 1px transparent;
     outline-offset: -2px;
@@ -28,6 +32,11 @@ export const PropsContainer = styled.div.withConfig({ displayName: "props-contai
   }
 
   ${ElementsRow} {
+    ${PanelTitle} {
+      grid-column-start: 2;
+      grid-column-end: span 20;
+    }
+
     ${ScrubberContainer} {
       grid-column-end: span 11;
     }
@@ -40,7 +49,8 @@ export const PropsContainer = styled.div.withConfig({ displayName: "props-contai
       grid-column-end: span 28;
     }
 
-    .vertical-constraint, .horizontal-constraint {
+    .vertical-constraint,
+    .horizontal-constraint {
       grid-column-end: span 13;
     }
 
@@ -68,6 +78,10 @@ export const PropsContainer = styled.div.withConfig({ displayName: "props-contai
 
     .font-weight {
       grid-column-end: span 13;
+    }
+
+    .fill-paint {
+      grid-column-end: span 18;
     }
   }
 `;

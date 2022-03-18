@@ -31,6 +31,8 @@ export const ColorChit = styled<
   width: 16px;
   height: 16px;
   flex-shrink: 0;
+  border-radius: var(--radius-ui);
+  overflow: hidden;
   background-image: url(${cheeseBoardBackground});
 
   span {

@@ -62,6 +62,10 @@ export class CanvasRenderer {
     }
 
     for (const filter of filters) {
+      const { disabled } = filter;
+
+      if (disabled) continue;
+
       this.applyFilter(filter);
     }
 
@@ -133,7 +137,7 @@ export class CanvasRenderer {
     path.closePath();
 
     this.applyFills(area, () => ctx.fill(path));
-    this.applyStroke(area, () => ctx.stroke(path));
+    this.applyStrokes(area, () => ctx.stroke(path));
 
     if (parentNode) {
       hit?.fillRect(0, 0, width, height);
@@ -187,7 +191,7 @@ export class CanvasRenderer {
       this.applyFills(text, () =>
         ctx.fillText(line, alignOffset, i * fontSize)
       );
-      this.applyStroke(text, () =>
+      this.applyStrokes(text, () =>
         ctx.strokeText(line, alignOffset, i * fontSize)
       );
     }
@@ -199,7 +203,7 @@ export class CanvasRenderer {
     const { ctx, hit } = this;
     const { size, points } = figure;
 
-    this.applyStroke(figure, () => null);
+    this.applyStrokes(figure, () => null);
 
     // Находим все замкнутые области
 
@@ -294,17 +298,21 @@ export class CanvasRenderer {
     const { fills } = node;
 
     for (const fill of fills) {
+      const { disabled } = fill;
+
+      if (disabled) continue;
+
       this.applyFill(fill, action);
     }
   }
 
-  protected applyStroke(node: Primitive, action: () => void) {
+  protected applyStrokes(node: Primitive, action: () => void) {
     const { ctx } = this;
 
     for (const stroke of node.strokes) {
-      const { width, color, style, dash, dashGap } = stroke;
+      const { width, color, style, dash, dashGap, disabled } = stroke;
 
-      if (!width) continue;
+      if (!width || disabled) continue;
 
       ctx.lineWidth = width;
       ctx.strokeStyle = color.hex_string;

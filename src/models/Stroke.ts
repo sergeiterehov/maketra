@@ -7,6 +7,8 @@ export enum StrokeStyle {
 }
 
 export class Stroke {
+  @observable public disabled: boolean = false;
+
   @observable public color: Color;
   @observable public width: number = 1;
   @observable public style: StrokeStyle = StrokeStyle.Solid;

@@ -2,6 +2,8 @@ import { makeObservable, observable } from "mobx";
 import { Color } from "../utils/Color";
 
 export abstract class Filter {
+  @observable public disabled: boolean = false;
+
   constructor() {
     makeObservable(this);
   }

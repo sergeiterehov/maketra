@@ -14,15 +14,16 @@ import { BlendMode, ColorFill } from "./models/Fill";
 import { Primitive } from "./models/Primitive";
 import { runInAction } from "mobx";
 import { ColorPicker } from "./components/ColorPicker";
+import { PanelTitle } from "./components/PanelTitle";
 
 function formatTextAlign(value: TextAlign): string {
   switch (value) {
     case TextAlign.Left:
-      return "Слева";
+      return "Левый край";
     case TextAlign.Right:
-      return "Справа";
+      return "Правый край";
     case TextAlign.Center:
-      return "По-центру";
+      return "От центра";
   }
 }
 
@@ -52,9 +53,9 @@ function formatFontWeight(value: FontWeight): string {
 function formatVerticalConstraint(value: Constraint): string {
   switch (value) {
     case Constraint.Top:
-      return "Сверху";
+      return "Верх";
     case Constraint.Bottom:
-      return "Снизу";
+      return "Низ";
     case Constraint.Center:
       return "Вертикально";
     case Constraint.Scale:
@@ -65,9 +66,9 @@ function formatVerticalConstraint(value: Constraint): string {
 function formatHorizontalConstraint(value: Constraint): string {
   switch (value) {
     case Constraint.Left:
-      return "Слева";
+      return "Лево";
     case Constraint.Right:
-      return "Справа";
+      return "Право";
     case Constraint.Center:
       return "Горизонтально";
     case Constraint.Scale:
@@ -78,7 +79,7 @@ function formatHorizontalConstraint(value: Constraint): string {
 function formatBlendMode(value: BlendMode): string {
   switch (value) {
     case BlendMode.Normal:
-      return "Нормальный";
+      return "Нормально";
     case BlendMode.Lighten:
       return "Замена светлым";
     case BlendMode.Screen:
@@ -184,7 +185,10 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
         </ElementsRow>
       ) : null}
       {node.parentNode ? (
-        <>
+        <div>
+          <ElementsRow>
+            <PanelTitle>Поведение</PanelTitle>
+          </ElementsRow>
           <ElementsRow>
             <Select
               className="horizontal-constraint"
@@ -209,104 +213,123 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
               <Option value={Constraint.Scale} />
             </Select>
           </ElementsRow>
-        </>
+        </div>
       ) : null}
-      <ElementsRow>
-        <Select
-          className="blend-mode"
-          value={node.blendMode}
-          onChange={(next) => (node.blendMode = next)}
-          format={formatBlendMode}
-        >
-          <Option value={BlendMode.Normal} />
-          <hr />
-          <Option value={BlendMode.Lighten} />
-          <Option value={BlendMode.Screen} />
-          <Option value={BlendMode.ColorDodge} />
-          <hr />
-          <Option value={BlendMode.Darken} />
-          <Option value={BlendMode.Multiply} />
-          <Option value={BlendMode.ColorBurn} />
-          <hr />
-          <Option value={BlendMode.Overlay} />
-          <Option value={BlendMode.SoftLight} />
-          <Option value={BlendMode.HardLight} />
-          <hr />
-          <Option value={BlendMode.Difference} />
-          <Option value={BlendMode.Exclusion} />
-          <hr />
-          <Option value={BlendMode.Hue} />
-          <Option value={BlendMode.Saturation} />
-          <Option value={BlendMode.Color} />
-          <Option value={BlendMode.Luminosity} />
-        </Select>
-        <Scrubber
-          className="opacity"
-          speed={0.01}
-          min={0}
-          max={1}
-          value={node.opacity}
-          onChange={(next) => (node.opacity = next || 0)}
-        >
-          <Icon>В</Icon>
-          <CustomInput
-            value={node.opacity.toString()}
-            onChange={(next) => {
-              const value = Number(next);
+      <div>
+        <ElementsRow>
+          <PanelTitle>Наложение</PanelTitle>
+        </ElementsRow>
+        <ElementsRow>
+          <Select
+            className="blend-mode"
+            value={node.blendMode}
+            onChange={(next) => (node.blendMode = next)}
+            format={formatBlendMode}
+          >
+            <Option value={BlendMode.Normal} />
+            <hr />
+            <Option value={BlendMode.Lighten} />
+            <Option value={BlendMode.Screen} />
+            <Option value={BlendMode.ColorDodge} />
+            <hr />
+            <Option value={BlendMode.Darken} />
+            <Option value={BlendMode.Multiply} />
+            <Option value={BlendMode.ColorBurn} />
+            <hr />
+            <Option value={BlendMode.Overlay} />
+            <Option value={BlendMode.SoftLight} />
+            <Option value={BlendMode.HardLight} />
+            <hr />
+            <Option value={BlendMode.Difference} />
+            <Option value={BlendMode.Exclusion} />
+            <hr />
+            <Option value={BlendMode.Hue} />
+            <Option value={BlendMode.Saturation} />
+            <Option value={BlendMode.Color} />
+            <Option value={BlendMode.Luminosity} />
+          </Select>
+          <Scrubber
+            className="opacity"
+            speed={0.01}
+            min={0}
+            max={1}
+            value={node.opacity}
+            onChange={(next) => (node.opacity = next || 0)}
+          >
+            <Icon>В</Icon>
+            <CustomInput
+              value={node.opacity.toString()}
+              onChange={(next) => {
+                const value = Number(next);
 
-              if (Number.isNaN(value)) return false;
+                if (Number.isNaN(value)) return false;
 
-              node.opacity = Math.min(1, Math.max(0, value));
+                node.opacity = Math.min(1, Math.max(0, value));
 
-              return true;
-            }}
-          />
-        </Scrubber>
-      </ElementsRow>
-      {node.fills
-        .filter((fill): fill is ColorFill => fill instanceof ColorFill)
-        .map((fill, i) => {
-          return (
-            <div key={i}>
-              <ColorPicker
-                color={fill.color}
-                onChange={(next) => runInAction(() => (fill.color = next))}
-              />
-            </div>
-          );
-        })}
+                return true;
+              }}
+            />
+          </Scrubber>
+        </ElementsRow>
+      </div>
+      <div>
+        <ElementsRow>
+          <PanelTitle>Заливка</PanelTitle>
+        </ElementsRow>
+        {node.fills
+          .filter((fill): fill is ColorFill => fill instanceof ColorFill)
+          .map((fill, i) => {
+            return (
+              <ElementsRow key={i}>
+                <ColorPicker
+                  className="fill-paint"
+                  color={fill.color}
+                  onChange={(next) => runInAction(() => (fill.color = next))}
+                />
+              </ElementsRow>
+            );
+          })}
+      </div>
       {node instanceof Primitive ? (
         <div>
-          <div>Обводка</div>
-          <div>
-            {node.strokes.map((stroke, i) => {
-              return (
-                <ElementsRow key={i}>
-                  <Scrubber
-                    speed={0.02}
-                    min={0}
-                    value={stroke.width}
-                    onChange={(next) => (stroke.width = next || 0)}
-                  >
-                    <Icon>sw</Icon>
-                    <CustomInput
-                      value={stroke.width.toString()}
-                      onChange={(next) => {
-                        const value = Number(next);
+          <ElementsRow>
+            <PanelTitle>Обводка</PanelTitle>
+          </ElementsRow>
+          {node.strokes.map((stroke, i) => {
+            return (
+              <ElementsRow key={i}>
+                <ColorPicker
+                  className="fill-paint"
+                  color={stroke.color}
+                  onChange={(next) => runInAction(() => (stroke.color = next))}
+                />
+              </ElementsRow>
+            );
+          })}
+          {node.strokes[0] ? (
+            <ElementsRow>
+              <Scrubber
+                speed={0.02}
+                min={0}
+                value={node.strokes[0].width}
+                onChange={(next) => (node.strokes[0].width = next || 0)}
+              >
+                <Icon>sw</Icon>
+                <CustomInput
+                  value={node.strokes[0].width.toString()}
+                  onChange={(next) => {
+                    const value = Number(next);
 
-                        if (Number.isNaN(value)) return false;
+                    if (Number.isNaN(value)) return false;
 
-                        stroke.width = value;
+                    node.strokes[0].width = value;
 
-                        return true;
-                      }}
-                    />
-                  </Scrubber>
-                  <div>Stroke color: {stroke.color.hex_string}</div>
-                </ElementsRow>
-              );
-            })}
-          </div>
+                    return true;
+                  }}
+                />
+              </Scrubber>
+            </ElementsRow>
+          ) : null}
         </div>
       ) : null}
       {node instanceof Text ? (
