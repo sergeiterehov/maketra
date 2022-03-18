@@ -5,11 +5,12 @@ import { FPoint } from "./models/FPoint";
 import { Group } from "./models/Group";
 import { MkNode } from "./models/MkNode";
 import { Stroke, StrokeStyle } from "./models/Stroke";
+import { Color } from "./utils/Color";
 import { Vector2d } from "./utils/Transform";
 
-const linesColor = "#0FF";
-const pointsColor = "#DEF";
-const pointsBorderColor = "#0AF";
+const linesColor = new Color({ hex: "#0FF" });
+const pointsColor = new Color({ hex: "#DEF" });
+const pointsBorderColor = new Color({ hex: "#0AF" });
 
 const newPointLine = new Figure().configure({
   interactive: false,

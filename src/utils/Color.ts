@@ -22,9 +22,12 @@ export class Color {
   private _hsv_s: number = 1;
   private _hsv_v: number = 1;
 
-  constructor(props?: { rgb?: number[] }) {
+  constructor(props?: { rgb?: number[]; hex?: string; alpha?: number }) {
     if (props) {
       if (props.rgb) this.rgb = props.rgb;
+      else if (props.hex) this.hex_string = props.hex;
+
+      if (props.alpha) this.a = props.alpha;
     }
   }
 
@@ -226,6 +229,39 @@ export class Color {
     this.apply_from_hsv();
   }
 
+  set hex_string(hex: string) {
+    if (hex[0] !== "#") throw new Error("Hex should start with hash");
+
+    hex = hex.slice(1);
+
+    if (hex.length === 3)
+      hex = `${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}`;
+    else if (hex.length === 4)
+      hex = `${hex[0]}${hex[0]}${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`;
+
+    if (hex.length === 6) {
+      const val = Number(`0x${hex}`);
+
+      this._rgb_r = ((val >> 16) & 255) / 255;
+      this._rgb_g = ((val >> 8) & 255) / 255;
+      this._rgb_b = (val & 255) / 255;
+
+      this.apply_from_rgb();
+    } else if (hex.length === 8) {
+      const val = BigInt(`0x${hex}`);
+      const byte = BigInt(255);
+
+      this._rgb_r = Number((val >> BigInt(24)) & byte) / 255;
+      this._rgb_g = Number((val >> BigInt(16)) & byte) / 255;
+      this._rgb_b = Number((val >> BigInt(8)) & byte) / 255;
+      this._a = Number(val & byte) / 255;
+
+      this.apply_from_rgb();
+    } else {
+      throw new Error("Unknown hex format");
+    }
+  }
+
   private apply_from_rgb() {
     const { _rgb_r: r, _rgb_b: b, _rgb_g: g } = this;
 
@@ -248,10 +284,6 @@ export class Color {
     } else {
       h = 60 * ((r - g) / delta + 4);
     }
-
-    h = Math.round(h);
-
-    console.log(this._hsl_h, h);
 
     this._hsl_h = h;
     this._hsl_s = sl_s;

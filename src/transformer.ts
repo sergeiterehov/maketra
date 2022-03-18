@@ -5,10 +5,11 @@ import { FPoint } from "./models/FPoint";
 import { Group } from "./models/Group";
 import { Constraint, MkNode } from "./models/MkNode";
 import { Stroke, StrokeStyle } from "./models/Stroke";
+import { Color } from "./utils/Color";
 
-const borderColor = "#00F";
-const constraintColor = "#00F6";
-const cornerColor = "#FFF";
+const borderColor = new Color({ hex: "#00F" });
+const constraintColor = new Color({ hex: "#00F6" });
+const cornerColor = new Color({ hex: "#FFF" });
 
 const cornerFill = new ColorFill(cornerColor);
 

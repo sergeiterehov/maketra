@@ -8,6 +8,7 @@ import { Section } from "./models/Section";
 import { Space } from "./models/Space";
 import { Stroke, StrokeStyle } from "./models/Stroke";
 import { FontWeight, Text } from "./models/Text";
+import { Color } from "./utils/Color";
 
 const space = Object.assign(new Space(), {
   projects: [
@@ -66,7 +67,10 @@ space.projects[0].sections[0].nodes[0].add(
       y: 30,
       width: 100,
       height: 240,
-      fills: [new ColorFill("#FAA"), new LinearGradientFill()],
+      fills: [
+        new ColorFill(new Color({ hex: "#FAA" })),
+        new LinearGradientFill(),
+      ],
       filters: [new DropShadowFilter()],
     })
     .add(
@@ -77,7 +81,7 @@ space.projects[0].sections[0].nodes[0].add(
           y: 30,
           width: 40,
           height: 60,
-          fills: [new ColorFill("#AFA")],
+          fills: [new ColorFill(new Color({ hex: "#AFA" }))],
           clipContent: false,
           opacity: 0.3,
           filters: [new BlurFilter()],
@@ -99,7 +103,7 @@ space.projects[0].sections[0].nodes[0].add(
                 .line(5.885, 0.855)
                 .line(-4.258, 4.152)
                 .loop().allPoints,
-              fills: [new ColorFill("#E7F")],
+              fills: [new ColorFill(new Color({ hex: "#E7F" }))],
               strokes: [new Stroke(StrokeStyle.Solid, 1)],
               filters: [new BlurFilter()],
             })
@@ -115,8 +119,8 @@ space.projects[0].sections[0].nodes[0].add(
         text: "Hello, world!\nHow are you?",
         fills: [
           new LinearGradientFill({ x: 0, y: 48 }, { x: 0, y: 0 }, [
-            { offset: 0, color: "#F00" },
-            { offset: 1, color: "#0F0" },
+            { offset: 0, color: new Color({ hex: "#F00" }) },
+            { offset: 1, color: new Color({ hex: "#0F0" }) },
           ]),
         ],
         blendMode: BlendMode.ColorBurn,
@@ -132,7 +136,7 @@ space.projects[0].sections[0].nodes[0].add(
       .next(new FPoint(110, 110), { x: 30, y: 30 }, { x: 30, y: -30 })
       .next(new FPoint(0, 110), { x: -30, y: 30 }, { x: 30, y: 30 })
       .loop({ x: -30, y: -30 }, { x: -30, y: 30 }).allPoints,
-    fills: [new ColorFill("#AAF")],
+    fills: [new ColorFill(new Color({ hex: "#AAF" }))],
     strokes: [new Stroke(StrokeStyle.Solid, 4)],
   }),
   new Figure().configure({
@@ -141,7 +145,7 @@ space.projects[0].sections[0].nodes[0].add(
     y: 10,
     cornerRadius: 8,
     points: cp,
-    fills: [new ColorFill("#F70")],
+    fills: [new ColorFill(new Color({ hex: "#F70" }))],
     strokes: [new Stroke(StrokeStyle.Solid, 2)],
   })
 );

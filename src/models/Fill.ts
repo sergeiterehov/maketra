@@ -1,4 +1,5 @@
 import { action, makeObservable, observable } from "mobx";
+import { Color } from "../utils/Color";
 import { Vector2d } from "../utils/Transform";
 
 export enum BlendMode {
@@ -40,9 +41,9 @@ export abstract class Fill {
 }
 
 export class ColorFill extends Fill {
-  @observable public color: string;
+  @observable public color: Color;
 
-  constructor(color: string = "#0008") {
+  constructor(color: Color = new Color({ hex: "#0008" })) {
     super();
 
     this.color = color;
@@ -53,7 +54,7 @@ export class ColorFill extends Fill {
 
 export interface ILinearGradientFillStop {
   offset: number;
-  color: string;
+  color: Color;
 }
 
 export class LinearGradientFill extends Fill {
@@ -66,8 +67,8 @@ export class LinearGradientFill extends Fill {
     a: Vector2d = { x: 0, y: 0 },
     b: Vector2d = { x: 0, y: 100 },
     stops: ILinearGradientFillStop[] = [
-      { offset: 0, color: "#000" },
-      { offset: 1, color: "#0000" },
+      { offset: 0, color: new Color({ hex: "#000" }) },
+      { offset: 1, color: new Color({ hex: "#0000" }) },
     ]
   ) {
     super();
@@ -87,7 +88,7 @@ export class LinearGradientFill extends Fill {
   }
 
   @action
-  public add(offset: number, color: string) {
+  public add(offset: number, color: Color) {
     this.stops.push({ offset, color });
 
     return this;

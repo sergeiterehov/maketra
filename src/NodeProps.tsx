@@ -269,6 +269,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
         .map((f) => {
           return (
             <ColorPicker
+              color={f.color}
               onChange={(next) => runInAction(() => (f.color = next))}
             />
           );
@@ -300,13 +301,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
                       }}
                     />
                   </Scrubber>
-                  <div>
-                    Stroke color:
-                    <input
-                      value={stroke.color}
-                      onChange={(e) => (stroke.color = e.currentTarget.value)}
-                    />
-                  </div>
+                  <div>Stroke color: {stroke.color.hex_string}</div>
                 </ElementsRow>
               );
             })}

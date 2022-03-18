@@ -272,14 +272,14 @@ export class CanvasRenderer {
     if (fill instanceof ColorFill) {
       const { color } = fill;
 
-      ctx.fillStyle = color;
+      ctx.fillStyle = color.hex_string;
     } else if (fill instanceof LinearGradientFill) {
       const { a, b, stops } = fill;
 
       const gradient = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
 
       for (const stop of stops) {
-        gradient.addColorStop(stop.offset, stop.color);
+        gradient.addColorStop(stop.offset, stop.color.hex_string);
       }
 
       ctx.fillStyle = gradient;
@@ -307,7 +307,7 @@ export class CanvasRenderer {
       if (!width) continue;
 
       ctx.lineWidth = width;
-      ctx.strokeStyle = color;
+      ctx.strokeStyle = color.hex_string;
 
       if (style === StrokeStyle.Dash) {
         ctx.setLineDash([dash, dashGap ?? dash]);

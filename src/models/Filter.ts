@@ -1,4 +1,5 @@
 import { makeObservable, observable } from "mobx";
+import { Color } from "../utils/Color";
 
 export abstract class Filter {
   constructor() {
@@ -22,13 +23,13 @@ export class DropShadowFilter extends Filter {
   @observable public x: number;
   @observable public y: number;
   @observable public radius: number;
-  @observable public color: string;
+  @observable public color: Color;
 
   constructor(
     x: number = 0,
     y: number = 5,
     radius: number = 4,
-    color: string = "#0004"
+    color: Color = new Color({ hex: "#0004" })
   ) {
     super();
 

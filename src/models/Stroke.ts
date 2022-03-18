@@ -1,4 +1,5 @@
 import { makeObservable, observable } from "mobx";
+import { Color } from "../utils/Color";
 
 export enum StrokeStyle {
   Solid = 1,
@@ -6,7 +7,7 @@ export enum StrokeStyle {
 }
 
 export class Stroke {
-  @observable public color: string = "#000";
+  @observable public color: Color;
   @observable public width: number = 1;
   @observable public style: StrokeStyle = StrokeStyle.Solid;
   @observable public dash: number = 10;
@@ -15,7 +16,7 @@ export class Stroke {
   constructor(
     style: StrokeStyle = StrokeStyle.Solid,
     width: number = 1,
-    color: string = "#000",
+    color: Color = new Color({ hex: "#000" }),
     dash: number = 10
   ) {
     this.style = style;

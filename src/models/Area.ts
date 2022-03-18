@@ -1,4 +1,5 @@
 import { intercept, makeObservable, observable } from "mobx";
+import { Color } from "../utils/Color";
 import { ColorFill } from "./Fill";
 import { Constraint, Size } from "./MkNode";
 import { Primitive } from "./Primitive";
@@ -18,9 +19,8 @@ export class Area extends Primitive {
   constructor() {
     super();
 
-    const baseFill = new ColorFill();
+    const baseFill = new ColorFill(new Color({ hex: "#FFF" }));
 
-    baseFill.color = "#FFF";
     this.fills.push(baseFill);
 
     makeObservable(this);

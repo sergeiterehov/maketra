@@ -1,11 +1,4 @@
-import {
-  FC,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { FC, useCallback, useLayoutEffect, useRef } from "react";
 import styled from "styled-components";
 import { Color } from "../utils/Color";
 
@@ -48,8 +41,8 @@ const Canvas: FC<{
         const mouseMoveHandler = (e: MouseEvent) => {
           const { left, top } = canvasRef.current!.getBoundingClientRect();
 
-          const x = Math.min(width - 1, Math.max(0, e.clientX - left)) / width;
-          const y = Math.min(height - 1, Math.max(0, e.clientY - top)) / height;
+          const x = Math.min(width, Math.max(0, e.clientX - left)) / width;
+          const y = Math.min(height, Math.max(0, e.clientY - top)) / height;
 
           onPickRef.current(x, y, ctx);
         };
@@ -214,37 +207,30 @@ const ColorOpacity = styled<
 }).withConfig({ displayName: "ColorOpacity" })``;
 
 export const ColorPicker = styled<
-  FC<{ className?: string; onChange(color: string): void }>
->(({ className, onChange }) => {
+  FC<{ className?: string; color: Color; onChange(color: Color): void }>
+>(({ className, color, onChange }) => {
   const onChangeRef = useRef(onChange);
 
   onChangeRef.current = onChange;
 
-  const [newColor, setNewColor] = useState<Color>(
-    () =>
-      new Color({
-        rgb: [0.5, 0.4, 0.1],
-      })
-  );
-
-  useEffect(() => {
-    onChangeRef.current(newColor.rgba_string);
-  }, [newColor]);
+  const changeColorHandler = useCallback((newColor) => {
+    onChangeRef.current(newColor);
+  }, []);
 
   return (
     <div className={className}>
       <div>
-        <ColorBlock size={240} color={newColor} onChange={setNewColor} />
+        <ColorBlock size={240} color={color} onChange={changeColorHandler} />
       </div>
       <div>
-        <ColorHue width={240} color={newColor} onChange={setNewColor} />
+        <ColorHue width={240} color={color} onChange={changeColorHandler} />
       </div>
       <div>
-        <ColorOpacity width={240} color={newColor} onChange={setNewColor} />
+        <ColorOpacity width={240} color={color} onChange={changeColorHandler} />
       </div>
-      <div>{newColor.rgba_string}</div>
-      <div>{newColor.hsla_string}</div>
-      <div>{newColor.hex_string}</div>
+      <div>{color.rgba_string}</div>
+      <div>{color.hsla_string}</div>
+      <div>{color.hex_string}</div>
     </div>
   );
 }).withConfig({ displayName: "ColorPicker" })``;
