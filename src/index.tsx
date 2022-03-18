@@ -8,8 +8,10 @@ import reportWebVitals from "./reportWebVitals";
 
 const CssVariablesStyle = createGlobalStyle`
   :root {
+    --radius-ui: 2px;
+    --color-background: #FFF;
     --color-focus: #08F;
-    --color-border: #DDD;
+    --color-border: #0001;
     --color-icon: #BBB;
     --color-bg-drop-down: #000;
     --color-fg-drop-down: #FFF;

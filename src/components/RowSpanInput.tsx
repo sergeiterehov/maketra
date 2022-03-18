@@ -88,7 +88,7 @@ export const RowSpanInput = styled<
     margin-right: 8px;
     width: calc(100% - 20px);
     height: 24px;
-    border-radius: 2px;
+    border-radius: var(--radius-ui);
     line-height: 1em;
     font-family: inherit;
     font-size: inherit;

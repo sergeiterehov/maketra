@@ -7,7 +7,7 @@ export const ScrubberContainer = styled.label.withConfig({
   user-select: none;
   display: flex;
   align-items: center;
-  border-radius: 2px;
+  border-radius: var(--radius-ui);
   height: 28px;
   overflow: hidden;
 `;

@@ -140,7 +140,7 @@ export class Color {
       BigInt(a)
     )
       .toString(16)
-      .slice(1)}`;
+      .slice(1)}`.toUpperCase();
   }
   get hex_string_no_alpha(): string {
     const { _rgb_r, _rgb_g, _rgb_b } = this;
@@ -156,7 +156,7 @@ export class Color {
       BigInt(b)
     )
       .toString(16)
-      .slice(1)}`;
+      .slice(1)}`.toUpperCase();
   }
 
   set a(a: number) {

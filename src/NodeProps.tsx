@@ -7,14 +7,13 @@ import { Scrubber } from "./components/Scrubber";
 import { Option, Select } from "./components/Select";
 import { PropSizeInput } from "./components/PropSizeInput";
 import { Area } from "./models/Area";
-import { Figure } from "./models/Figure";
 import { Constraint, MkNode } from "./models/MkNode";
 import { FontStyle, FontWeight, Text, TextAlign } from "./models/Text";
 import { PropLocationInput } from "./components/PropLocationInput";
 import { BlendMode, ColorFill } from "./models/Fill";
 import { Primitive } from "./models/Primitive";
-import { ColorPicker } from "./components/ColorPicker";
 import { runInAction } from "mobx";
+import { ColorPicker } from "./components/ColorPicker";
 
 function formatTextAlign(value: TextAlign): string {
   switch (value) {
@@ -265,13 +264,15 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
         </Scrubber>
       </ElementsRow>
       {node.fills
-        .filter((f): f is ColorFill => f instanceof ColorFill)
-        .map((f) => {
+        .filter((fill): fill is ColorFill => fill instanceof ColorFill)
+        .map((fill, i) => {
           return (
-            <ColorPicker
-              color={f.color}
-              onChange={(next) => runInAction(() => (f.color = next))}
-            />
+            <div key={i}>
+              <ColorPicker
+                color={fill.color}
+                onChange={(next) => runInAction(() => (fill.color = next))}
+              />
+            </div>
           );
         })}
       {node instanceof Primitive ? (
