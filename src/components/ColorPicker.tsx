@@ -103,6 +103,23 @@ const ColorBlock = styled<
 
         ctx.fillStyle = blackGradient;
         ctx.fillRect(0, 0, size, size);
+
+        const x = color.hsv_s * size;
+        const y = (1 - color.hsv_v) * size;
+
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = color.hex_string;
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, 8, 0, Math.PI);
+        ctx.strokeStyle = "black";
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(x, y, 8, Math.PI, Math.PI * 2);
+        ctx.strokeStyle = "white";
+        ctx.stroke();
       }}
       onPick={(x, y) => {
         const next = color.copy();
@@ -144,6 +161,14 @@ const ColorHue = styled<
 
         ctx.fillStyle = rainbow;
         ctx.fillRect(0, 0, width, height);
+
+        const x = (color.hsl_h / 360) * width;
+
+        ctx.strokeStyle = "white";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.rect(x - 4, -4, 8, height + 8);
+        ctx.stroke();
       }}
       onPick={(x) => {
         const next = color.copy();
@@ -194,6 +219,14 @@ const ColorOpacity = styled<
 
         ctx.fillStyle = opacityGradient;
         ctx.fillRect(0, 0, width, height);
+
+        const x = color.a * width;
+
+        ctx.strokeStyle = "black";
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.rect(x - 4, -4, 8, height + 8);
+        ctx.stroke();
       }}
       onPick={(x) => {
         const next = color.copy();
