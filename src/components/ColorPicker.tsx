@@ -7,14 +7,7 @@ import {
   useState,
 } from "react";
 import styled from "styled-components";
-import {
-  changeAlpha,
-  changeHue,
-  changeRGB,
-  Color,
-  colorToCssString,
-  getHueFromColor,
-} from "../utils/Color";
+import { Color } from "../utils/Color";
 
 // Здесь можно не делать pixelRatio
 
@@ -99,7 +92,7 @@ const ColorBlock = styled<
       width={size}
       height={size}
       onDraw={(ctx) => {
-        ctx.fillStyle = `hsl(${getHueFromColor(color)} 100% 50%)`;
+        ctx.fillStyle = `hsl(${color.hsl_h} 100% 50%)`;
         ctx.fillRect(0, 0, size, size);
 
         const whiteGradient = ctx.createLinearGradient(0, 0, size, 0);
@@ -118,15 +111,13 @@ const ColorBlock = styled<
         ctx.fillStyle = blackGradient;
         ctx.fillRect(0, 0, size, size);
       }}
-      onPick={(x, y, ctx) => {
-        const [r, g, b] = ctx.getImageData(
-          Math.floor(x * size),
-          Math.floor(y * size),
-          1,
-          1
-        ).data;
+      onPick={(x, y) => {
+        const next = color.copy();
 
-        onChange(changeRGB(color, r / 255, g / 255, b / 255));
+        next.hsv_s = x;
+        next.hsv_v = 1 - y;
+
+        onChange(next);
       }}
     />
   );
@@ -162,7 +153,11 @@ const ColorHue = styled<
         ctx.fillRect(0, 0, width, height);
       }}
       onPick={(x) => {
-        onChange(changeHue(color, x * 360));
+        const next = color.copy();
+
+        next.hsl_h = x * 360;
+
+        onChange(next);
       }}
     />
   );
@@ -201,20 +196,18 @@ const ColorOpacity = styled<
 
         const opacityGradient = ctx.createLinearGradient(0, 0, width, 0);
 
-        opacityGradient.addColorStop(
-          0,
-          colorToCssString(changeAlpha(color, 0))
-        );
-        opacityGradient.addColorStop(
-          1,
-          colorToCssString(changeAlpha(color, 1))
-        );
+        opacityGradient.addColorStop(0, color.hex_string_no_alpha + "00");
+        opacityGradient.addColorStop(1, color.hex_string_no_alpha + "FF");
 
         ctx.fillStyle = opacityGradient;
         ctx.fillRect(0, 0, width, height);
       }}
       onPick={(x) => {
-        onChange(changeAlpha(color, x));
+        const next = color.copy();
+
+        next.a = x;
+
+        onChange(next);
       }}
     />
   );
@@ -227,12 +220,15 @@ export const ColorPicker = styled<
 
   onChangeRef.current = onChange;
 
-  const [newColor, setNewColor] = useState<Color>(() => ({
-    rgba: { r: 0.5, g: 0.4, b: 0.1, a: 1 },
-  }));
+  const [newColor, setNewColor] = useState<Color>(
+    () =>
+      new Color({
+        rgb: [0.5, 0.4, 0.1],
+      })
+  );
 
   useEffect(() => {
-    onChangeRef.current(colorToCssString(newColor));
+    onChangeRef.current(newColor.rgba_string);
   }, [newColor]);
 
   return (
@@ -246,7 +242,9 @@ export const ColorPicker = styled<
       <div>
         <ColorOpacity width={240} color={newColor} onChange={setNewColor} />
       </div>
-      <div>{colorToCssString(newColor)}</div>
+      <div>{newColor.rgba_string}</div>
+      <div>{newColor.hsla_string}</div>
+      <div>{newColor.hex_string}</div>
     </div>
   );
 }).withConfig({ displayName: "ColorPicker" })``;
