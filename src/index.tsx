@@ -9,6 +9,7 @@ import reportWebVitals from "./reportWebVitals";
 const CssVariablesStyle = createGlobalStyle`
   :root {
     --radius-ui: 2px;
+    --color-fg-disabled: #999;
     --color-background: #FFF;
     --color-focus: #08F;
     --color-border: #0001;

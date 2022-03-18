@@ -15,6 +15,8 @@ import { Primitive } from "./models/Primitive";
 import { runInAction } from "mobx";
 import { ColorPicker } from "./components/ColorPicker";
 import { PanelTitle } from "./components/PanelTitle";
+import { IconContainer } from "./components/IconContainer";
+import { IconButton } from "./components/IconButton";
 
 function formatTextAlign(value: TextAlign): string {
   switch (value) {
@@ -280,12 +282,35 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           .filter((fill): fill is ColorFill => fill instanceof ColorFill)
           .map((fill, i) => {
             return (
-              <ElementsRow key={i}>
+              <ElementsRow
+                key={i}
+                data-disabled={fill.disabled ? "" : undefined}
+              >
                 <ColorPicker
                   className="fill-paint"
                   color={fill.color}
                   onChange={(next) => runInAction(() => (fill.color = next))}
                 />
+                <IconContainer className="fill-paint-actions">
+                  <IconButton
+                    onClick={() => {
+                      runInAction(() => {
+                        fill.disabled = !fill.disabled;
+                      });
+                    }}
+                  >
+                    {fill.disabled ? "🙈" : "👀"}
+                  </IconButton>
+                  <IconButton
+                    onClick={() => {
+                      runInAction(() => {
+                        node.fills.splice(node.fills.indexOf(fill), 1);
+                      });
+                    }}
+                  >
+                    🗑
+                  </IconButton>
+                </IconContainer>
               </ElementsRow>
             );
           })}
@@ -297,12 +322,35 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           </ElementsRow>
           {node.strokes.map((stroke, i) => {
             return (
-              <ElementsRow key={i}>
+              <ElementsRow
+                key={i}
+                data-disabled={stroke.disabled ? "" : undefined}
+              >
                 <ColorPicker
                   className="fill-paint"
                   color={stroke.color}
                   onChange={(next) => runInAction(() => (stroke.color = next))}
                 />
+                <IconContainer className="fill-paint-actions">
+                  <IconButton
+                    onClick={() => {
+                      runInAction(() => {
+                        stroke.disabled = !stroke.disabled;
+                      });
+                    }}
+                  >
+                    {stroke.disabled ? "🙈" : "👀"}
+                  </IconButton>
+                  <IconButton
+                    onClick={() => {
+                      runInAction(() => {
+                        node.strokes.splice(node.strokes.indexOf(stroke), 1);
+                      });
+                    }}
+                  >
+                    🗑
+                  </IconButton>
+                </IconContainer>
               </ElementsRow>
             );
           })}
@@ -314,7 +362,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
                 value={node.strokes[0].width}
                 onChange={(next) => (node.strokes[0].width = next || 0)}
               >
-                <Icon>sw</Icon>
+                <Icon>&#8779;</Icon>
                 <CustomInput
                   value={node.strokes[0].width.toString()}
                   onChange={(next) => {

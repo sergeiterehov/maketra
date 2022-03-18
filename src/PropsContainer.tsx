@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import { ColorPicker } from "./components/ColorPicker";
 import { ElementsRow } from "./components/ElementsRow";
+import { IconButton } from "./components/IconButton";
 import { PanelTitle } from "./components/PanelTitle";
 import { ScrubberContainer } from "./components/Scrubber";
 import { SelectContainer, SelectValue } from "./components/Select";
@@ -29,6 +30,10 @@ export const PropsContainer = styled.div.withConfig({
         width: 100%;
       }
     }
+  }
+
+  ${IconButton} {
+    --color-icon: currentColor;
   }
 
   ${ElementsRow} {
@@ -82,6 +87,15 @@ export const PropsContainer = styled.div.withConfig({
 
     .fill-paint {
       grid-column-end: span 18;
+    }
+
+    &[data-disabled] .fill-paint {
+      color: var(--color-fg-disabled)
+    }
+
+    .fill-paint-actions {
+      grid-column-start: 21;
+      grid-column-end: span 8;
     }
   }
 `;

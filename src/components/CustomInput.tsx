@@ -7,6 +7,7 @@ export const StyledInput = styled.input.withConfig({
   cursor: default;
   display: block;
   width: 100%;
+  color: currentColor;
   padding: 0;
   font-family: inherit;
   font-size: inherit;
