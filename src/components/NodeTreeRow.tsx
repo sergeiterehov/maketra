@@ -130,6 +130,7 @@ export const NodeTreeRow = styled<
           data-is-selected={selected ? "" : undefined}
           data-is-area={node instanceof Area ? "" : undefined}
           data-is-root={!node.parentNode ? "" : undefined}
+          data-invisible={node.visible ? undefined : ""}
           onClick={clickHandler}
         >
           <Indent
@@ -140,6 +141,21 @@ export const NodeTreeRow = styled<
             onExpanderClick={onExpanderClick}
           />
           <RowSpanInput value={node.name} onChange={nameChangeHandler} />
+          <div className="node-row-tree-actions">
+            <div
+              className="visibility"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                runInAction(() => {
+                  node.visible = !node.visible;
+                });
+              }}
+            >
+              {node.visible ? "👀" : "🙈"}
+            </div>
+          </div>
         </div>
       );
     });
@@ -150,6 +166,25 @@ export const NodeTreeRow = styled<
   flex-shrink: 0;
   height: 32px;
   user-select: none;
+
+  .node-row-tree-actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+
+    & > * {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .visibility {
+      margin-left: 4px;
+      margin-right: 12px;
+      width: 16px;
+    }
+  }
 
   &[data-is-selected] {
     background-color: var(--color-bg-selected);

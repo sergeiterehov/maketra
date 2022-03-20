@@ -41,7 +41,7 @@ export class Text extends Primitive {
 
   @observable public text: string = "Sample";
   @observable public textAlign: TextAlign = TextAlign.Left;
-  @observable public fontFamily: string = "monospace";
+  @observable public fontFamily: string = "Arial";
   @observable public fontSize: number = 14;
   @observable public fontSizeUnit: FontSizeUnit = FontSizeUnit.Pixel;
   @observable public fontWeight: FontWeight = FontWeight.Regular;

@@ -6,11 +6,12 @@ import { IconButton } from "./components/IconButton";
 import { PanelTitle } from "./components/PanelTitle";
 import { ScrubberContainer } from "./components/Scrubber";
 import { SelectContainer, SelectValue } from "./components/Select";
+import { TextMultiline } from "./components/TextMultiline";
 
 export const PropsContainer = styled.div.withConfig({
   displayName: "props-container",
 })`
-  ${ScrubberContainer}, ${SelectContainer}, ${ColorPicker}, ${FillPicker} {
+  ${ScrubberContainer}, ${SelectContainer}, ${ColorPicker}, ${FillPicker}, ${TextMultiline} {
     border: solid 1px transparent;
     outline: solid 1px transparent;
     outline-offset: -2px;
@@ -69,20 +70,39 @@ export const PropsContainer = styled.div.withConfig({
       grid-column-start: 17;
     }
 
+    .visibility {
+      grid-column-start: 25;
+    }
+
     .blend-mode {
       grid-column-end: span 15;
     }
 
-    .font-size {
-      grid-column-end: span 9;
-      grid-column-start: 15;
-    }
-
-    .text-align {
+    .font-family {
       grid-column-end: span 13;
     }
 
+    .font-size {
+      grid-column-end: span 7;
+      grid-column-start: 17;
+    }
+
+    .font-italic {
+      grid-column-start: 25;
+      font-size: 10px;
+      font-style: italic;
+    }
+
+    .text-align {
+      grid-column-end: span 15;
+    }
+
+    .text {
+      grid-column-end: span 28;
+    }
+
     .font-weight {
+      grid-column-start: 15;
       grid-column-end: span 13;
     }
 

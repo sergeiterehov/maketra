@@ -115,7 +115,6 @@ space.projects[0].sections[0].nodes[0].add(
         y: 150,
         fontSize: 24,
         fontWeight: FontWeight.Regular,
-        fontFamily: "sans-serif",
         text: "Hello, world!\nHow are you?",
         fills: [
           new LinearGradientFill({ x: 0, y: 48 }, { x: 0, y: 0 }, [

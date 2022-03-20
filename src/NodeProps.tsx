@@ -18,6 +18,8 @@ import { PanelTitle } from "./components/PanelTitle";
 import { IconContainer } from "./components/IconContainer";
 import { IconButton } from "./components/IconButton";
 import { FillPicker } from "./components/FillPicker";
+import { TextMultiline } from "./components/TextMultiline";
+import { fontFamilies } from "./fonts";
 
 function formatTextAlign(value: TextAlign): string {
   switch (value) {
@@ -127,6 +129,10 @@ function formatFillName(value: typeof Fill): string {
     default:
       return "???";
   }
+}
+
+function formatFontFamily(value: string): string {
+  return value;
 }
 
 export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
@@ -284,8 +290,120 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
               }}
             />
           </Scrubber>
+          <IconButton
+            className="visibility"
+            onClick={() => {
+              runInAction(() => {
+                node.visible = !node.visible;
+              });
+            }}
+          >
+            {node.visible ? "👀" : "🙈"}
+          </IconButton>
         </ElementsRow>
       </div>
+      {node instanceof Text ? (
+        <div>
+          <ElementsRow>
+            <PanelTitle>Текст</PanelTitle>
+          </ElementsRow>
+          <ElementsRow>
+            <TextMultiline
+              className="text"
+              value={node.text}
+              onChange={(next) => {
+                runInAction(() => {
+                  node.text = next;
+                });
+              }}
+            />
+          </ElementsRow>
+          <ElementsRow>
+            <PanelTitle>Шрифт</PanelTitle>
+          </ElementsRow>
+          <ElementsRow>
+            <Select
+              className="text-align"
+              value={node.textAlign}
+              onChange={(next) => (node.textAlign = next)}
+              format={formatTextAlign}
+            >
+              <Option value={TextAlign.Left} />
+              <Option value={TextAlign.Center} />
+              <Option value={TextAlign.Right} />
+            </Select>
+            <Scrubber
+              className="font-size"
+              speed={1}
+              value={node.fontSize}
+              onChange={(next) => (node.fontSize = next || 0)}
+            >
+              <Icon>aA</Icon>
+              <CustomInput
+                value={node.fontSize?.toString()}
+                onChange={(next) => {
+                  const value = Number(next);
+
+                  if (Number.isNaN(value)) return false;
+
+                  node.fontSize = value;
+
+                  return true;
+                }}
+              />
+            </Scrubber>
+            <IconButton
+              className="font-italic"
+              role="checkbox"
+              data-checked={
+                node.fontStyle === FontStyle.Italic ? "" : undefined
+              }
+              onClick={() => {
+                runInAction(() => {
+                  node.fontStyle =
+                    node.fontStyle === FontStyle.Italic
+                      ? FontStyle.Normal
+                      : FontStyle.Italic;
+                });
+              }}
+            >
+              Кур
+            </IconButton>
+          </ElementsRow>
+          <ElementsRow>
+            <Select
+              className="font-family"
+              value={node.fontFamily}
+              format={formatFontFamily}
+              onChange={(next) => {
+                runInAction(() => {
+                  node.fontFamily = next;
+                });
+              }}
+            >
+              {fontFamilies.map((name, i) => (
+                <Option key={i} value={name} />
+              ))}
+            </Select>
+            <Select
+              className="font-weight"
+              value={node.fontWeight}
+              onChange={(next) => (node.fontWeight = next)}
+              format={formatFontWeight}
+            >
+              <Option value={FontWeight.Thin} />
+              <Option value={FontWeight.ExtraLight} />
+              <Option value={FontWeight.Light} />
+              <Option value={FontWeight.Normal} />
+              <Option value={FontWeight.Medium} />
+              <Option value={FontWeight.SemiBold} />
+              <Option value={FontWeight.Bold} />
+              <Option value={FontWeight.ExtraBold} />
+              <Option value={FontWeight.Black} />
+            </Select>
+          </ElementsRow>
+        </div>
+      ) : null}
       <div>
         <ElementsRow>
           <PanelTitle>Заливка</PanelTitle>
@@ -385,7 +503,9 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
 
                     if (Number.isNaN(value)) return false;
 
-                    node.strokes[0].width = value;
+                    runInAction(() => {
+                      node.strokes[0].width = value;
+                    });
 
                     return true;
                   }}
@@ -394,88 +514,6 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
             </ElementsRow>
           ) : null}
         </div>
-      ) : null}
-      {node instanceof Text ? (
-        <>
-          <div>
-            Text:
-            <textarea
-              value={node.text}
-              onChange={(e) => (node.text = e.currentTarget.value)}
-            />
-          </div>
-          <ElementsRow>
-            <Select
-              className="text-align"
-              value={node.textAlign}
-              onChange={(next) => (node.textAlign = next)}
-              format={formatTextAlign}
-            >
-              <Option value={TextAlign.Left} />
-              <Option value={TextAlign.Center} />
-              <Option value={TextAlign.Right} />
-            </Select>
-            <Scrubber
-              className="font-size"
-              speed={1}
-              value={node.fontSize}
-              onChange={(next) => (node.fontSize = next || 0)}
-            >
-              <Icon>aA</Icon>
-              <CustomInput
-                value={node.fontSize?.toString()}
-                onChange={(next) => {
-                  const value = Number(next);
-
-                  if (Number.isNaN(value)) return false;
-
-                  node.fontSize = value;
-
-                  return true;
-                }}
-              />
-            </Scrubber>
-          </ElementsRow>
-          <div>
-            Font family:
-            <input
-              value={node.fontFamily}
-              onChange={(e) => (node.fontFamily = e.currentTarget.value)}
-            />
-          </div>
-          <ElementsRow>
-            <Select
-              className="font-weight"
-              value={node.fontWeight}
-              onChange={(next) => (node.fontWeight = next)}
-              format={formatFontWeight}
-            >
-              <Option value={FontWeight.Thin} />
-              <Option value={FontWeight.ExtraLight} />
-              <Option value={FontWeight.Light} />
-              <Option value={FontWeight.Normal} />
-              <Option value={FontWeight.Medium} />
-              <Option value={FontWeight.SemiBold} />
-              <Option value={FontWeight.Bold} />
-              <Option value={FontWeight.ExtraBold} />
-              <Option value={FontWeight.Black} />
-            </Select>
-          </ElementsRow>
-          <div>
-            <label>
-              <input
-                type="checkbox"
-                checked={node.fontStyle === FontStyle.Italic}
-                onChange={(e) =>
-                  (node.fontStyle = e.currentTarget.checked
-                    ? FontStyle.Italic
-                    : FontStyle.Normal)
-                }
-              />
-              Italic
-            </label>
-          </div>
-        </>
       ) : null}
     </>
   );
