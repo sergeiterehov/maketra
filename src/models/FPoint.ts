@@ -1,4 +1,5 @@
 import { action, computed, makeObservable, observable } from "mobx";
+import { randomString } from "../utils/randomString";
 import { Vector2d } from "../utils/Transform";
 
 export class FControl {
@@ -29,6 +30,15 @@ export class FLink {
   }
 
   /**
+   * Угол b V a.
+   */
+  @computed get angle(): number {
+    const { a, b } = this;
+
+    return Math.atan2(b.x, b.y) - Math.atan2(a.x, a.y);
+  }
+
+  /**
    * Возвращает ближайшую контрольную точку FControl для точки FPoint.
    * @param point Точка
    */
@@ -37,7 +47,23 @@ export class FLink {
 
     return this.bControl;
   }
+
+  /**
+   * Возвращает угол b V ...
+   * @param b Точка от которой считается угол.
+   */
+  getAngleTo(b: FPoint): number {
+    const a = b === this.a ? this.b : this.a;
+
+    return Math.atan2(b.x, b.y) - Math.atan2(a.x, a.y);
+  }
+
+  opposite(point: FPoint): FPoint {
+    return point === this.a ? this.b : this.a;
+  }
 }
+
+let ai = 0;
 
 export class FPoint {
   /**
@@ -67,6 +93,8 @@ export class FPoint {
     return FPoint.start(x, y).line(w, 0).line(0, h).line(-w, 0).loop()
       .allPoints;
   }
+
+  public key = `p_${++ai}`;
 
   @observable public x: number = 0;
   @observable public y: number = 0;
