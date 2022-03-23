@@ -221,9 +221,14 @@ export class CanvasRenderer {
 
       path.closePath();
 
-      this.applyFills(figure, () => ctx.fill(path));
+      let filled = false;
 
-      if (hit) {
+      this.applyFills(figure, () => {
+        ctx.fill(path);
+        filled = true;
+      });
+
+      if (hit && filled) {
         hit.fill(path);
       }
     }

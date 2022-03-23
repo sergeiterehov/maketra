@@ -11,6 +11,9 @@ import { Transform } from "./utils/Transform";
 import { FPoint } from "./models/FPoint";
 import { editorState } from "./editorState";
 import { CanvasRenderer } from "./render/CanvasRenderer";
+import { ColorFill } from "./models/Fill";
+import { Color } from "./utils/Color";
+import { Stroke, StrokeStyle } from "./models/Stroke";
 
 const Viewer = observer<{
   section: Section;
@@ -249,6 +252,8 @@ const Viewer = observer<{
           const figure = new Figure();
 
           figure.name = "New Figure";
+          figure.fills.push(new ColorFill(new Color({ hex: "#AAA" })));
+          figure.strokes.push(new Stroke(StrokeStyle.Solid, 5));
 
           const vec2d = baseTransform
             .copy()
