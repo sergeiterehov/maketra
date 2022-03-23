@@ -7,6 +7,7 @@ import { MkNode } from "../models/MkNode";
 import { Primitive } from "../models/Primitive";
 import { StrokeStyle } from "../models/Stroke";
 import { Text, TextAlign } from "../models/Text";
+import { FigureHelper } from "../utils/FigureHelper";
 import { Transform } from "../utils/Transform";
 
 export class CanvasRenderer {
@@ -207,7 +208,25 @@ export class CanvasRenderer {
 
     // Находим все замкнутые области
 
-    // TODO:
+    const fillPath = FigureHelper.outline(points);
+
+    if (fillPath) {
+      const path = new Path2D();
+
+      path.moveTo(fillPath[0].x, fillPath[0].y);
+
+      for (let i = 1; i < fillPath.length; i += 1) {
+        path.lineTo(fillPath[i].x, fillPath[i].y);
+      }
+
+      path.closePath();
+
+      this.applyFills(figure, () => ctx.fill(path));
+
+      if (hit) {
+        hit.fill(path);
+      }
+    }
 
     // рисуем все линии
 

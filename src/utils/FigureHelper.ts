@@ -1,4 +1,4 @@
-import { FLink, FPoint } from "../models/FPoint";
+import { FPoint } from "../models/FPoint";
 
 export class FigureHelper {
   static outline(points: FPoint[]): FPoint[] | void {
@@ -36,83 +36,57 @@ export class FigureHelper {
       }
     }
 
-    console.log(
-      "TAILS CLEAN",
-      cloud.map((p) => [p.key, p.linkedPoints.map((pp) => pp.key), p.x, p.y])
-    );
-
     // Начинаем с самой крайней правой точки.
     // Находим связь с минимальным углом и идем по ней.
 
-    const stack: Array<{ pointer: FPoint; links: FLink[] }> = [];
+    // TODO: убрать все точки из пути и повторить для поиска следующей области
+    // TODO: передавать уже с точками пересечений
 
-    function push(pointer: FPoint) {
-      const links = [...pointer.links];
+    const start = cloud[cloud.length - 1];
 
-      links.sort((a, b) => b.getAngleTo(pointer) - a.getAngleTo(pointer));
+    let pointer: FPoint = start;
+    let entryAngle = 180;
 
-      stack.push({ pointer, links });
+    if (!pointer) return;
+
+    const path: FPoint[] = [];
+
+    while (pointer) {
+      if (pointer === start && path.length > 2) break;
+
+      path.push(pointer);
+      cloud.splice(cloud.indexOf(pointer), 1);
+
+      let next = null;
+      let nextAngle = Infinity;
+
+      for (const link of pointer.links) {
+        const candidate = link.opposite(pointer);
+
+        if (candidate === path[path.length - 2]) continue;
+
+        if (!cloud.includes(candidate) && candidate !== start) continue;
+
+        // prettier-ignore
+        const candidateAngle =
+          (
+            Math.atan2(candidate.y - pointer.y, candidate.x - pointer.x) / Math.PI * 180
+            - (entryAngle - 180)
+            + 720
+          ) % 360;
+
+        if (candidateAngle < nextAngle) {
+          nextAngle = candidateAngle;
+          next = candidate;
+        }
+      }
+
+      if (!next) return;
+
+      pointer = next;
+      entryAngle = nextAngle;
     }
 
-    function extractPathFromStack(): FPoint[] {
-      const path: FPoint[] = [];
-
-      for (const item of stack) {
-        path.push(item.pointer);
-      }
-
-      return path;
-    }
-
-    while (cloud.length) {
-      stack.splice(0);
-
-      push(cloud.pop()!);
-
-      let path: FPoint[] = [];
-
-      STACK_WHILE: while (stack.length && stack.length < 100) {
-        const { pointer, links } = stack[stack.length - 1];
-
-        const nextLink = links.pop();
-
-        if (!nextLink) {
-          stack.pop();
-          continue;
-        }
-
-        const next = nextLink.opposite(pointer);
-
-        if (stack[0].pointer === next && stack.length > 2) {
-          // LOOP
-          path = extractPathFromStack();
-
-          break STACK_WHILE;
-        }
-
-        if (!cloud.includes(next)) continue;
-
-        for (const item of stack) {
-          if (item.pointer === next) {
-            continue STACK_WHILE;
-          }
-        }
-
-        push(next);
-      }
-
-      for (const point of path) {
-        cloud.splice(cloud.indexOf(point), 1);
-      }
-
-      if (path.length) {
-        console.log(
-          "PATH",
-          path.map((p) => p.key)
-        );
-      }
-    }
-
-    return;
+    return path;
   }
 }

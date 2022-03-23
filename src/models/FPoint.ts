@@ -1,5 +1,4 @@
 import { action, computed, makeObservable, observable } from "mobx";
-import { randomString } from "../utils/randomString";
 import { Vector2d } from "../utils/Transform";
 
 export class FControl {
@@ -63,8 +62,6 @@ export class FLink {
   }
 }
 
-let ai = 0;
-
 export class FPoint {
   /**
    * Создает начальную точку и возвращает ее.
@@ -93,8 +90,6 @@ export class FPoint {
     return FPoint.start(x, y).line(w, 0).line(0, h).line(-w, 0).loop()
       .allPoints;
   }
-
-  public key = `p_${++ai}`;
 
   @observable public x: number = 0;
   @observable public y: number = 0;

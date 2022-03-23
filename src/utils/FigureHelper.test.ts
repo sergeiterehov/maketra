@@ -11,7 +11,7 @@ import { FigureHelper } from "./FigureHelper";
 //         .next(new FPoint(0, 1))
 //         .loop().allPoints
 //     )
-//   ).toBeUndefined();
+//   ).toHaveLength(4);
 // });
 
 // test("Звезда", () => {
@@ -29,7 +29,7 @@ import { FigureHelper } from "./FigureHelper";
 //         .line(-4.258, 4.152)
 //         .loop().allPoints
 //     )
-//   ).toBeUndefined();
+//   ).toHaveLength(10);
 // });
 
 test("Странная фигура", () => {
@@ -54,5 +54,5 @@ test("Странная фигура", () => {
   cp[4].connect(cp[5]);
   cp[6].connect(cp[7]);
 
-  expect(FigureHelper.outline(cp)).toBeUndefined();
+  expect(FigureHelper.outline(cp)).toHaveLength(4);
 });
