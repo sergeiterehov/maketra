@@ -1,7 +1,7 @@
 import { action, observable } from "mobx";
 import { Figure } from "./models/Figure";
 import { ColorFill } from "./models/Fill";
-import { FPoint } from "./models/FPoint";
+import { FControl, FLink, FPoint } from "./models/FPoint";
 import { Group } from "./models/Group";
 import { MkNode } from "./models/MkNode";
 import { Stroke, StrokeStyle } from "./models/Stroke";
@@ -9,8 +9,10 @@ import { Color } from "./utils/Color";
 import { Vector2d } from "./utils/Transform";
 
 const linesColor = new Color({ hex: "#0FF" });
+const controlsLinesColor = new Color({ hex: "#0AF" });
 const pointsColor = new Color({ hex: "#DEF" });
 const pointsBorderColor = new Color({ hex: "#0AF" });
+const controlsBorderColor = new Color({ hex: "#0FF" });
 
 const newPointLine = new Figure().configure({
   interactive: false,
@@ -31,6 +33,12 @@ export const figureEditor = observable(
     points: new Map<Figure, FPoint>(),
     /** Соединяющие линии. */
     lines: new Map<Figure, FPoint>(),
+    /** Контрольные точки. */
+    // prettier-ignore
+    controls: new Map<Figure, { link: FLink; point: FPoint; control: FControl }>(),
+    /** Линии до контрольных точек. */
+    // prettier-ignore
+    controlsLines: new Map<Figure, { link: FLink; point: FPoint; control: FControl }>(),
 
     target: undefined as Figure | undefined,
 
@@ -56,13 +64,25 @@ export const figureEditor = observable(
       const at = figure.absoluteTransform;
       const { x, y } = at.decompose();
 
+      const links: FLink[] = [];
+
+      for (const point of figure.points) {
+        for (const link of point.links) {
+          if (!links.includes(link)) {
+            links.push(link);
+          }
+        }
+      }
+
       // Сперва создаем соединительные линии.
 
       for (const p of figure.points) {
         if (!p.links.length) continue;
 
         const l = new Figure().configure({
-          interactive: false, // TODO:
+          // TODO: сделать перемещение линий
+          interactive: false,
+          // TODO: переделать на links
           points: p.linkedPoints.flatMap((pp) =>
             FPoint.createLine(x + p.x, y + p.y, x + pp.x, y + pp.y)
           ),
@@ -73,7 +93,58 @@ export const figureEditor = observable(
         l.moveTo(controlsGroup);
       }
 
-      // Поверх линий накладываем трансформеры.
+      // Линии контрольных точек
+
+      for (const link of links) {
+        const { a, b, aControl, bControl } = link;
+
+        for (const meta of [
+          { point: a, control: aControl },
+          { point: b, control: bControl },
+        ]) {
+          const { point, control } = meta;
+
+          const cl = new Figure().configure({
+            interactive: false,
+            points: FPoint.createLine(
+              x + point.x,
+              y + point.y,
+              x + point.x + control.x,
+              y + point.y + control.y
+            ),
+            strokes: [new Stroke(StrokeStyle.Solid, 1, controlsLinesColor)],
+          });
+
+          this.controlsLines.set(cl, { link, point, control });
+          cl.moveTo(controlsGroup);
+        }
+      }
+
+      // Трансформеры контрольных точек.
+
+      for (const link of links) {
+        const { a, b, aControl, bControl } = link;
+
+        for (const meta of [
+          { point: a, control: aControl },
+          { point: b, control: bControl },
+        ]) {
+          const { point, control } = meta;
+
+          const c = new Figure().configure({
+            points: FPoint.createRect(0, 0, 4, 4),
+            x: x + point.x + control.x - 2,
+            y: y + point.y + control.y - 2,
+            strokes: [new Stroke(StrokeStyle.Solid, 1, controlsBorderColor)],
+            fills: [new ColorFill(pointsColor)],
+          });
+
+          this.controls.set(c, { link, point, control });
+          c.moveTo(controlsGroup);
+        }
+      }
+
+      // Трансформеры точек.
 
       for (const p of figure.points) {
         const t = new Figure().configure({
@@ -104,7 +175,11 @@ export const figureEditor = observable(
 
         if (!p) continue;
 
-        p.linkedPoints.forEach((pp, i) => {
+        const { linkedPoints } = p;
+
+        for (let i = 0; i < linkedPoints.length; i += 1) {
+          const pp = linkedPoints[i];
+
           Object.assign(l.points[i * 2], {
             x: x + p.x,
             y: y + p.y,
@@ -113,11 +188,51 @@ export const figureEditor = observable(
             x: x + pp.x,
             y: y + pp.y,
           });
-        });
+        }
 
-        Object.assign(l, {
+        l.configure({
           x: 0,
           y: 0,
+        });
+      }
+
+      // Контрольные точки
+
+      for (const c of this.controls.keys()) {
+        const meta = this.controls.get(c);
+
+        if (!meta) continue;
+
+        const { control, point } = meta;
+
+        c.configure({
+          x: x + point.x + control.x - 2,
+          y: y + point.y + control.y - 2,
+        });
+      }
+
+      // Линии контрольных точек
+
+      for (const cl of this.controlsLines.keys()) {
+        const meta = this.controlsLines.get(cl);
+
+        if (!meta) continue;
+
+        const { control, point } = meta;
+
+        cl.configure({
+          x: 0,
+          y: 0,
+        });
+
+        Object.assign(cl.points[0], {
+          x: x + point.x,
+          y: y + point.y,
+        });
+
+        Object.assign(cl.points[1], {
+          x: x + point.x + control.x,
+          y: y + point.y + control.y,
         });
       }
 
@@ -128,7 +243,7 @@ export const figureEditor = observable(
 
         if (!p) continue;
 
-        Object.assign(t, {
+        t.configure({
           x: x + p.x - 3,
           y: y + p.y - 3,
         });
@@ -161,7 +276,26 @@ export const figureEditor = observable(
         point.x += dx;
         point.y += dy;
       } else {
-        return;
+        const controlMeta = this.controls.get(node as Figure);
+
+        if (controlMeta) {
+          const { control, link, point } = controlMeta;
+
+          // Проверяем возможность синхронного перемещения противоположной точки.
+          if (point.links.length === 2) {
+            const oppositeLink =
+              point.links[0] === link ? point.links[1] : point.links[0];
+            const opposite = oppositeLink.getControlFor(point);
+
+            if (opposite.x === -control.x && opposite.y === -control.y) {
+              opposite.x -= dx;
+              opposite.y -= dy;
+            }
+          }
+
+          control.x += dx;
+          control.y += dy;
+        } else return;
       }
 
       if (this.target) {

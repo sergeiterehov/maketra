@@ -1,7 +1,8 @@
 import { FPoint } from "../models/FPoint";
+import { Vector2d } from "./Transform";
 
 export class FigureHelper {
-  static outline(points: FPoint[]): FPoint[] | void {
+  static outline(points: FPoint[]): Vector2d[] | void {
     if (!points.length) return;
 
     const cloud = [...points].sort((a, b) => a.x - b.x);
