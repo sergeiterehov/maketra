@@ -213,11 +213,11 @@ const Viewer = observer<{
             selected.y += dy;
           });
         }
-      } else if (figureEditor.newPointParent) {
+      } else if (figureEditor.newPointParent && figureEditor.target) {
         figureEditor.moveNewPoint(
           baseTransform
             .copy()
-            .multiply(figureEditor.target!.absoluteTransform)
+            .multiply(figureEditor.target.absoluteTransform)
             .multiply(
               new Transform().translate(
                 figureEditor.newPointParent.x,
@@ -245,6 +245,9 @@ const Viewer = observer<{
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      if (document.activeElement && document.activeElement !== document.body)
+        return;
+
       const { x, y } = mouseRef.current;
 
       switch (e.code) {
@@ -270,6 +273,12 @@ const Viewer = observer<{
 
           figureEditor.adjust(figure);
           figureEditor.showNewPoint();
+
+          break;
+        }
+        case "Enter": {
+          figureEditor.hideNewPoint();
+          editorState.select(figureEditor.target);
 
           break;
         }

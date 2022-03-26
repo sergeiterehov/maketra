@@ -322,6 +322,12 @@ export const figureEditor = observable(
       this.realign();
     },
 
+    hideNewPoint() {
+      this.newPointParent = undefined;
+
+      this.realign();
+    },
+
     moveNewPoint(newPosition: Vector2d) {
       this.newPointOffset.x = newPosition.x;
       this.newPointOffset.y = newPosition.y;
