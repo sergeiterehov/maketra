@@ -102,6 +102,10 @@ export const ColorPicker = styled<
 
   ${ColorChit} {
     margin-right: 8px;
+
+    &[data-too-bright] {
+      outline: solid 1px var(--color-border);
+    }
   }
   
   .color-picker-alpha {

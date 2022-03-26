@@ -19,7 +19,11 @@ export const ColorChit = styled<
   }>
 >(({ className, color, onClick }) => {
   return (
-    <span className={className} onClick={onClick}>
+    <span
+      className={className}
+      data-too-bright={color.humanLuminance > 0.95 ? "" : undefined}
+      onClick={onClick}
+    >
       <span style={{ backgroundColor: color.hex_string_no_alpha }} />
       <span style={{ backgroundColor: color.hex_string }} />
     </span>

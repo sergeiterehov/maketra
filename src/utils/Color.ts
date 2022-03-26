@@ -262,6 +262,12 @@ export class Color {
     }
   }
 
+  get humanLuminance(): number {
+    const { _rgb_r: R, _rgb_b: B, _rgb_g: G } = this;
+
+    return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+  }
+
   private apply_from_rgb() {
     const { _rgb_r: r, _rgb_b: b, _rgb_g: g } = this;
 
