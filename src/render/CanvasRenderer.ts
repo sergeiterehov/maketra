@@ -204,8 +204,6 @@ export class CanvasRenderer {
     const { ctx, hit } = this;
     const { size, points } = figure;
 
-    this.applyStrokes(figure, () => null);
-
     // Находим все замкнутые области
 
     // TODO: путь должен содержать только вершины (посчитать кривые).
@@ -263,7 +261,7 @@ export class CanvasRenderer {
         b.y
       );
 
-      ctx.stroke(path);
+      this.applyStrokes(figure, () => ctx.stroke(path));
 
       if (hit) {
         hit.lineWidth = 8;
