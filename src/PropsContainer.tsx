@@ -118,5 +118,19 @@ export const PropsContainer = styled.div.withConfig({
       grid-column-start: 21;
       grid-column-end: span 8;
     }
+
+    .stroke-style {
+      grid-column-end: span 13;
+    }
+    
+    .stroke-width {
+      grid-column-start: 15;
+      grid-column-end: span 7;
+    }
+
+    .stroke-dash {
+      grid-column-start: 23;
+      grid-column-end: span 7;
+    }
   }
 `;

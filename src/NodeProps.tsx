@@ -20,6 +20,7 @@ import { IconButton } from "./components/IconButton";
 import { FillPicker } from "./components/FillPicker";
 import { TextMultiline } from "./components/TextMultiline";
 import { fontFamilies } from "./fonts";
+import { StrokeStyle } from "./models/Stroke";
 
 function formatTextAlign(value: TextAlign): string {
   switch (value) {
@@ -117,6 +118,17 @@ function formatBlendMode(value: BlendMode): string {
       return "Яркость";
     default:
       return value;
+  }
+}
+
+function formatStrokeStyle(value: StrokeStyle): string {
+  switch (value) {
+    case StrokeStyle.Solid:
+      return "Сплошная";
+    case StrokeStyle.Dash:
+      return "Пунктир";
+    case StrokeStyle.Custom:
+      return "Настроить";
   }
 }
 
@@ -489,7 +501,18 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
           })}
           {node.strokes[0] ? (
             <ElementsRow>
+              <Select
+                className="stroke-style"
+                value={node.strokes[0].style}
+                onChange={(next) => (node.strokes[0].style = next)}
+                format={formatStrokeStyle}
+              >
+                <Option value={StrokeStyle.Solid} />
+                <Option value={StrokeStyle.Dash} />
+                <Option value={StrokeStyle.Custom} />
+              </Select>
               <Scrubber
+                className="stroke-width"
                 speed={0.02}
                 min={0}
                 value={node.strokes[0].width}
@@ -511,6 +534,33 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
                   }}
                 />
               </Scrubber>
+              {node.strokes[0].style !== StrokeStyle.Solid ? (
+                <Scrubber
+                  className="stroke-dash"
+                  speed={1}
+                  min={0}
+                  value={node.strokes[0].dashArray[0]}
+                  onChange={(next) =>
+                    (node.strokes[0].dashArray[0] = next || 0)
+                  }
+                >
+                  <Icon>&#10511;</Icon>
+                  <CustomInput
+                    value={node.strokes[0].dashArray[0].toString()}
+                    onChange={(next) => {
+                      const value = Number(next);
+
+                      if (Number.isNaN(value)) return false;
+
+                      runInAction(() => {
+                        node.strokes[0].dashArray[0] = value;
+                      });
+
+                      return true;
+                    }}
+                  />
+                </Scrubber>
+              ) : null}
             </ElementsRow>
           ) : null}
         </div>

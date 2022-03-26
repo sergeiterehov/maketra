@@ -187,4 +187,5 @@ export const Select = styled(SelectComponent).withConfig({
   displayName: "select",
 })`
   user-select: none;
+  cursor: default;
 `;

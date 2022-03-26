@@ -334,15 +334,28 @@ export class CanvasRenderer {
     const { ctx } = this;
 
     for (const stroke of node.strokes) {
-      const { width, color, style, dash, dashGap, disabled } = stroke;
+      const { width, color, style, dashArray, disabled } = stroke;
 
       if (!width || disabled) continue;
 
       ctx.lineWidth = width;
       ctx.strokeStyle = color.hex_string;
 
-      if (style === StrokeStyle.Dash) {
-        ctx.setLineDash([dash, dashGap ?? dash]);
+      switch (style) {
+        case StrokeStyle.Dash: {
+          if (dashArray[1] !== undefined) {
+            ctx.setLineDash([dashArray[0], dashArray[1]]);
+          } else {
+            ctx.setLineDash([dashArray[0]]);
+          }
+          break;
+        }
+        case StrokeStyle.Custom: {
+          ctx.setLineDash(dashArray);
+          break;
+        }
+        default:
+          ctx.setLineDash([]);
       }
 
       action();

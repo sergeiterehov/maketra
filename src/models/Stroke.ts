@@ -4,6 +4,7 @@ import { Color } from "../utils/Color";
 export enum StrokeStyle {
   Solid = 1,
   Dash,
+  Custom,
 }
 
 export class Stroke {
@@ -12,8 +13,7 @@ export class Stroke {
   @observable public color: Color;
   @observable public width: number = 1;
   @observable public style: StrokeStyle = StrokeStyle.Solid;
-  @observable public dash: number = 10;
-  @observable public dashGap?: number = undefined;
+  @observable public dashArray: number[] = [10];
 
   constructor(
     style: StrokeStyle = StrokeStyle.Solid,
@@ -24,7 +24,7 @@ export class Stroke {
     this.style = style;
     this.width = width;
     this.color = color;
-    this.dash = dash;
+    this.dashArray = [dash];
 
     makeObservable(this);
   }
