@@ -56,6 +56,8 @@ export class Figure extends Primitive {
           if (!changedLinks.includes(link)) {
             link.aControl.x += kx * link.aControl.x;
             link.aControl.y += ky * link.aControl.y;
+            link.bControl.x += kx * link.bControl.x;
+            link.bControl.y += ky * link.bControl.y;
           }
         }
       }
