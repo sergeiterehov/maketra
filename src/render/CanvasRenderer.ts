@@ -2,7 +2,7 @@ import { Area } from "../models/Area";
 import { Figure } from "../models/Figure";
 import { BlendMode, ColorFill, Fill, LinearGradientFill } from "../models/Fill";
 import { BlurFilter, DropShadowFilter, Filter } from "../models/Filter";
-import { FPoint } from "../models/FPoint";
+import { FLink, FPoint } from "../models/FPoint";
 import { MkNode } from "../models/MkNode";
 import { Primitive } from "../models/Primitive";
 import { StrokeStyle } from "../models/Stroke";
@@ -208,6 +208,9 @@ export class CanvasRenderer {
 
     // Находим все замкнутые области
 
+    // TODO: путь должен содержать только вершины (посчитать кривые).
+    // TODO: кривые должны быть посчитаны еще до рисования линий или заливок.
+
     const fillPath = FigureHelper.outline(points);
 
     if (fillPath) {
@@ -235,33 +238,40 @@ export class CanvasRenderer {
 
     // рисуем все линии
 
-    const pairs = new Map<FPoint, FPoint[]>();
+    const links: FLink[] = [];
 
     for (const point of points) {
-      pairs.set(point, point.linkedPoints);
+      for (const link of point.links) {
+        if (!links.includes(link)) {
+          links.push(link);
+        }
+      }
     }
 
-    for (const point of points) {
-      const linked = pairs.get(point)!;
+    for (const link of links) {
+      const { a, b, aControl, bControl } = link;
 
-      for (const pair of linked) {
-        const pairLinked = pairs.get(pair)!;
+      const path = new Path2D();
 
-        pairLinked.slice(pairLinked.indexOf(point, 1));
+      path.moveTo(a.x, a.y);
+      path.bezierCurveTo(
+        a.x + aControl.x,
+        a.y + aControl.y,
+        b.x + bControl.x,
+        b.y + bControl.y,
+        b.x,
+        b.y
+      );
 
-        ctx.beginPath();
-        ctx.moveTo(point.x, point.y);
-        ctx.lineTo(pair.x, pair.y);
-        ctx.stroke();
+      ctx.stroke(path);
 
-        if (hit) {
-          hit.lineWidth = 8;
+      if (hit) {
+        hit.lineWidth = 8;
 
-          hit.beginPath();
-          hit.moveTo(point.x, point.y);
-          hit.lineTo(pair.x, pair.y);
-          hit.stroke();
-        }
+        hit.beginPath();
+        hit.moveTo(a.x, a.y);
+        hit.lineTo(b.x, b.y);
+        hit.stroke();
       }
     }
 
@@ -343,7 +353,7 @@ export class CanvasRenderer {
 
       switch (style) {
         case StrokeStyle.Dash: {
-          if (dashArray[1] !== undefined) {
+          if (dashArray.length > 1) {
             ctx.setLineDash([dashArray[0], dashArray[1]]);
           } else {
             ctx.setLineDash([dashArray[0]]);
