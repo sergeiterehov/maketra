@@ -1,5 +1,5 @@
 import { runInAction } from "mobx";
-import { useObserver } from "mobx-react";
+import { Observer } from "mobx-react";
 import { FC, useCallback } from "react";
 import styled from "styled-components";
 import { Section } from "../models/Section";
@@ -32,18 +32,22 @@ export const SectionListRow = styled<
     [section]
   );
 
-  return useObserver(() => {
-    return (
-      <div
-        className={className}
-        data-is-selected={selected ? "" : undefined}
-        onClick={clickHandler}
-      >
-        <span className="section-list-row-marker">&#10003;</span>
-        <RowSpanInput value={section.name} onChange={nameChangeHandler} />
-      </div>
-    );
-  });
+  return (
+    <Observer>
+      {() => {
+        return (
+          <div
+            className={className}
+            data-is-selected={selected ? "" : undefined}
+            onClick={clickHandler}
+          >
+            <span className="section-list-row-marker">&#10003;</span>
+            <RowSpanInput value={section.name} onChange={nameChangeHandler} />
+          </div>
+        );
+      }}
+    </Observer>
+  );
 }).withConfig({ displayName: "SectionListRow" })`
   display: flex;
   position: relative;

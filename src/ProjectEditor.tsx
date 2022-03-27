@@ -18,13 +18,13 @@ import { MkNode } from "./models/MkNode";
 import { Project } from "./models/Project";
 import { NodeProps } from "./NodeProps";
 import { useElementSize } from "./utils/useElementSize";
-import Viewer from "./Viewer";
 import { editorState } from "./editorState";
 import { NodeTreeRow } from "./components/NodeTreeRow";
 import { SectionListRow } from "./components/SectionListRow";
 import { runInAction } from "mobx";
 import { ObjectsContainer } from "./ObjectsContainer";
 import { Toolbar } from "./Toolbar";
+import { Viewer } from "./Viewer";
 
 const SectionsList: FC<{
   project: Project;
@@ -169,13 +169,15 @@ export const ProjectEditor = observer(() => {
   const viewerContainerRef = useRef<HTMLDivElement>(null);
   const viewerContainerSize = useElementSize(viewerContainerRef);
 
-  const { project } = editorState;
+  const { project, section } = editorState;
 
-  const section = project?.sections.find((s) => s.id === searchParams.get("s"));
+  const sectionIdFromSearch = searchParams.get("s");
 
   useEffect(() => {
-    editorState.select(section);
-  }, [section]);
+    const nextSection = project?.sections.find((s) => s.id === sectionIdFromSearch);
+
+    editorState.select(nextSection);
+  }, [project, sectionIdFromSearch]);
 
   if (!project) return null;
 

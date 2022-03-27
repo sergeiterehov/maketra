@@ -1,5 +1,5 @@
 import { runInAction } from "mobx";
-import { useObserver } from "mobx-react-lite";
+import { Observer } from "mobx-react-lite";
 import { FC, memo, ReactNode, useCallback } from "react";
 import styled from "styled-components";
 import { Area } from "../models/Area";
@@ -123,42 +123,46 @@ export const NodeTreeRow = styled<
       [node]
     );
 
-    return useObserver(() => {
-      return (
-        <div
-          className={className}
-          data-is-selected={selected ? "" : undefined}
-          data-is-area={node instanceof Area ? "" : undefined}
-          data-is-root={!node.parentNode ? "" : undefined}
-          data-invisible={node.visible ? undefined : ""}
-          onClick={clickHandler}
-        >
-          <Indent
-            id={node.id}
-            level={level}
-            expanded={expanded}
-            hasChildren={hasChildren}
-            onExpanderClick={onExpanderClick}
-          />
-          <RowSpanInput value={node.name} onChange={nameChangeHandler} />
-          <div className="node-row-tree-actions">
+    return (
+      <Observer>
+        {() => {
+          return (
             <div
-              className="visibility"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-
-                runInAction(() => {
-                  node.visible = !node.visible;
-                });
-              }}
+              className={className}
+              data-is-selected={selected ? "" : undefined}
+              data-is-area={node instanceof Area ? "" : undefined}
+              data-is-root={!node.parentNode ? "" : undefined}
+              data-invisible={node.visible ? undefined : ""}
+              onClick={clickHandler}
             >
-              {node.visible ? "👀" : "🙈"}
+              <Indent
+                id={node.id}
+                level={level}
+                expanded={expanded}
+                hasChildren={hasChildren}
+                onExpanderClick={onExpanderClick}
+              />
+              <RowSpanInput value={node.name} onChange={nameChangeHandler} />
+              <div className="node-row-tree-actions">
+                <div
+                  className="visibility"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    runInAction(() => {
+                      node.visible = !node.visible;
+                    });
+                  }}
+                >
+                  {node.visible ? "👀" : "🙈"}
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-      );
-    });
+          );
+        }}
+      </Observer>
+    );
   }
 ).withConfig({ displayName: "NodeTreeRow" })`
   display: flex;

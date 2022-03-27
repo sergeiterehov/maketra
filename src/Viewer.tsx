@@ -33,7 +33,7 @@ function findNodeForCreating(node: MkNode) {
   return lookup;
 }
 
-const Viewer = observer<{
+export const Viewer = observer<{
   width: number;
   height: number;
 }>(({ width, height }) => {
@@ -479,5 +479,3 @@ const Viewer = observer<{
     </>
   );
 });
-
-export default Viewer;
