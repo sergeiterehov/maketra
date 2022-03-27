@@ -1,4 +1,5 @@
 import { action, observable } from "mobx";
+import { Area } from "./models/Area";
 import { MkNode } from "./models/MkNode";
 import { Project } from "./models/Project";
 import { Section } from "./models/Section";
@@ -23,6 +24,9 @@ export const editorState = observable(
 
     /** Активный инструмент. */
     tool: ToolMode.Default,
+
+    /** Создаваемая в данный момент Область. */
+    creatingArea: undefined as Area | undefined,
 
     /** Множитель пикселей: сколько пикселей рисуется на 1 единицу. */
     pixelRatio: devicePixelRatio,

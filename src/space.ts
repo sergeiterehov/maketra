@@ -139,7 +139,7 @@ space.projects[0].sections[0].nodes[0].add(
     strokes: [new Stroke(StrokeStyle.Solid, 4)],
   }),
   new Figure().configure({
-    name: "Странна фигура",
+    name: "Странная фигура",
     x: 10,
     y: 10,
     cornerRadius: 8,

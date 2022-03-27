@@ -7,11 +7,30 @@ import { MkNode } from "./models/MkNode";
 import { figureEditor } from "./figureEditor";
 import { transformer } from "./transformer";
 import { Transform } from "./utils/Transform";
-import { editorState } from "./editorState";
+import { editorState, ToolMode } from "./editorState";
 import { CanvasRenderer } from "./render/CanvasRenderer";
+import { Stroke, StrokeStyle } from "./models/Stroke";
 import { ColorFill } from "./models/Fill";
 import { Color } from "./utils/Color";
-import { Stroke, StrokeStyle } from "./models/Stroke";
+import { Area } from "./models/Area";
+
+function findNodeForCreating(node: MkNode) {
+  let lookup: MkNode | undefined = node;
+
+  while (lookup && !(lookup instanceof Area)) {
+    lookup = lookup.parentNode;
+  }
+
+  if (!lookup && node.parentSection) {
+    for (const root of node.parentSection.nodes) {
+      if (root instanceof Area) {
+        lookup = root;
+      }
+    }
+  }
+
+  return lookup;
+}
 
 const Viewer = observer<{
   width: number;
@@ -20,8 +39,6 @@ const Viewer = observer<{
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const pixelRatio = devicePixelRatio;
-
-  const { baseTransform, selected, section } = editorState;
 
   const hitCanvas = useMemo(() => document.createElement("canvas"), []);
 
@@ -44,8 +61,6 @@ const Viewer = observer<{
   }, [hitCanvas]);
 
   useEffect(() => {
-    if (!section) return;
-
     const renderer = rendererRef.current;
 
     if (!renderer) return;
@@ -53,15 +68,22 @@ const Viewer = observer<{
     let animRequest = 0;
 
     const draw = () => {
-      renderer.transform = editorState.baseTransform;
+      const { section, baseTransform, tool } = editorState;
+
+      if (!section) return;
+
+      renderer.transform = baseTransform;
       renderer.clear();
 
       for (const node of section.nodes) {
         renderer.renderNode(node);
       }
 
-      renderer.renderNode(transformer.group);
-      renderer.renderNode(figureEditor.group);
+      if (tool === ToolMode.PointBender || tool === ToolMode.PointEditor) {
+        renderer.renderNode(figureEditor.group);
+      } else {
+        renderer.renderNode(transformer.group);
+      }
 
       animRequest = window.requestAnimationFrame(draw);
     };
@@ -69,21 +91,17 @@ const Viewer = observer<{
     draw();
 
     return () => window.cancelAnimationFrame(animRequest);
-  }, [section]);
+  }, []);
 
+  // Подключаем инструменты к состоянию.
   useEffect(() => {
-    transformer.adjust(selected);
-    figureEditor.adjust(selected instanceof Figure ? selected : undefined);
+    return observe(editorState, "selected", () => {
+      const { selected } = editorState;
 
-    if (!selected) return;
-
-    const stop = observe(selected, () => {
-      figureEditor.realign();
-      transformer.adjust(selected).realign();
+      transformer.adjust(selected);
+      figureEditor.adjust(selected instanceof Figure ? selected : undefined);
     });
-
-    return stop;
-  }, [selected]);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -149,35 +167,109 @@ const Viewer = observer<{
         y * pixelRatio
       );
 
-      // Если это трансформер, то не выделять его не нужно.
-      if (node && transformer.has(node)) {
-        mouseRef.current.transformerControl = node;
-        mouseRef.current.figureEditorControl = undefined;
-      } else if (figureEditor.addingMode) {
-        // Находимся в режиме добавления точки
-        const clickedPoint = figureEditor.points.get(node as Figure);
-
-        if (clickedPoint) {
-          figureEditor.createPoint(clickedPoint);
-          figureEditor.disableAdding();
-          editorState.select(figureEditor.target);
-        } else {
-          figureEditor.createPoint();
-        }
-      } else if (node && figureEditor.has(node)) {
-        // Редактируем фигуру
-        mouseRef.current.figureEditorControl = node;
-        mouseRef.current.transformerControl = undefined;
-      } else {
-        // Выделяем объект
-        mouseRef.current.transformerControl = undefined;
-        mouseRef.current.figureEditorControl = undefined;
-        editorState.select(node);
-      }
-
       mouseRef.current.x = x;
       mouseRef.current.y = y;
       mouseRef.current.dragging = true;
+
+      const { tool, section, selected, baseTransform } = editorState;
+
+      switch (tool) {
+        case ToolMode.Transformer: {
+          if (!node || section?.includes(node)) {
+            // Это объект или пустое место, просто выделаем его.
+            mouseRef.current.transformerControl = undefined;
+            editorState.select(node);
+          } else if (transformer.includes(node)) {
+            // Это элементы трансформера, сохраняем выделение.
+            mouseRef.current.transformerControl = node;
+          }
+
+          break;
+        }
+        case ToolMode.AreaAdder: {
+          const parent = selected && findNodeForCreating(selected);
+          const transform = baseTransform.copy();
+
+          if (parent) {
+            transform.multiply(parent.absoluteTransform);
+          }
+
+          const location = transform
+            .invert()
+            .scale(pixelRatio, pixelRatio)
+            .point({ x, y });
+
+          const newArea = new Area();
+
+          newArea.name = "Новая область";
+          newArea.configure({ x: location.x, y: location.y });
+
+          if (parent) {
+            newArea.moveTo(parent);
+          } else {
+            newArea.moveToSection(section);
+          }
+
+          editorState.creatingArea = newArea;
+          editorState.select(newArea);
+
+          break;
+        }
+        case ToolMode.PointEditor:
+        case ToolMode.PointBender: {
+          if (figureEditor.addingMode && tool === ToolMode.PointEditor) {
+            // Находимся в режиме добавления точки, добавляем ее
+            const clickedPoint = figureEditor.points.get(node as Figure);
+
+            if (clickedPoint) {
+              figureEditor.createPoint(clickedPoint);
+              figureEditor.disableAdding();
+              editorState.select(figureEditor.target);
+            } else {
+              figureEditor.createPoint();
+            }
+          } else if (node && figureEditor.includes(node)) {
+            // Это элемент редактора
+            mouseRef.current.figureEditorControl = node;
+          } else if (!(selected instanceof Figure)) {
+            // Выделена не фигура, значит начинаем добавлять точки.
+            const newFigure = new Figure();
+
+            newFigure.name = "Новая фигура";
+            newFigure.strokes.push(
+              new Stroke(StrokeStyle.Solid, 8, new Color({ hex: "#000" }))
+            );
+            newFigure.fills.push(new ColorFill(new Color({ hex: "#888" })));
+
+            const parent = selected && findNodeForCreating(selected);
+
+            if (parent) {
+              newFigure.moveTo(parent);
+            } else {
+              newFigure.moveToSection(section);
+            }
+
+            figureEditor.adjust(newFigure);
+            editorState.select(newFigure);
+
+            figureEditor.moveNewPoint(
+              baseTransform
+                .copy()
+                .multiply(newFigure.absoluteTransform)
+                .invert()
+                .scale(pixelRatio, pixelRatio)
+                .point({ x, y })
+            );
+
+            figureEditor.enableAdding();
+            figureEditor.createPoint();
+          } else {
+            mouseRef.current.figureEditorControl = undefined;
+          }
+
+          break;
+        }
+      }
     },
     [hitCanvas, pixelRatio]
   );
@@ -189,59 +281,113 @@ const Viewer = observer<{
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
+      const { dragging } = mouseRef.current;
+
       const dx = x - mouseRef.current.x;
       const dy = y - mouseRef.current.y;
 
-      const { transformerControl, figureEditorControl } = mouseRef.current;
-
-      if (mouseRef.current.dragging) {
-        if (transformerControl) {
-          transformer.moveControlBy(transformerControl, dx, dy);
-
-          if (selected) transformer.applyTo(selected);
-        } else if (figureEditorControl) {
-          figureEditor.moveControlBy(figureEditorControl, dx, dy);
-        } else if (selected) {
-          runInAction(() => {
-            selected.x += dx;
-            selected.y += dy;
-          });
-        }
-      } else if (figureEditor.addingMode && figureEditor.target) {
-        const fromParentTransform = new Transform();
-
-        if (figureEditor.newPointParent) {
-          fromParentTransform.translate(
-            figureEditor.newPointParent.x,
-            figureEditor.newPointParent.y
-          );
-        }
-
-        figureEditor.moveNewPoint(
-          baseTransform
-            .copy()
-            .multiply(figureEditor.target.absoluteTransform)
-            .multiply(fromParentTransform)
-            .invert()
-            .scale(pixelRatio, pixelRatio)
-            .point({ x, y })
-        );
-      }
-
       mouseRef.current.x = x;
       mouseRef.current.y = y;
+
+      const { transformerControl, figureEditorControl } = mouseRef.current;
+      const { selected, tool, baseTransform, creatingArea } = editorState;
+
+      switch (tool) {
+        case ToolMode.Transformer: {
+          if (!dragging) {
+            // Ничего не делаем.
+          } else if (transformerControl) {
+            transformer.moveControlBy(transformerControl, dx, dy);
+          } else if (selected) {
+            runInAction(() => {
+              selected.x += dx;
+              selected.y += dy;
+            });
+          }
+
+          break;
+        }
+        case ToolMode.AreaAdder: {
+          if (creatingArea) {
+            const parent = creatingArea.parentNode;
+            const transform = baseTransform.copy();
+
+            if (parent) {
+              transform.multiply(parent.absoluteTransform);
+            }
+
+            const location = transform
+              .invert()
+              .scale(pixelRatio, pixelRatio)
+              .point({ x, y });
+
+            creatingArea.configure({
+              width: Math.max(0, location.x - creatingArea.x),
+              height: Math.max(0, location.y - creatingArea.y),
+            });
+          }
+
+          break;
+        }
+        case ToolMode.PointEditor:
+        case ToolMode.PointBender: {
+          if (
+            figureEditor.addingMode &&
+            tool === ToolMode.PointEditor &&
+            figureEditor.target
+          ) {
+            const fromParentTransform = new Transform();
+
+            if (figureEditor.newPointParent) {
+              fromParentTransform.translate(
+                figureEditor.newPointParent.x,
+                figureEditor.newPointParent.y
+              );
+            }
+
+            figureEditor.moveNewPoint(
+              baseTransform
+                .copy()
+                .multiply(figureEditor.target.absoluteTransform)
+                .multiply(fromParentTransform)
+                .invert()
+                .scale(pixelRatio, pixelRatio)
+                .point({ x, y })
+            );
+          } else if (!dragging) {
+            // Не нажимали мышку
+          } else if (figureEditorControl) {
+            figureEditor.moveControlBy(figureEditorControl, dx, dy);
+          }
+
+          break;
+        }
+      }
     },
-    [selected, baseTransform, pixelRatio]
+    [pixelRatio]
   );
 
   const mouseUpHandler = useCallback(
     (e: React.MouseEvent<HTMLCanvasElement>) => {
       mouseRef.current.dragging = false;
+
+      const { tool } = editorState;
+
+      switch (tool) {
+        case ToolMode.AreaAdder: {
+          editorState.creatingArea = undefined;
+          editorState.changeTool(ToolMode.Default);
+
+          break;
+        }
+      }
     },
     []
   );
 
   useEffect(() => {
+    const { section } = editorState;
+
     if (!section) return;
 
     const downHandler = (e: KeyboardEvent) => {
@@ -249,25 +395,11 @@ const Viewer = observer<{
         return;
 
       switch (e.code) {
-        case "KeyF": {
-          const figure = new Figure();
-
-          figure.name = "New Figure";
-          figure.fills.push(new ColorFill(new Color({ hex: "#AAA" })));
-          figure.strokes.push(new Stroke(StrokeStyle.Solid, 5));
-
-          section.nodes[0].add(figure);
-
-          editorState.select(undefined);
-
-          figureEditor.adjust(figure);
-          figureEditor.enableAdding();
-
-          break;
-        }
         case "Enter": {
-          figureEditor.disableAdding();
-          editorState.select(figureEditor.target);
+          if (figureEditor.addingMode) {
+            figureEditor.disableAdding();
+            editorState.select(figureEditor.target);
+          }
 
           break;
         }
@@ -299,7 +431,7 @@ const Viewer = observer<{
       window.removeEventListener("keydown", downHandler);
       window.removeEventListener("keyup", upHandler);
     };
-  }, [baseTransform, pixelRatio, section]);
+  }, [pixelRatio]);
 
   return (
     <>

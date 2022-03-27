@@ -187,7 +187,11 @@ export class MkNode {
     this.parentSection = parentSection;
 
     for (const child of this.children) {
-      child.parentSection = this.parentSection;
+      child.moveToSection(parentSection);
+    }
+
+    if (!this.parentNode && parentSection) {
+      parentSection.nodes.push(this);
     }
 
     return this;

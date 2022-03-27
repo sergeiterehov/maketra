@@ -499,7 +499,7 @@ export const NodeProps = observer<{ node: MkNode }>(({ node }) => {
               </ElementsRow>
             );
           })}
-          {node.strokes[0] ? (
+          {node.strokes.length ? (
             <ElementsRow>
               <Select
                 className="stroke-style"

@@ -1,4 +1,4 @@
-import { makeObservable, observable } from "mobx";
+import { computed, makeObservable, observable } from "mobx";
 import { MkNode } from "./MkNode";
 
 export class Section {
@@ -9,5 +9,27 @@ export class Section {
 
   constructor() {
     makeObservable(this);
+  }
+
+  @computed get allNodes(): MkNode[] {
+    const acc: MkNode[] = [];
+
+    for (const rootNode of this.nodes) {
+      for (const node of rootNode.allNodes) {
+        acc.push(node);
+      }
+    }
+
+    return acc;
+  }
+
+  includes(searching: MkNode): boolean {
+    for (const rootNode of this.nodes) {
+      for (const node of rootNode.allNodes) {
+        if (node === searching) return true;
+      }
+    }
+
+    return false;
   }
 }

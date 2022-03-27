@@ -50,7 +50,7 @@ export const figureEditor = observable(
     newPointParent: undefined as FPoint | undefined,
     newPointOffset: { x: 0, y: 0 } as Vector2d,
 
-    has(node: MkNode): boolean {
+    includes(node: MkNode): boolean {
       return controlsGroup.allNodes.includes(node);
     },
 

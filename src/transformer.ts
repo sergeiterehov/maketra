@@ -1,4 +1,4 @@
-import { action, makeAutoObservable, observe } from "mobx";
+import { action, makeAutoObservable, observe, reaction } from "mobx";
 import { Figure } from "./models/Figure";
 import { ColorFill } from "./models/Fill";
 import { FPoint } from "./models/FPoint";
@@ -83,15 +83,6 @@ export const transformer = makeAutoObservable(
       if (lockAdjustment) return this;
 
       if (node) {
-        const { width, height } = node.size;
-        const at = node.absoluteTransform;
-        const { x, y } = at.decompose();
-  
-        this.width = width;
-        this.height = height;
-        this.x = x;
-        this.y = y;
-  
         this.target = node;
         this.relative = node.parentNode;
 
@@ -102,6 +93,8 @@ export const transformer = makeAutoObservable(
 
         this.group.visible = false;
       }
+
+      this.realign();
 
       return this;
     },
@@ -160,16 +153,33 @@ export const transformer = makeAutoObservable(
           break;
       }
 
+      if (this.target) this.applyTo(this.target);
+
       return this;
     },
 
-    has(node: MkNode) {
+    includes(node: MkNode) {
       return node === this.group || this.group.children.includes(node);
     },
 
     realign() {
-      const { x, y, width, height, group, relative, target } = transformer;
-      const { T, L, R, B, TL, BR, TR, BL, CH, CV } = transformer.nodes;
+      const { group, relative, target, nodes } = this;
+
+      if (!target) return;
+
+      const { T, L, R, B, TL, BR, TR, BL, CH, CV } = nodes;
+      const {
+        absoluteTransform,
+        size: { width, height },
+      } = target;
+
+      const at = absoluteTransform;
+      const { x, y } = at.decompose();
+
+      this.width = width;
+      this.height = height;
+      this.x = x;
+      this.y = y;
 
       // Перемещаем группу
 
@@ -268,4 +278,20 @@ export const transformer = makeAutoObservable(
   }
 );
 
-observe(transformer, () => transformer.realign());
+// Подписываемся на изменения свойств целевого объекта.
+reaction(
+  () => {
+    const { target } = transformer;
+
+    if (!target) return;
+
+    return [
+      target.size,
+      target.x,
+      target.y,
+      target.verticalConstraint,
+      target.horizontalConstraint,
+    ];
+  },
+  () => transformer.realign()
+);
