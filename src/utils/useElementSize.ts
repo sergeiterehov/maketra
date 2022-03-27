@@ -26,7 +26,7 @@ export function useElementSize<E extends Element>(
     return () => {
       observer.unobserve(element);
     };
-  }, [observer, ref]);
+  });
 
   return size;
 }

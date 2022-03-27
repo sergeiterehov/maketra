@@ -11,7 +11,11 @@ const CssVariablesStyle = createGlobalStyle`
     --radius-ui: 2px;
     --color-fg-disabled: #999;
     --color-background: #FFF;
+    --color-bg-toolbar: #222;
+    --color-bg-toolbar-hover: #000;
+    --color-fg-toolbar: #DDD;
     --color-focus: #08F;
+    --color-focus-fg: #FFF;
     --color-border: #0001;
     --color-icon: #BBB;
     --color-bg-drop-down: #000;

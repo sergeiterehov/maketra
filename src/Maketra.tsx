@@ -1,11 +1,7 @@
 import { observer } from "mobx-react-lite";
-import { FC } from "react";
-import {
-  Link,
-  Route,
-  Routes,
-  useParams,
-} from "react-router-dom";
+import { FC, useEffect } from "react";
+import { Link, Route, Routes, useParams } from "react-router-dom";
+import { editorState } from "./editorState";
 import { ProjectEditor } from "./ProjectEditor";
 import space from "./space";
 
@@ -42,16 +38,18 @@ const ProjectsView = observer(() => {
 
 const ProjectEditorView = observer(() => {
   const { projectId } = useParams();
+  const project = space.projects.find((p) => p.id === projectId);
 
-  return (
-    <ProjectEditor project={space.projects.find((p) => p.id === projectId)!} />
-  );
+  useEffect(() => {
+    editorState.select(project);
+  }, [project]);
+
+  return <ProjectEditor />;
 });
 
 function Maketra() {
   return (
     <>
-      <div>Hello, Maketra!</div>
       <Routes>
         <Route index element={<ProjectsView />} />
         <Route path="/:projectId" element={<ProjectEditorView />} />

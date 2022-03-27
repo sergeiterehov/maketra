@@ -3,13 +3,13 @@ import {
   FC,
   ReactNode,
   useCallback,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from "react";
 import {
   createSearchParams,
-  Link,
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
@@ -25,6 +25,7 @@ import { NodeTreeRow } from "./components/NodeTreeRow";
 import { SectionListRow } from "./components/SectionListRow";
 import { runInAction } from "mobx";
 import { ObjectsContainer } from "./ObjectsContainer";
+import { Toolbar } from "./Toolbar";
 
 const SectionsList: FC<{
   project: Project;
@@ -62,14 +63,16 @@ const SectionsList: FC<{
   });
 };
 
-const NodesTree: FC<{
-  section: Section;
-}> = ({ section }) => {
+const NodesTree: FC = observer(() => {
   const [expanded, setExpanded] = useState<string[]>(() => []);
 
   const visibleNodesRef = useRef<Record<string, MkNode>>({});
 
+  const { section } = editorState;
+
   useLayoutEffect(() => {
+    if (!section) return;
+
     setExpanded(section.nodes.map((n) => n.id));
   }, [section]);
 
@@ -129,20 +132,28 @@ const NodesTree: FC<{
     return views;
   }
 
-  return useObserver(() => {
-    visibleNodesRef.current = {};
+  visibleNodesRef.current = {};
 
-    return <div>{grubNodes(section.nodes)}</div>;
-  });
-};
+  if (!section) return null;
 
-export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
+  return <div>{grubNodes(section.nodes)}</div>;
+});
+
+export const ProjectEditor = observer(() => {
   const [searchParams] = useSearchParams();
 
   const viewerContainerRef = useRef<HTMLDivElement>(null);
   const viewerContainerSize = useElementSize(viewerContainerRef);
 
-  const section = project.sections.find((s) => s.id === searchParams.get("s"));
+  const { project } = editorState;
+
+  const section = project?.sections.find((s) => s.id === searchParams.get("s"));
+
+  useEffect(() => {
+    editorState.select(section);
+  }, [section]);
+
+  if (!project) return null;
 
   return (
     <div
@@ -153,25 +164,20 @@ export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
         flexDirection: "column",
       }}
     >
-      <div style={{ flexShrink: 0, borderBottom: "solid 1px #0002" }}>
-        <Link to="/">Назад</Link>
-        <input
-          value={project.name}
-          onChange={(e) => (project.name = e.currentTarget.value)}
-        />
-      </div>
+      <Toolbar />
       <div style={{ display: "flex", height: "100%" }}>
         <ObjectsContainer
           style={{
             width: 240,
             height: "100%",
             flexShrink: 0,
+            borderRight: "solid 1px var(--color-border)",
           }}
         >
-          <div style={{ borderBottom: "solid 1px #0002" }}>
+          <div style={{ borderBottom: "solid 1px var(--color-border)" }}>
             <SectionsList project={project} activeId={section?.id} />
           </div>
-          <div>{section ? <NodesTree section={section} /> : null}</div>
+          <div>{section ? <NodesTree /> : null}</div>
         </ObjectsContainer>
         <div
           ref={viewerContainerRef}
@@ -179,7 +185,6 @@ export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
         >
           {section && viewerContainerSize ? (
             <Viewer
-              section={section}
               width={viewerContainerSize.width}
               height={viewerContainerSize.height}
             />
@@ -193,6 +198,7 @@ export const ProjectEditor = observer<{ project: Project }>(({ project }) => {
             width: 240,
             height: "100%",
             flexShrink: 0,
+            borderLeft: "solid 1px var(--color-border)",
           }}
         >
           {editorState.selected ? (

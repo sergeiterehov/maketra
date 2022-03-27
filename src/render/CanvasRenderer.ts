@@ -92,7 +92,7 @@ export class CanvasRenderer {
     ctx.resetTransform();
 
     ctx.filter = "none";
-    ctx.fillStyle = "#DDD";
+    ctx.fillStyle = "#EEE";
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
     ctx.globalAlpha = 1;
     ctx.globalCompositeOperation = "source-over";

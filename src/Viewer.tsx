@@ -1,14 +1,12 @@
-import { autorun, observe, runInAction } from "mobx";
+import { observe, runInAction } from "mobx";
 import { observer } from "mobx-react-lite";
 import React, { useCallback, useMemo, useRef } from "react";
 import { useEffect } from "react";
 import { Figure } from "./models/Figure";
 import { MkNode } from "./models/MkNode";
-import { Section } from "./models/Section";
 import { figureEditor } from "./figureEditor";
 import { transformer } from "./transformer";
 import { Transform } from "./utils/Transform";
-import { FPoint } from "./models/FPoint";
 import { editorState } from "./editorState";
 import { CanvasRenderer } from "./render/CanvasRenderer";
 import { ColorFill } from "./models/Fill";
@@ -16,19 +14,14 @@ import { Color } from "./utils/Color";
 import { Stroke, StrokeStyle } from "./models/Stroke";
 
 const Viewer = observer<{
-  section: Section;
   width: number;
   height: number;
-}>(({ width, height, section }) => {
+}>(({ width, height }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const pixelRatio = devicePixelRatio;
 
-  const { baseTransform, selected } = editorState;
-
-  const allSectionsNodes: MkNode[] = section.nodes.flatMap(
-    (node) => node.allNodes
-  );
+  const { baseTransform, selected, section } = editorState;
 
   const hitCanvas = useMemo(() => document.createElement("canvas"), []);
 
@@ -51,6 +44,8 @@ const Viewer = observer<{
   }, [hitCanvas]);
 
   useEffect(() => {
+    if (!section) return;
+
     const renderer = rendererRef.current;
 
     if (!renderer) return;
@@ -247,6 +242,8 @@ const Viewer = observer<{
   );
 
   useEffect(() => {
+    if (!section) return;
+
     const downHandler = (e: KeyboardEvent) => {
       if (document.activeElement && document.activeElement !== document.body)
         return;
