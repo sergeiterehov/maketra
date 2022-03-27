@@ -14,15 +14,15 @@ const space = Object.assign(new Space(), {
   projects: [
     Object.assign(new Project(), {
       id: "dj09hfwoe",
-      name: "Test Project",
-      description: "This is project for local testing when developing",
+      name: "Тестовый проект",
+      description: "Это локальный проект для тестирования при разработки клиентской части приложения",
       sections: [
         Object.assign(new Section(), {
           id: "ld3h9",
-          name: "Style guides",
+          name: "Проба пера",
           nodes: [
             Object.assign(new Area(), {
-              name: "Main screen Area",
+              name: "Главный экран",
               x: 30,
               y: 30,
               width: 300,
@@ -62,7 +62,7 @@ cp[6].connect(cp[7]);
 space.projects[0].sections[0].nodes[0].add(
   new Area()
     .configure({
-      name: "Internal Area",
+      name: "Вложенная Область",
       x: 30,
       y: 30,
       width: 100,
@@ -76,7 +76,7 @@ space.projects[0].sections[0].nodes[0].add(
     .add(
       new Area()
         .configure({
-          name: "End Area",
+          name: "Область в Области",
           x: 30,
           y: 30,
           width: 40,
@@ -89,7 +89,7 @@ space.projects[0].sections[0].nodes[0].add(
         .add(
           new Figure()
             .configure({
-              name: "Star",
+              name: "Звезда",
               x: 5,
               y: 5,
               points: FPoint.start(15.422, 18.129)
@@ -110,12 +110,12 @@ space.projects[0].sections[0].nodes[0].add(
             .configure({ width: 50, height: 50 })
         ),
       new Text().configure({
-        name: "Label 1",
+        name: "Надпись 1",
         x: 20,
         y: 150,
         fontSize: 24,
         fontWeight: FontWeight.Regular,
-        text: "Hello, world!\nHow are you?",
+        text: "Привет Мир!\nКак ваши дела?",
         fills: [
           new LinearGradientFill({ x: 0, y: 48 }, { x: 0, y: 0 }, [
             { offset: 0, color: new Color({ hex: "#F00" }) },
@@ -126,7 +126,7 @@ space.projects[0].sections[0].nodes[0].add(
       })
     ),
   new Figure().configure({
-    name: "Curved Circle",
+    name: "Имитация круга",
     x: 140,
     y: 240,
     cornerRadius: 40,
@@ -139,7 +139,7 @@ space.projects[0].sections[0].nodes[0].add(
     strokes: [new Stroke(StrokeStyle.Solid, 4)],
   }),
   new Figure().configure({
-    name: "Complex Path",
+    name: "Странна фигура",
     x: 10,
     y: 10,
     cornerRadius: 8,

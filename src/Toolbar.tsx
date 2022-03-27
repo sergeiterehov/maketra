@@ -128,6 +128,7 @@ const ProjectName = styled(
     );
   })
 ).withConfig({ displayName: "ProjectName" })`
+  cursor: default;
   display: flex;
   align-items: center;
   justify-content: center;
