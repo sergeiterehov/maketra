@@ -16,7 +16,6 @@ import {
 import { PropsContainer } from "./PropsContainer";
 import { MkNode } from "./models/MkNode";
 import { Project } from "./models/Project";
-import { Section } from "./models/Section";
 import { NodeProps } from "./NodeProps";
 import { useElementSize } from "./utils/useElementSize";
 import Viewer from "./Viewer";

@@ -1,7 +1,9 @@
+import { runInAction } from "mobx";
 import { observer } from "mobx-react-lite";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { editorState } from "./editorState";
+import { editorState, ToolMode } from "./editorState";
 
 export const ToolbarButton = styled.div`
   width: 40px;
@@ -12,7 +14,164 @@ export const ToolbarButton = styled.div`
   justify-content: center;
 `;
 
-const ToolbarContainer = styled.div`
+const ToolPicker = observer<{ tool: ToolMode; className?: string }>(
+  ({ tool, className, children }) => {
+    const clickHandler = useCallback(() => {
+      editorState.changeTool(tool);
+    }, [tool]);
+
+    return (
+      <ToolbarButton
+        className={className}
+        data-active={editorState.tool === tool}
+        onClick={clickHandler}
+      >
+        {children}
+      </ToolbarButton>
+    );
+  }
+);
+
+const ProjectNameInput = styled.input`
+  background-color: transparent;
+  border: 0;
+  padding: 0 6px;
+  color: inherit;
+  font-size: inherit;
+  text-align: center;
+`;
+
+const ProjectName = styled(
+  observer<{ className?: string }>(({ className }) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const [editing, setEditing] = useState(false);
+    const [newName, setNewName] = useState("");
+
+    const { project } = editorState;
+
+    const nameClickHandler = useCallback(() => {
+      if (project) {
+        setNewName(project.name);
+      }
+
+      setEditing(true);
+    }, [project]);
+
+    const nameChangeHandler: React.ChangeEventHandler<HTMLInputElement> =
+      useCallback((e) => {
+        setNewName(e.currentTarget.value);
+      }, []);
+
+    const nameBlurHandler: React.FocusEventHandler<HTMLInputElement> =
+      useCallback(
+        (e) => {
+          runInAction(() => {
+            if (project) {
+              project.name = e.currentTarget.value;
+            }
+          });
+
+          setEditing(false);
+        },
+        [project]
+      );
+
+    const nameKeyDownHandler: React.KeyboardEventHandler<HTMLInputElement> =
+      useCallback((e) => {
+        switch (e.code) {
+          case "Enter":
+            runInAction(() => {
+              if (project) {
+                project.name = e.currentTarget.value;
+              }
+            });
+
+            setEditing(false);
+            break;
+          case "Escape":
+            setEditing(false);
+            break;
+        }
+      }, [project]);
+
+    useLayoutEffect(() => {
+      if (!editing) return;
+
+      if (!inputRef.current) return;
+
+      inputRef.current.focus();
+      inputRef.current.select();
+    }, [editing]);
+
+    if (!project) return null;
+
+    return (
+      <div className={className}>
+        {editing ? (
+          <ProjectNameInput
+            ref={inputRef}
+            value={newName}
+            onChange={nameChangeHandler}
+            onKeyDown={nameKeyDownHandler}
+            onBlur={nameBlurHandler}
+          />
+        ) : (
+          <>
+            <span onClick={nameClickHandler}>{project.name}</span>
+            <Link className="project-name-back" to="/">
+              &uarr;
+            </Link>
+          </>
+        )}
+      </div>
+    );
+  })
+).withConfig({ displayName: "ProjectName" })`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .project-name-back {
+    color: inherit;
+    text-decoration: none;
+    margin-left: 8px;
+  }
+`;
+
+export const Toolbar = styled(
+  observer<{ className?: string }>(({ className }) => {
+    return (
+      <div className={className}>
+        <div className="toolbar-section toolbar-section-logo">
+          <ToolbarButton>
+            <span style={{ fontSize: 16 }}>М</span>
+          </ToolbarButton>
+        </div>
+        <div className="toolbar-section toolbar-section-left">
+          <ToolPicker tool={ToolMode.Transformer}>
+            <span style={{ fontSize: 20 }}>&#9651;</span>
+          </ToolPicker>
+          <ToolPicker tool={ToolMode.AreaAdder}>
+            <span style={{ fontSize: 20 }}>&#10693;</span>
+          </ToolPicker>
+          <ToolPicker tool={ToolMode.PointEditor}>
+            <span style={{ fontSize: 24 }}>&#9191;</span>
+          </ToolPicker>
+          <ToolPicker tool={ToolMode.TextAdder}>
+            <span style={{ fontSize: 16 }}>Т</span>
+          </ToolPicker>
+        </div>
+        <div className="toolbar-section toolbar-section-center">
+          <ProjectName />
+        </div>
+        <div className="toolbar-section toolbar-section-right">
+          <div className="login-button">Войти</div>
+        </div>
+      </div>
+    );
+  })
+).withConfig({ displayName: "Toolbar" })`
   display: flex;
   background-color: var(--color-bg-toolbar);
   color: var(--color-fg-toolbar);
@@ -24,11 +183,6 @@ const ToolbarContainer = styled.div`
   .toolbar-section {
     display: flex;
     align-items: center;
-  }
-
-  .toolbar-project-selector {
-    color: inherit;
-    text-decoration: none;
   }
 
   .toolbar-section-left {
@@ -53,49 +207,13 @@ const ToolbarContainer = styled.div`
       background-color: var(--color-bg-toolbar-hover);
     }
 
-    &[data-active] {
+    &[data-active="true"] {
       background-color: var(--color-focus);
       color: var(--color-focus-fg);
     }
   }
+
+  .login-button {
+    padding: 0 13px;
+  }
 `;
-
-export const Toolbar = styled(
-  observer(() => {
-    const { project } = editorState;
-
-    return (
-      <ToolbarContainer>
-        <div className="toolbar-section toolbar-section-logo">
-          <ToolbarButton>
-            <span style={{ fontSize: 16 }}>М</span>
-          </ToolbarButton>
-        </div>
-        <div className="toolbar-section toolbar-section-left">
-          <ToolbarButton data-active={""}>
-            <span style={{ fontSize: 20 }}>&#9651;</span>
-          </ToolbarButton>
-          <ToolbarButton>
-            <span style={{ fontSize: 20 }}>&#10693;</span>
-          </ToolbarButton>
-          <ToolbarButton>
-            <span style={{ fontSize: 24 }}>&#9191;</span>
-          </ToolbarButton>
-          <ToolbarButton>
-            <span style={{ fontSize: 16 }}>Т</span>
-          </ToolbarButton>
-        </div>
-        <div className="toolbar-section toolbar-section-center">
-          {project ? (
-            <Link className="toolbar-project-selector" to="/">
-              {project.name}
-            </Link>
-          ) : (
-            "Maketra"
-          )}
-        </div>
-        <div className="toolbar-section toolbar-section-right">Войти</div>
-      </ToolbarContainer>
-    );
-  })
-).withConfig({ displayName: "Toolbar" })``;
