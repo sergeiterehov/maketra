@@ -1,4 +1,4 @@
-import { observer, useObserver } from "mobx-react-lite";
+import { observer, Observer } from "mobx-react-lite";
 import {
   FC,
   ReactNode,
@@ -44,22 +44,26 @@ const SectionsList: FC<{
     [navigate, searchParams]
   );
 
-  return useObserver(() => {
-    return (
-      <div>
-        {project.sections.map((section, i) => {
-          return (
-            <SectionListRow
-              key={i}
-              selected={activeId === section.id}
-              section={section}
-              onSectionClick={sectionClickHandler}
-            />
-          );
-        })}
-      </div>
-    );
-  });
+  return (
+    <Observer>
+      {() => {
+        return (
+          <div>
+            {project.sections.map((section, i) => {
+              return (
+                <SectionListRow
+                  key={i}
+                  selected={activeId === section.id}
+                  section={section}
+                  onSectionClick={sectionClickHandler}
+                />
+              );
+            })}
+          </div>
+        );
+      }}
+    </Observer>
+  );
 };
 
 const NodesTree: FC = observer(() => {
@@ -67,13 +71,34 @@ const NodesTree: FC = observer(() => {
 
   const visibleNodesRef = useRef<Record<string, MkNode>>({});
 
-  const { section } = editorState;
+  const { section, selected } = editorState;
 
   useLayoutEffect(() => {
     if (!section) return;
 
     setExpanded(section.nodes.map((n) => n.id));
   }, [section]);
+
+  useEffect(() => {
+    setExpanded((prev) => {
+      const adding: string[] = [];
+      let lookup: MkNode | undefined = selected;
+
+      while (lookup) {
+        if (!prev.includes(lookup.id)) {
+          adding.push(lookup.id);
+        }
+
+        lookup = lookup.parentNode;
+      }
+
+      if (adding.length) {
+        return [...prev, ...adding];
+      }
+
+      return prev;
+    });
+  }, [selected]);
 
   const expanderClickHandler = useCallback((id: string) => {
     setExpanded((prev) => {
