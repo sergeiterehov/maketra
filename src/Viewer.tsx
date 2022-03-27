@@ -13,6 +13,7 @@ import { Stroke, StrokeStyle } from "./models/Stroke";
 import { ColorFill } from "./models/Fill";
 import { Color } from "./utils/Color";
 import { Area } from "./models/Area";
+import { Text } from "./models/Text";
 
 function findNodeForCreating(node: MkNode) {
   let lookup: MkNode | undefined = node;
@@ -183,6 +184,37 @@ const Viewer = observer<{
             // Это элементы трансформера, сохраняем выделение.
             mouseRef.current.transformerControl = node;
           }
+
+          break;
+        }
+        case ToolMode.TextAdder: {
+          const parent = selected && findNodeForCreating(selected);
+          const transform = baseTransform.copy();
+
+          if (parent) {
+            transform.multiply(parent.absoluteTransform);
+          }
+
+          const location = transform
+            .invert()
+            .scale(pixelRatio, pixelRatio)
+            .point({ x, y });
+
+          const newText = new Text();
+
+          newText.name = "Надпись";
+          newText.text = "Поменяй меня";
+          newText.fills.push(new ColorFill(new Color({ hex: "#000" })));
+          newText.configure({ x: location.x, y: location.y });
+
+          if (parent) {
+            newText.moveTo(parent);
+          } else {
+            newText.moveToSection(section);
+          }
+
+          editorState.select(newText);
+          editorState.changeTool(ToolMode.Default);
 
           break;
         }
