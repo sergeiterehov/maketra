@@ -41,23 +41,26 @@ function getConstraintProps(): Partial<Figure> {
   };
 }
 
-const transformerGroup = Object.assign(new Group(), {
-  name: "Transformer",
-}).add(
-  // Грани
-  Object.assign(new Figure(), getBorderProps(), { name: "T" }),
-  Object.assign(new Figure(), getBorderProps(), { name: "B" }),
-  Object.assign(new Figure(), getBorderProps(), { name: "L" }),
-  Object.assign(new Figure(), getBorderProps(), { name: "R" }),
-  // Углы
-  Object.assign(new Figure(), getCornerProps(), { name: "TL" }),
-  Object.assign(new Figure(), getCornerProps(), { name: "BR" }),
-  Object.assign(new Figure(), getCornerProps(), { name: "BL" }),
-  Object.assign(new Figure(), getCornerProps(), { name: "TR" }),
-  // Ограничения
-  Object.assign(new Figure(), getConstraintProps(), { name: "CV" }),
-  Object.assign(new Figure(), getConstraintProps(), { name: "CH" })
-);
+const transformerGroup = new Group()
+  .configure({
+    name: "Transformer",
+    visible: false,
+  })
+  .add(
+    // Грани
+    Object.assign(new Figure(), getBorderProps(), { name: "T" }),
+    Object.assign(new Figure(), getBorderProps(), { name: "B" }),
+    Object.assign(new Figure(), getBorderProps(), { name: "L" }),
+    Object.assign(new Figure(), getBorderProps(), { name: "R" }),
+    // Углы
+    Object.assign(new Figure(), getCornerProps(), { name: "TL" }),
+    Object.assign(new Figure(), getCornerProps(), { name: "BR" }),
+    Object.assign(new Figure(), getCornerProps(), { name: "BL" }),
+    Object.assign(new Figure(), getCornerProps(), { name: "TR" }),
+    // Ограничения
+    Object.assign(new Figure(), getConstraintProps(), { name: "CV" }),
+    Object.assign(new Figure(), getConstraintProps(), { name: "CH" })
+  );
 
 let lockAdjustment = false;
 
