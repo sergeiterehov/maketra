@@ -54,10 +54,10 @@ export class Figure extends Primitive {
 
         for (const link of point.links) {
           if (!changedLinks.includes(link)) {
-            link.aControl.x += kx * link.aControl.x;
-            link.aControl.y += ky * link.aControl.y;
-            link.bControl.x += kx * link.bControl.x;
-            link.bControl.y += ky * link.bControl.y;
+            link.aControl.x += kx * link.aControl.x / 2;
+            link.aControl.y += ky * link.aControl.y / 2;
+            link.bControl.x += kx * link.bControl.x / 2;
+            link.bControl.y += ky * link.bControl.y / 2;
           }
         }
       }

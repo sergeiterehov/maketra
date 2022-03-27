@@ -12,7 +12,7 @@ const linesColor = new Color({ hex: "#0FF" });
 const controlsLinesColor = new Color({ hex: "#0AF" });
 const pointsColor = new Color({ hex: "#DEF" });
 const pointsBorderColor = new Color({ hex: "#0AF" });
-const controlsBorderColor = new Color({ hex: "#0FF" });
+const controlsBorderColor = new Color({ hex: "#A0F" });
 
 const newPointLine = new Figure().configure({
   interactive: false,
@@ -41,6 +41,10 @@ export const figureEditor = observable(
     controlsLines: new Map<Figure, { link: FLink; point: FPoint; control: FControl }>(),
 
     target: undefined as Figure | undefined,
+
+    /** Находимся в режиме добавления новой точки. */
+    addingMode: false,
+    controlsMode: false,
 
     /** Точка после которой будет выполняться дорисовка. */
     newPointParent: undefined as FPoint | undefined,
@@ -244,6 +248,7 @@ export const figureEditor = observable(
         if (!p) continue;
 
         t.configure({
+          interactive: !this.controlsMode,
           x: x + p.x - 3,
           y: y + p.y - 3,
         });
@@ -305,10 +310,12 @@ export const figureEditor = observable(
       this.realign();
     },
 
-    showNewPoint() {
+    enableAdding() {
       const { target } = this;
 
       if (!target) return;
+
+      this.addingMode = true;
 
       const { points } = target;
 
@@ -322,7 +329,8 @@ export const figureEditor = observable(
       this.realign();
     },
 
-    hideNewPoint() {
+    disableAdding() {
+      this.addingMode = false;
       this.newPointParent = undefined;
 
       this.realign();
@@ -336,8 +344,6 @@ export const figureEditor = observable(
     },
 
     createPoint(toPoint?: FPoint) {
-      if (!this.newPointParent) return;
-
       if (!this.target) return;
 
       const { x, y } = this.newPointOffset;
@@ -345,18 +351,35 @@ export const figureEditor = observable(
       this.newPointOffset.x = 0;
       this.newPointOffset.y = 0;
 
-      if (toPoint) {
-        this.newPointParent.connect(toPoint);
-        this.newPointParent = undefined;
+      if (this.newPointParent) {
+        if (toPoint) {
+          this.newPointParent.connect(toPoint);
+          this.newPointParent = undefined;
+        } else {
+          const next = this.newPointParent.line(x, y);
+  
+          this.target.points = next.allPoints;
+          this.newPointParent = next;
+        }
       } else {
-        const next = this.newPointParent.line(x, y);
+        const next = new FPoint(x, y);
 
-        this.target.points = next.allPoints;
+        this.target.points.push(next);
         this.newPointParent = next;
       }
 
+
       this.target.adjustPointsAndSize();
       this.adjust(this.target);
+    },
+
+    enableControlsMode() {
+      this.controlsMode = true;
+      this.realign();
+    },
+    disableControlsMode() {
+      this.controlsMode = false;
+      this.realign();
     },
   },
   {
@@ -365,7 +388,10 @@ export const figureEditor = observable(
     realign: action,
     moveNewPoint: action,
     createPoint: action,
-    showNewPoint: action,
+    enableAdding: action,
+    disableAdding: action,
+    enableControlsMode: action,
+    disableControlsMode: action,
   }
 );
 

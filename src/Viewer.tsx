@@ -77,14 +77,10 @@ const Viewer = observer<{
   }, [section]);
 
   useEffect(() => {
-    if (!selected) {
-      figureEditor.adjust();
-
-      return;
-    }
-
     transformer.adjust(selected);
     figureEditor.adjust(selected instanceof Figure ? selected : undefined);
+
+    if (!selected) return;
 
     const stop = observe(selected, () => {
       figureEditor.realign();
@@ -162,20 +158,23 @@ const Viewer = observer<{
       if (node && transformer.has(node)) {
         mouseRef.current.transformerControl = node;
         mouseRef.current.figureEditorControl = undefined;
-      } else if (figureEditor.newPointParent) {
+      } else if (figureEditor.addingMode) {
         // Находимся в режиме добавления точки
-        const point = figureEditor.points.get(node as Figure);
+        const clickedPoint = figureEditor.points.get(node as Figure);
 
-        if (point) {
-          figureEditor.createPoint(point);
+        if (clickedPoint) {
+          figureEditor.createPoint(clickedPoint);
+          figureEditor.disableAdding();
           editorState.select(figureEditor.target);
         } else {
           figureEditor.createPoint();
         }
       } else if (node && figureEditor.has(node)) {
+        // Редактируем фигуру
         mouseRef.current.figureEditorControl = node;
         mouseRef.current.transformerControl = undefined;
       } else {
+        // Выделяем объект
         mouseRef.current.transformerControl = undefined;
         mouseRef.current.figureEditorControl = undefined;
         editorState.select(node);
@@ -213,17 +212,21 @@ const Viewer = observer<{
             selected.y += dy;
           });
         }
-      } else if (figureEditor.newPointParent && figureEditor.target) {
+      } else if (figureEditor.addingMode && figureEditor.target) {
+        const fromParentTransform = new Transform();
+
+        if (figureEditor.newPointParent) {
+          fromParentTransform.translate(
+            figureEditor.newPointParent.x,
+            figureEditor.newPointParent.y
+          );
+        }
+
         figureEditor.moveNewPoint(
           baseTransform
             .copy()
             .multiply(figureEditor.target.absoluteTransform)
-            .multiply(
-              new Transform().translate(
-                figureEditor.newPointParent.x,
-                figureEditor.newPointParent.y
-              )
-            )
+            .multiply(fromParentTransform)
             .invert()
             .scale(pixelRatio, pixelRatio)
             .point({ x, y })
@@ -244,11 +247,9 @@ const Viewer = observer<{
   );
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
+    const downHandler = (e: KeyboardEvent) => {
       if (document.activeElement && document.activeElement !== document.body)
         return;
-
-      const { x, y } = mouseRef.current;
 
       switch (e.code) {
         case "KeyF": {
@@ -258,37 +259,48 @@ const Viewer = observer<{
           figure.fills.push(new ColorFill(new Color({ hex: "#AAA" })));
           figure.strokes.push(new Stroke(StrokeStyle.Solid, 5));
 
-          const vec2d = baseTransform
-            .copy()
-            .multiply(section.nodes[0].absoluteTransform)
-            .invert()
-            .scale(pixelRatio, pixelRatio)
-            .point({ x, y });
-
-          figure.points = [new FPoint(vec2d.x, vec2d.y)];
-
           section.nodes[0].add(figure);
 
           editorState.select(undefined);
 
           figureEditor.adjust(figure);
-          figureEditor.showNewPoint();
+          figureEditor.enableAdding();
 
           break;
         }
         case "Enter": {
-          figureEditor.hideNewPoint();
+          figureEditor.disableAdding();
           editorState.select(figureEditor.target);
 
+          break;
+        }
+        case "MetaLeft": {
+          e.preventDefault();
+          e.stopPropagation();
+          figureEditor.enableControlsMode();
           break;
         }
       }
     };
 
-    window.addEventListener("keydown", handler);
+    const upHandler = (e: KeyboardEvent) => {
+      if (document.activeElement && document.activeElement !== document.body)
+        return;
+
+      switch (e.code) {
+        case "MetaLeft": {
+          figureEditor.disableControlsMode();
+          break;
+        }
+      }
+    };
+
+    window.addEventListener("keydown", downHandler);
+    window.addEventListener("keyup", upHandler);
 
     return () => {
-      window.removeEventListener("keydown", handler);
+      window.removeEventListener("keydown", downHandler);
+      window.removeEventListener("keyup", upHandler);
     };
   }, [baseTransform, pixelRatio, section]);
 

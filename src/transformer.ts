@@ -79,20 +79,29 @@ export const transformer = makeAutoObservable(
       Figure
     >,
 
-    adjust(node: MkNode) {
+    adjust(node?: MkNode) {
       if (lockAdjustment) return this;
 
-      const { width, height } = node.size;
-      const at = node.absoluteTransform;
-      const { x, y } = at.decompose();
+      if (node) {
+        const { width, height } = node.size;
+        const at = node.absoluteTransform;
+        const { x, y } = at.decompose();
+  
+        this.width = width;
+        this.height = height;
+        this.x = x;
+        this.y = y;
+  
+        this.target = node;
+        this.relative = node.parentNode;
 
-      this.width = width;
-      this.height = height;
-      this.x = x;
-      this.y = y;
+        this.group.visible = true;
+      } else {
+        this.target = undefined;
+        this.relative = undefined;
 
-      this.target = node;
-      this.relative = node.parentNode;
+        this.group.visible = false;
+      }
 
       return this;
     },
