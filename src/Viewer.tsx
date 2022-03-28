@@ -441,6 +441,12 @@ export const Viewer = observer<{
           figureEditor.enableControlsMode();
           break;
         }
+        case "ShiftLeft": {
+          e.preventDefault();
+          e.stopPropagation();
+          figureEditor.enableFreeControlsMode();
+          break;
+        }
       }
     };
 
@@ -451,6 +457,10 @@ export const Viewer = observer<{
       switch (e.code) {
         case "MetaLeft": {
           figureEditor.disableControlsMode();
+          break;
+        }
+        case "ShiftLeft": {
+          figureEditor.disableFreeControlsMode();
           break;
         }
       }

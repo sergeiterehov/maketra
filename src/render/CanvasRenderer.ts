@@ -146,7 +146,7 @@ export class CanvasRenderer {
       ctx.fillStyle = "#000";
       ctx.textBaseline = "bottom";
       ctx.textAlign = "left";
-      ctx.font = "14px monospace";
+      ctx.font = "14px sans-serif";
       ctx.fillText(name, 0, -8);
 
       hit?.fillRect(0, -8 - 14, ctx.measureText(name).width, 14);

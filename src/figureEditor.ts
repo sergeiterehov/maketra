@@ -44,7 +44,10 @@ export const figureEditor = observable(
 
     /** Находимся в режиме добавления новой точки. */
     addingMode: false,
+    /** Управляем только контрольными точками. */
     controlsMode: false,
+    /** Свободное управление контрольными точками. */
+    controlsFreeMode: false,
 
     /** Точка после которой будет выполняться дорисовка. */
     newPointParent: undefined as FPoint | undefined,
@@ -287,7 +290,7 @@ export const figureEditor = observable(
           const { control, link, point } = controlMeta;
 
           // Проверяем возможность синхронного перемещения противоположной точки.
-          if (point.links.length === 2) {
+          if (!this.controlsFreeMode && point.links.length === 2) {
             const oppositeLink =
               point.links[0] === link ? point.links[1] : point.links[0];
             const opposite = oppositeLink.getControlFor(point);
@@ -381,6 +384,13 @@ export const figureEditor = observable(
       this.controlsMode = false;
       this.realign();
     },
+
+    enableFreeControlsMode() {
+      this.controlsFreeMode = true;
+    },
+    disableFreeControlsMode() {
+      this.controlsFreeMode = false;
+    },
   },
   {
     adjust: action,
@@ -392,6 +402,8 @@ export const figureEditor = observable(
     disableAdding: action,
     enableControlsMode: action,
     disableControlsMode: action,
+    enableFreeControlsMode: action,
+    disableFreeControlsMode: action,
   }
 );
 
