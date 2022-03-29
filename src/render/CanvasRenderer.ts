@@ -2,7 +2,7 @@ import { Area } from "../models/Area";
 import { Figure } from "../models/Figure";
 import { BlendMode, ColorFill, Fill, LinearGradientFill } from "../models/Fill";
 import { BlurFilter, DropShadowFilter, Filter } from "../models/Filter";
-import { FLink, FPoint } from "../models/FPoint";
+import { FLink } from "../models/FPoint";
 import { MkNode } from "../models/MkNode";
 import { Primitive } from "../models/Primitive";
 import { StrokeStyle } from "../models/Stroke";
@@ -17,6 +17,9 @@ export class CanvasRenderer {
   disableFilters: boolean = true;
   disableBlendMode: boolean = false;
   disableOpacity: boolean = false;
+
+  /** Позволяет указать точное количество сегментов каждой кривой. */
+  curveDivisions?: number = 10;
 
   transform: Transform;
 
@@ -201,7 +204,7 @@ export class CanvasRenderer {
   }
 
   protected renderFigure(figure: Figure): void {
-    const { ctx, hit } = this;
+    const { ctx, hit, curveDivisions } = this;
     const { size, points } = figure;
 
     // Находим все замкнутые области
@@ -209,7 +212,7 @@ export class CanvasRenderer {
     // TODO: путь должен содержать только вершины (посчитать кривые).
     // TODO: кривые должны быть посчитаны еще до рисования линий или заливок.
 
-    const fillPath = FigureHelper.outline(points);
+    const fillPath = FigureHelper.outline(points, curveDivisions);
 
     if (fillPath) {
       const path = new Path2D();
@@ -247,29 +250,22 @@ export class CanvasRenderer {
     }
 
     for (const link of links) {
-      const { a, b, aControl, bControl } = link;
+      const linkPath = FigureHelper.interpolateLink(link, curveDivisions);
 
       const path = new Path2D();
 
-      path.moveTo(a.x, a.y);
-      path.bezierCurveTo(
-        a.x + aControl.x,
-        a.y + aControl.y,
-        b.x + bControl.x,
-        b.y + bControl.y,
-        b.x,
-        b.y
-      );
+      path.moveTo(linkPath[0].x, linkPath[0].y);
+
+      for (const point of linkPath) {
+        path.lineTo(point.x, point.y);
+      }
 
       this.applyStrokes(figure, () => ctx.stroke(path));
 
       if (hit) {
         hit.lineWidth = 8;
 
-        hit.beginPath();
-        hit.moveTo(a.x, a.y);
-        hit.lineTo(b.x, b.y);
-        hit.stroke();
+        hit.stroke(path);
       }
     }
 

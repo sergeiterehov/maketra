@@ -4,6 +4,7 @@ import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { editorState, ToolMode } from "./editorState";
+import { LoginButton } from "./LoginButton";
 
 export const ToolbarButton = styled.div`
   width: 40px;
@@ -78,22 +79,25 @@ const ProjectName = styled(
       );
 
     const nameKeyDownHandler: React.KeyboardEventHandler<HTMLInputElement> =
-      useCallback((e) => {
-        switch (e.code) {
-          case "Enter":
-            runInAction(() => {
-              if (project) {
-                project.name = e.currentTarget.value;
-              }
-            });
+      useCallback(
+        (e) => {
+          switch (e.code) {
+            case "Enter":
+              runInAction(() => {
+                if (project) {
+                  project.name = e.currentTarget.value;
+                }
+              });
 
-            setEditing(false);
-            break;
-          case "Escape":
-            setEditing(false);
-            break;
-        }
-      }, [project]);
+              setEditing(false);
+              break;
+            case "Escape":
+              setEditing(false);
+              break;
+          }
+        },
+        [project]
+      );
 
     useLayoutEffect(() => {
       if (!editing) return;
@@ -167,7 +171,7 @@ export const Toolbar = styled(
           <ProjectName />
         </div>
         <div className="toolbar-section toolbar-section-right">
-          <div className="login-button">Войти</div>
+          <LoginButton />
         </div>
       </div>
     );
@@ -214,7 +218,7 @@ export const Toolbar = styled(
     }
   }
 
-  .login-button {
+  ${LoginButton} {
     padding: 0 13px;
   }
 `;

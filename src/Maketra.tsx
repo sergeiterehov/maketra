@@ -1,40 +1,64 @@
 import { observer } from "mobx-react-lite";
-import { FC, useEffect } from "react";
+import { useEffect } from "react";
 import { Link, Route, Routes, useParams } from "react-router-dom";
+import styled from "styled-components";
 import { editorState } from "./editorState";
 import { ProjectEditor } from "./ProjectEditor";
 import space from "./space";
 
-const ProjectPreview: FC<{
-  id: string;
-  name: string;
-  description: string;
-}> = ({ id, name, description }) => {
-  return (
-    <Link to={`/${id}`}>
-      <div>
-        <h3>{name}</h3>
-        <p>{description}</p>
-      </div>
-    </Link>
-  );
-};
+const ProjectPreview = styled(
+  observer<{
+    id: string;
+    name: string;
+    description: string;
+    className?: string;
+  }>(({ className, id, name, description }) => {
+    return (
+      <Link className={className} to={`/${id}`}>
+        <div className="project-preview-name">{name}</div>
+        <div className="project-preview-description">{description}</div>
+      </Link>
+    );
+  })
+)`
+  display: block;
+  color: inherit;
+  text-decoration: none;
 
-const ProjectsView = observer(() => {
-  return (
-    <div>
-      This is Projects:
-      {space.projects.map((project) => (
-        <ProjectPreview
-          key={project.id}
-          id={project.id}
-          name={project.name}
-          description={project.description}
-        />
-      ))}
-    </div>
-  );
-});
+  .project-preview-name {
+    font-weight: 500;
+  }
+
+  .project-preview-description {
+    color: var(--color-fg-disabled);
+  }
+`;
+
+const ProjectsView = styled(
+  observer<{ className?: string }>(({ className }) => {
+    return (
+      <div className={className}>
+        <h1>Макетра</h1>
+        <h2>Проекты</h2>
+        {!space.projects.length ? (
+          <div>У вас еще нет ни одного проекта</div>
+        ) : null}
+        <div>
+          {space.projects.map((project) => (
+            <ProjectPreview
+              key={project.id}
+              id={project.id}
+              name={project.name}
+              description={project.description}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  })
+)`
+  padding: 13px;
+`;
 
 const ProjectEditorView = observer(() => {
   const { projectId } = useParams();
