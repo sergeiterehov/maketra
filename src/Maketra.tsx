@@ -2,6 +2,8 @@ import { observer } from "mobx-react-lite";
 import { useEffect } from "react";
 import { Link, Route, Routes, useParams } from "react-router-dom";
 import styled from "styled-components";
+import { API } from "./api";
+import { appState, UserGender } from "./appState";
 import { editorState } from "./editorState";
 import { ProjectEditor } from "./ProjectEditor";
 import space from "./space";
@@ -72,6 +74,23 @@ const ProjectEditorView = observer(() => {
 });
 
 function Maketra() {
+  useEffect(() => {
+    API.User.get()
+      .then((user) => {
+        appState.setUser({
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          sex: user.sex as UserGender,
+          yandexAvatarId: user.yandexAvatarId,
+          yandexId: user.yandexAvatarId,
+        });
+      })
+      .catch(() => {
+        appState.setUser(undefined);
+      });
+  }, []);
+
   return (
     <>
       <Routes>

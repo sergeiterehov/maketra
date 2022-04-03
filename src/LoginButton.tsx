@@ -2,7 +2,8 @@ import { runInAction } from "mobx";
 import { observer } from "mobx-react-lite";
 import { useCallback } from "react";
 import styled from "styled-components";
-import { appState, LoginStatus } from "./appState";
+import { API } from "./api";
+import { appState, LoginStatus, UserGender } from "./appState";
 
 export const LoginButton = styled(
   observer<{ className?: string }>(({ className }) => {
@@ -32,10 +33,20 @@ export const LoginButton = styled(
           popup.onclose = null;
           popup.close();
 
-          console.log(token);
-          // TODO: далее пройти авторизацию на сервере
-
-          runInAction(() => (appState.loginStatus = LoginStatus.Authorized));
+          API.Auth.yandex(token)
+            .then((user) => {
+              appState.setUser({
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                sex: user.sex as UserGender,
+                yandexAvatarId: user.yandexAvatarId,
+                yandexId: user.yandexAvatarId,
+              });
+            })
+            .catch(() => {
+              appState.setUser(undefined);
+            });
         }, 1000);
 
         popup.onclose = () => {
