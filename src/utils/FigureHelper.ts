@@ -6,6 +6,25 @@ export interface CurvePoints {
   points: Vector2d[];
 }
 
+/**
+ * TODO: Переделать кривые
+ * 
+ * Curve - это аналог FLink. Но ее не пересекают другие кривые.
+ * 
+ * Нужно научиться разбивать кривые безье на сегменты.
+ * Для этого используется бинарный поиск через пересечение ПООП.
+ * А далее необходимо найти дистанцию до точки разделения.
+ * https://stackoverflow.com/questions/18655135/divide-bezier-curve-into-two-equal-halves
+ * 
+ * Curve {a: Vertex, b: Vertex, ac: Vec2D, ab: Vec2D}
+ * 
+ * Vertex - это аналог Point. Сравнивать нужно именно вершины, а не координаты.
+ * 
+ * CurvePath - это замкнутая или нет последовательность кривых.
+ * Может быть использована для выделения самостоятельных областей в фигуре.
+ * Их поиск осуществляется только левыми или правыми поворотами от опорной точки.
+ */
+
 export class FigureHelper {
   static interpolateCurve(
     v0: Vector2d,
@@ -184,7 +203,7 @@ export class FigureHelper {
     return curves;
   }
 
-  static outlineCurves(curves: CurvePoints): Vector2d[] {
+  static outlineCurves(curves: CurvePoints[]): Vector2d[] {
     const outline: Vector2d[] = [];
 
     // TODO:

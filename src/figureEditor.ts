@@ -360,7 +360,7 @@ export const figureEditor = observable(
           this.newPointParent = undefined;
         } else {
           const next = this.newPointParent.line(x, y);
-  
+
           this.target.points = next.allPoints;
           this.newPointParent = next;
         }
@@ -370,7 +370,6 @@ export const figureEditor = observable(
         this.target.points.push(next);
         this.newPointParent = next;
       }
-
 
       this.target.adjustPointsAndSize();
       this.adjust(this.target);
