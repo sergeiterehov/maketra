@@ -16,7 +16,7 @@ class Auth {
     const res = await fetch(`${API.host}/auth/yandex`, {
       method: "POST",
       cache: "no-cache",
-      credentials: "same-origin",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -43,7 +43,7 @@ class User {
     const res = await fetch(`${API.host}/user`, {
       method: "GET",
       cache: "no-cache",
-      credentials: "same-origin",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },

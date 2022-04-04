@@ -71,7 +71,9 @@ export const LoginButton = styled(
           </a>
         )}
         {loginStatus === LoginStatus.InProgress && <span>Входим...</span>}
-        {loginStatus === LoginStatus.Authorized && <span>Выйти</span>}
+        {appState.user && (
+          <span>{`${appState.user.lastName} ${appState.user.firstName}`}</span>
+        )}
       </div>
     );
   })
