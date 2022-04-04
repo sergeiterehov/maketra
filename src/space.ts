@@ -59,7 +59,7 @@ cp[6].connect(cp[7]);
 // cp[7].getLinkWith(cp[3])!.aControl.x = 20;
 // cp[7].getLinkWith(cp[3])!.aControl.y = -40;
 
-space.projects[0].sections[0].nodes[0].add(
+space.projects[0].sections[0].nodes[0].appendChild(
   new Area()
     .configure({
       name: "Вложенная Область",
@@ -73,7 +73,7 @@ space.projects[0].sections[0].nodes[0].add(
       ],
       filters: [new DropShadowFilter()],
     })
-    .add(
+    .appendChild(
       new Area()
         .configure({
           name: "Область в Области",
@@ -86,7 +86,7 @@ space.projects[0].sections[0].nodes[0].add(
           opacity: 0.3,
           filters: [new BlurFilter()],
         })
-        .add(
+        .appendChild(
           new Figure()
             .configure({
               name: "Звезда",

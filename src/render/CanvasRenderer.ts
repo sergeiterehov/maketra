@@ -1,4 +1,9 @@
 import { Area } from "../models/Area";
+import {
+  FigureEditor,
+  FigureEditorControl,
+  FigureEditorPoint,
+} from "../models/controllers/FigureEditor";
 import { Figure } from "../models/Figure";
 import { BlendMode, ColorFill, Fill, LinearGradientFill } from "../models/Fill";
 import { BlurFilter, DropShadowFilter, Filter } from "../models/Filter";
@@ -8,11 +13,12 @@ import { Primitive } from "../models/Primitive";
 import { StrokeStyle } from "../models/Stroke";
 import { Text, TextAlign } from "../models/Text";
 import { FigureHelper } from "../utils/FigureHelper";
-import { Transform } from "../utils/Transform";
+import { Transform, TransformComponents } from "../utils/Transform";
 
 export class CanvasRenderer {
   private ctx: CanvasRenderingContext2D;
   private hit?: CanvasRenderingContext2D;
+  private viewTransformComponents: TransformComponents = null as any;
 
   disableFilters: boolean = true;
   disableBlendMode: boolean = false;
@@ -46,7 +52,11 @@ export class CanvasRenderer {
 
     if (!visible) return;
 
-    const m = transform.copy().multiply(absoluteTransform).getMatrix();
+    const viewTransform = transform.copy().multiply(absoluteTransform);
+
+    this.viewTransformComponents = viewTransform.decompose();
+
+    const m = viewTransform.getMatrix();
 
     ctx.save();
     hit?.save();
@@ -78,6 +88,11 @@ export class CanvasRenderer {
     if (node instanceof Area) this.renderArea(node);
     else if (node instanceof Text) this.renderText(node);
     else if (node instanceof Figure) this.renderFigure(node);
+    else if (node instanceof FigureEditor) this.renderFigureEditor(node);
+    else if (node instanceof FigureEditorPoint)
+      this.renderFigureEditorPoint(node);
+    else if (node instanceof FigureEditorControl)
+      this.renderFigureEditorControl(node);
 
     for (const child of node.children) {
       this.renderNode(child);
@@ -279,6 +294,102 @@ export class CanvasRenderer {
       ctx.lineWidth = 1;
       ctx.strokeStyle = "#F005";
       ctx.stroke();
+    }
+  }
+
+  protected renderFigureEditor(editor: FigureEditor) {
+    const { target } = editor;
+
+    if (!target) return;
+
+    const {
+      ctx,
+      viewTransformComponents: { scaleX: scale },
+    } = this;
+
+    const links: FLink[] = [];
+
+    for (const point of target.points) {
+      for (const link of point.links) {
+        if (!links.includes(link)) {
+          links.push(link);
+        }
+      }
+    }
+
+    ctx.beginPath();
+
+    for (const link of links) {
+      ctx.moveTo(link.a.x, link.a.y);
+      ctx.lineTo(link.b.x, link.b.y);
+    }
+
+    ctx.strokeStyle = "#0FF";
+    ctx.lineWidth = 1 / scale;
+    ctx.stroke();
+
+    ctx.beginPath();
+
+    for (const link of links) {
+      ctx.moveTo(link.a.x, link.a.y);
+      ctx.lineTo(link.a.x + link.aControl.x, link.a.y + link.aControl.y);
+
+      ctx.moveTo(link.b.x, link.b.y);
+      ctx.lineTo(link.b.x + link.bControl.x, link.b.y + link.bControl.y);
+    }
+
+    ctx.strokeStyle = "#F0F";
+    ctx.lineWidth = 1 / scale;
+    ctx.stroke();
+  }
+
+  protected renderFigureEditorPoint(pointNode: FigureEditorPoint) {
+    const {
+      ctx,
+      hit,
+      viewTransformComponents: { scaleX: scale },
+    } = this;
+
+    const size = 12 / scale;
+
+    ctx.beginPath();
+    ctx.rect(0 - size / 2, 0 - size / 2, size, size);
+
+    ctx.fillStyle = "#FFF";
+    ctx.strokeStyle = "#0AF";
+    ctx.lineWidth = 1 / scale;
+    ctx.fill();
+    ctx.stroke();
+
+    if (hit) {
+      const hitSize = size * 1.5;
+
+      hit.fillRect(0 - hitSize / 2, 0 - hitSize / 2, hitSize, hitSize);
+    }
+  }
+
+  protected renderFigureEditorControl(controlNode: FigureEditorControl) {
+    const {
+      ctx,
+      hit,
+      viewTransformComponents: { scaleX: scale },
+    } = this;
+
+    const size = 12 / scale;
+
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size / 2, size / 2, 0, 0, Math.PI * 2);
+
+    ctx.fillStyle = "#FFF";
+    ctx.strokeStyle = "#F0F";
+    ctx.lineWidth = 1 / scale;
+    ctx.fill();
+    ctx.stroke();
+
+    if (hit) {
+      const hitSize = size * 1.5;
+
+      hit.fillRect(0 - hitSize / 2, 0 - hitSize / 2, hitSize, hitSize);
     }
   }
 

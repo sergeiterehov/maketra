@@ -164,15 +164,15 @@ export class MkNode {
     this.hitColorKey = "transparent";
   }
 
-  @action public add(...children: MkNode[]) {
+  @action public appendChild(...children: MkNode[]) {
     for (const child of children) {
-      child.moveTo(this);
+      child.appendTo(this);
     }
 
     return this;
   }
 
-  @action moveTo(parentNode: MkNode) {
+  @action appendTo(parentNode: MkNode) {
     this.parentNode = parentNode;
     this.moveToSection(parentNode.parentSection);
 

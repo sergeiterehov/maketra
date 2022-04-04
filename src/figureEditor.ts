@@ -24,7 +24,7 @@ const figureEditorGroup = new Group()
   .configure({
     name: "FigureEdit",
   })
-  .add(controlsGroup, newPointLine);
+  .appendChild(controlsGroup, newPointLine);
 
 export const figureEditor = observable(
   {
@@ -97,7 +97,7 @@ export const figureEditor = observable(
         });
 
         this.lines.set(l, p);
-        l.moveTo(controlsGroup);
+        l.appendTo(controlsGroup);
       }
 
       // Линии контрольных точек
@@ -123,7 +123,7 @@ export const figureEditor = observable(
           });
 
           this.controlsLines.set(cl, { link, point, control });
-          cl.moveTo(controlsGroup);
+          cl.appendTo(controlsGroup);
         }
       }
 
@@ -147,7 +147,7 @@ export const figureEditor = observable(
           });
 
           this.controls.set(c, { link, point, control });
-          c.moveTo(controlsGroup);
+          c.appendTo(controlsGroup);
         }
       }
 
@@ -163,7 +163,7 @@ export const figureEditor = observable(
         });
 
         this.points.set(t, p);
-        t.moveTo(controlsGroup);
+        t.appendTo(controlsGroup);
       }
     },
 

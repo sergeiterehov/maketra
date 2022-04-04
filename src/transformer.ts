@@ -46,7 +46,7 @@ const transformerGroup = new Group()
     name: "Transformer",
     visible: false,
   })
-  .add(
+  .appendChild(
     // Грани
     Object.assign(new Figure(), getBorderProps(), { name: "T" }),
     Object.assign(new Figure(), getBorderProps(), { name: "B" }),

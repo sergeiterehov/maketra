@@ -3,6 +3,16 @@ export interface Vector2d {
   y: number;
 }
 
+export type TransformComponents = {
+  x: number;
+  y: number;
+  rotation: number;
+  scaleX: number;
+  scaleY: number;
+  skewX: number;
+  skewY: number;
+};
+
 export class Transform {
   m: Array<number>;
   dirty = false;
@@ -193,7 +203,7 @@ export class Transform {
   /**
    * convert transformation matrix back into node's attributes
    */
-  decompose() {
+  decompose(): TransformComponents {
     const a = this.m[0];
     const b = this.m[1];
     const c = this.m[2];
@@ -203,7 +213,7 @@ export class Transform {
 
     const delta = a * d - b * c;
 
-    let result = {
+    let result: TransformComponents = {
       x: e,
       y: f,
       rotation: 0,

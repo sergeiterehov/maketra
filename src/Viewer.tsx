@@ -208,7 +208,7 @@ export const Viewer = observer<{
           newText.configure({ x: location.x, y: location.y });
 
           if (parent) {
-            newText.moveTo(parent);
+            newText.appendTo(parent);
           } else {
             newText.moveToSection(section);
           }
@@ -237,7 +237,7 @@ export const Viewer = observer<{
           newArea.configure({ x: location.x, y: location.y });
 
           if (parent) {
-            newArea.moveTo(parent);
+            newArea.appendTo(parent);
           } else {
             newArea.moveToSection(section);
           }
@@ -276,7 +276,7 @@ export const Viewer = observer<{
             const parent = selected && findNodeForCreating(selected);
 
             if (parent) {
-              newFigure.moveTo(parent);
+              newFigure.appendTo(parent);
             } else {
               newFigure.moveToSection(section);
             }
