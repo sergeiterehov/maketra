@@ -147,6 +147,8 @@ export class MkNode {
 
     this.parentNode.children.splice(index, 1);
     this.parentNode = undefined;
+
+    return this;
   }
 
   @action public destroy() {
@@ -173,11 +175,45 @@ export class MkNode {
   }
 
   @action appendTo(parentNode: MkNode) {
+    this.remove();
+
     this.parentNode = parentNode;
     this.moveToSection(parentNode.parentSection);
 
     if (!parentNode.children.includes(this)) {
       parentNode.children.push(this);
+    }
+
+    return this;
+  }
+
+  @action appendNear(neighborNode: MkNode, after = false) {
+    if (neighborNode === this) return this;
+
+    this.remove();
+
+    const parentNode = neighborNode.parentNode;
+    const parentSection = neighborNode.parentSection;
+
+    this.parentNode = parentNode;
+    this.parentSection = parentSection;
+
+    if (parentNode) {
+      if (!parentNode.children.includes(this)) {
+        parentNode.children.splice(
+          parentNode.children.indexOf(neighborNode) + (after ? 1 : 0),
+          0,
+          this
+        );
+      }
+    } else if (parentSection) {
+      if (!parentSection.nodes.includes(this)) {
+        parentSection.nodes.splice(
+          parentSection.nodes.indexOf(neighborNode) + (after ? 1 : 0),
+          0,
+          this
+        );
+      }
     }
 
     return this;

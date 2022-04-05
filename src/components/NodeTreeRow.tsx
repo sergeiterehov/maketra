@@ -92,6 +92,8 @@ export const NodeTreeRow = styled<
     hasChildren: boolean;
     onExpanderClick(id: string): void;
     onNodeClick(id: string): void;
+    onDragStart(id: string): void;
+    onMouseEnter(id: string): void;
   }>
 >(
   ({
@@ -103,16 +105,29 @@ export const NodeTreeRow = styled<
     hasChildren,
     onExpanderClick,
     onNodeClick,
+    onDragStart,
+    onMouseEnter,
   }) => {
-    const clickHandler: React.MouseEventHandler<HTMLDivElement> = useCallback(
-      (e) => {
+    const mouseDownHandler: React.MouseEventHandler<HTMLDivElement> =
+      useCallback(() => {
+        onNodeClick(node.id);
+      }, [node, onNodeClick]);
+
+    const dragStartHandler: React.DragEventHandler<HTMLDivElement> =
+      useCallback((e) => {
         e.preventDefault();
         e.stopPropagation();
 
-        onNodeClick(node.id);
-      },
-      [node, onNodeClick]
-    );
+        onDragStart(node.id);
+      }, [onDragStart, node]);
+
+    const mouseEnterHandler: React.MouseEventHandler<HTMLDivElement> =
+      useCallback((e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        onMouseEnter(node.id);
+      }, [onMouseEnter, node]);
 
     const nameChangeHandler = useCallback(
       (newName: string) => {
@@ -129,11 +144,14 @@ export const NodeTreeRow = styled<
           return (
             <div
               className={className}
+              draggable
               data-is-selected={selected ? "" : undefined}
               data-is-area={node instanceof Area ? "" : undefined}
               data-is-root={!node.parentNode ? "" : undefined}
               data-invisible={node.visible ? undefined : ""}
-              onClick={clickHandler}
+              onMouseDown={mouseDownHandler}
+              onDragStart={dragStartHandler}
+              onMouseEnter={mouseEnterHandler}
             >
               <Indent
                 id={node.id}
