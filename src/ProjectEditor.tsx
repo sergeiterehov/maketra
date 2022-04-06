@@ -71,6 +71,8 @@ const NodesTree = styled(
     const rowHeight = 32;
     const rowIndent = 16;
 
+    const containerRef = useRef<HTMLDivElement>(null);
+
     const [expanded, setExpanded] = useState<string[]>(() => []);
     const [dragging, setDragging] = useState<string>();
     const [dropPlaceholder, setDropPlaceholder] = useState<{
@@ -142,50 +144,49 @@ const NodesTree = styled(
       setDragging(id);
     }, []);
 
-    const mouseMoveHandler: React.MouseEventHandler<HTMLDivElement> =
-      useCallback(
-        (e) => {
-          if (!dragging) return;
+    useEffect(() => {
+      if (!dragging) return;
 
-          const y = e.clientY - e.currentTarget.getBoundingClientRect().top;
-          const offset = y / rowHeight;
-          const index = Math.floor(offset);
-          const k = offset - index;
-          const listItem = nodesListRef.current[index];
+      const globalMouseMoveHandler = (e: MouseEvent) => {
+        const container = containerRef.current;
 
-          if (!listItem) return;
+        if (!container) return;
 
-          if (listItem.node instanceof Area) {
-            if (expanded.includes(listItem.node.id) && k > 0.66) {
-              setDropPlaceholder({
-                level: listItem.level + 1,
-                index: index + 1,
-                y: (index + 1) * rowHeight,
-                mode: "BEFORE",
-              });
-            } else {
-              setDropPlaceholder({
-                level: listItem.level,
-                index,
-                y: (index + (k > 0.66 ? 1 : 0)) * rowHeight,
-                mode: k < 0.33 ? "BEFORE" : k > 0.66 ? "AFTER" : "INSIDE",
-              });
-            }
+        const y = e.clientY - container.getBoundingClientRect().top;
+        const offset = y / rowHeight;
+        const index = Math.floor(offset);
+        const k = offset - index;
+        const listItem = nodesListRef.current[index];
+
+        if (!listItem) return;
+
+        if (listItem.node instanceof Area) {
+          if (expanded.includes(listItem.node.id) && k > 0.66) {
+            setDropPlaceholder({
+              level: listItem.level + 1,
+              index: index + 1,
+              y: (index + 1) * rowHeight,
+              mode: "BEFORE",
+            });
           } else {
             setDropPlaceholder({
               level: listItem.level,
               index,
-              y: (index + (k > 0.5 ? 1 : 0)) * rowHeight,
-              mode: k > 0.5 ? "AFTER" : "BEFORE",
+              y: (index + (k > 0.66 ? 1 : 0)) * rowHeight,
+              mode: k < 0.33 ? "BEFORE" : k > 0.66 ? "AFTER" : "INSIDE",
             });
           }
-        },
-        [dragging, expanded]
-      );
+        } else {
+          setDropPlaceholder({
+            level: listItem.level,
+            index,
+            y: (index + (k > 0.5 ? 1 : 0)) * rowHeight,
+            mode: k > 0.5 ? "AFTER" : "BEFORE",
+          });
+        }
+      };
 
-    const mouseUpHandler: React.MouseEventHandler<HTMLDivElement> =
-      useCallback(() => {
-        if (!dragging) return;
+      const globalMouseUpHandler = (e: MouseEvent) => {
         if (!dropPlaceholder) return;
 
         setDragging(undefined);
@@ -217,7 +218,16 @@ const NodesTree = styled(
             break;
           }
         }
-      }, [dragging, dropPlaceholder]);
+      };
+
+      document.body.addEventListener("mousemove", globalMouseMoveHandler);
+      document.body.addEventListener("mouseup", globalMouseUpHandler);
+
+      return () => {
+        document.body.removeEventListener("mousemove", globalMouseMoveHandler);
+        document.body.removeEventListener("mouseup", globalMouseUpHandler);
+      };
+    }, [dragging, dropPlaceholder, expanded]);
 
     visibleNodesRef.current = {};
 
@@ -242,11 +252,7 @@ const NodesTree = styled(
     nodesListRef.current = grubNodes(section.nodes);
 
     return (
-      <div
-        className={className}
-        onMouseUp={mouseUpHandler}
-        onMouseMove={mouseMoveHandler}
-      >
+      <div ref={containerRef} className={className}>
         {nodesListRef.current.map(({ node, level }, i) => {
           const { selected } = editorState;
 
