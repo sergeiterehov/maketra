@@ -9,7 +9,6 @@ import { transformer } from "./transformer";
 import { Transform } from "./utils/Transform";
 import { editorState, ToolMode } from "./editorState";
 import { CanvasRenderer } from "./render/CanvasRenderer";
-import { Stroke, StrokeStyle } from "./models/Stroke";
 import { ColorFill } from "./models/Fill";
 import { Color } from "./utils/Color";
 import { Area } from "./models/Area";
@@ -81,7 +80,7 @@ export const Viewer = observer<{
       }
 
       if (tool === ToolMode.PointBender || tool === ToolMode.PointEditor) {
-        renderer.renderNode(figureEditor.group);
+        renderer.renderNode(figureEditor);
       } else {
         renderer.renderNode(transformer.group);
       }
@@ -100,7 +99,7 @@ export const Viewer = observer<{
       const { selected } = editorState;
 
       transformer.adjust(selected);
-      figureEditor.adjust(selected instanceof Figure ? selected : undefined);
+      figureEditor.setTarget(selected instanceof Figure ? selected : undefined);
     });
   }, []);
 
@@ -150,7 +149,6 @@ export const Viewer = observer<{
     y: 0,
     dragging: false,
     transformerControl: undefined as undefined | MkNode,
-    figureEditorControl: undefined as undefined | MkNode,
   });
 
   const mouseDownHandler = useCallback(
@@ -249,55 +247,14 @@ export const Viewer = observer<{
         }
         case ToolMode.PointEditor:
         case ToolMode.PointBender: {
-          if (figureEditor.addingMode && tool === ToolMode.PointEditor) {
-            // Находимся в режиме добавления точки, добавляем ее
-            const clickedPoint = figureEditor.points.get(node as Figure);
-
-            if (clickedPoint) {
-              figureEditor.createPoint(clickedPoint);
-              figureEditor.disableAdding();
-              editorState.select(figureEditor.target);
-            } else {
-              figureEditor.createPoint();
-            }
-          } else if (node && figureEditor.includes(node)) {
-            // Это элемент редактора
-            mouseRef.current.figureEditorControl = node;
-          } else if (!(selected instanceof Figure)) {
-            // Выделена не фигура, значит начинаем добавлять точки.
-            const newFigure = new Figure();
-
-            newFigure.name = "Новая фигура";
-            newFigure.strokes.push(
-              new Stroke(StrokeStyle.Solid, 8, new Color({ hex: "#000" }))
-            );
-            newFigure.fills.push(new ColorFill(new Color({ hex: "#888" })));
-
-            const parent = selected && findNodeForCreating(selected);
-
-            if (parent) {
-              newFigure.appendTo(parent);
-            } else {
-              newFigure.moveToSection(section);
-            }
-
-            figureEditor.adjust(newFigure);
-            editorState.select(newFigure);
-
-            figureEditor.moveNewPoint(
-              baseTransform
-                .copy()
-                .multiply(newFigure.absoluteTransform)
-                .invert()
-                .scale(pixelRatio, pixelRatio)
-                .point({ x, y })
-            );
-
-            figureEditor.enableAdding();
-            figureEditor.createPoint();
-          } else {
-            mouseRef.current.figureEditorControl = undefined;
-          }
+          figureEditor.onMouseDown(
+            baseTransform
+              .copy()
+              .invert()
+              .scale(pixelRatio, pixelRatio)
+              .point({ x, y }),
+            node
+          );
 
           break;
         }
@@ -321,7 +278,7 @@ export const Viewer = observer<{
       mouseRef.current.x = x;
       mouseRef.current.y = y;
 
-      const { transformerControl, figureEditorControl } = mouseRef.current;
+      const { transformerControl } = mouseRef.current;
       const { selected, tool, baseTransform, creatingArea } = editorState;
 
       switch (tool) {
@@ -363,34 +320,13 @@ export const Viewer = observer<{
         }
         case ToolMode.PointEditor:
         case ToolMode.PointBender: {
-          if (
-            figureEditor.addingMode &&
-            tool === ToolMode.PointEditor &&
-            figureEditor.target
-          ) {
-            const fromParentTransform = new Transform();
-
-            if (figureEditor.newPointParent) {
-              fromParentTransform.translate(
-                figureEditor.newPointParent.x,
-                figureEditor.newPointParent.y
-              );
-            }
-
-            figureEditor.moveNewPoint(
-              baseTransform
-                .copy()
-                .multiply(figureEditor.target.absoluteTransform)
-                .multiply(fromParentTransform)
-                .invert()
-                .scale(pixelRatio, pixelRatio)
-                .point({ x, y })
-            );
-          } else if (!dragging) {
-            // Не нажимали мышку
-          } else if (figureEditorControl) {
-            figureEditor.moveControlBy(figureEditorControl, dx, dy);
-          }
+          figureEditor.onMouseMove(
+            baseTransform
+              .copy()
+              .invert()
+              .scale(pixelRatio, pixelRatio)
+              .point({ x, y })
+          );
 
           break;
         }
@@ -412,6 +348,12 @@ export const Viewer = observer<{
 
           break;
         }
+        case ToolMode.PointEditor:
+        case ToolMode.PointBender: {
+          figureEditor.onMouseUp();
+
+          break;
+        }
       }
     },
     []
@@ -426,27 +368,35 @@ export const Viewer = observer<{
       if (document.activeElement && document.activeElement !== document.body)
         return;
 
+      let intercepted = true;
+
       switch (e.code) {
         case "Enter": {
-          if (figureEditor.addingMode) {
-            figureEditor.disableAdding();
-            editorState.select(figureEditor.target);
-          }
+          // if (figureEditor.addingMode) {
+          //   figureEditor.disableAdding();
+          //   editorState.select(figureEditor.target);
+          // }
 
           break;
         }
         case "MetaLeft": {
-          e.preventDefault();
-          e.stopPropagation();
-          figureEditor.enableControlsMode();
+          figureEditor.setControlsMode(true);
+
           break;
         }
         case "ShiftLeft": {
-          e.preventDefault();
-          e.stopPropagation();
-          figureEditor.enableFreeControlsMode();
+          figureEditor.setSingleControlMode(true);
+
           break;
         }
+        default: {
+          intercepted = false;
+        }
+      }
+
+      if (intercepted) {
+        e.preventDefault();
+        e.stopPropagation();
       }
     };
 
@@ -454,15 +404,27 @@ export const Viewer = observer<{
       if (document.activeElement && document.activeElement !== document.body)
         return;
 
+      let intercepted = true;
+
       switch (e.code) {
         case "MetaLeft": {
-          figureEditor.disableControlsMode();
+          figureEditor.setControlsMode(false);
+
           break;
         }
         case "ShiftLeft": {
-          figureEditor.disableFreeControlsMode();
+          figureEditor.setSingleControlMode(false);
+
           break;
         }
+        default: {
+          intercepted = false;
+        }
+      }
+
+      if (intercepted) {
+        e.preventDefault();
+        e.stopPropagation();
       }
     };
 

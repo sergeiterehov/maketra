@@ -1,4 +1,5 @@
 import { action, observable } from "mobx";
+import { figureEditor } from "./figureEditor";
 import { Area } from "./models/Area";
 import { MkNode } from "./models/MkNode";
 import { Project } from "./models/Project";
@@ -50,7 +51,29 @@ export const editorState = observable(
     },
 
     changeTool(tool: ToolMode) {
+      if (tool === this.tool) return;
+
+      // Сперва завершаем работу с предыдущим инструментом
+      switch (this.tool) {
+        case ToolMode.PointBender:
+        case ToolMode.PointEditor: {
+          figureEditor.final();
+
+          break;
+        }
+      }
+
       this.tool = tool;
+
+      // Далее применяем новый инструмент
+      switch (this.tool) {
+        case ToolMode.PointBender:
+        case ToolMode.PointEditor: {
+          figureEditor.realign();
+
+          break;
+        }
+      }
     },
   },
   {

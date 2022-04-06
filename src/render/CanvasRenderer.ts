@@ -298,7 +298,7 @@ export class CanvasRenderer {
   }
 
   protected renderFigureEditor(editor: FigureEditor) {
-    const { target } = editor;
+    const { target, controlsMode } = editor;
 
     if (!target) return;
 
@@ -328,19 +328,21 @@ export class CanvasRenderer {
     ctx.lineWidth = 1 / scale;
     ctx.stroke();
 
-    ctx.beginPath();
+    if (controlsMode) {
+      ctx.beginPath();
 
-    for (const link of links) {
-      ctx.moveTo(link.a.x, link.a.y);
-      ctx.lineTo(link.a.x + link.aControl.x, link.a.y + link.aControl.y);
+      for (const link of links) {
+        ctx.moveTo(link.a.x, link.a.y);
+        ctx.lineTo(link.a.x + link.aControl.x, link.a.y + link.aControl.y);
 
-      ctx.moveTo(link.b.x, link.b.y);
-      ctx.lineTo(link.b.x + link.bControl.x, link.b.y + link.bControl.y);
+        ctx.moveTo(link.b.x, link.b.y);
+        ctx.lineTo(link.b.x + link.bControl.x, link.b.y + link.bControl.y);
+      }
+
+      ctx.strokeStyle = "#F0F";
+      ctx.lineWidth = 1 / scale;
+      ctx.stroke();
     }
-
-    ctx.strokeStyle = "#F0F";
-    ctx.lineWidth = 1 / scale;
-    ctx.stroke();
   }
 
   protected renderFigureEditorPoint(pointNode: FigureEditorPoint) {
@@ -369,6 +371,10 @@ export class CanvasRenderer {
   }
 
   protected renderFigureEditorControl(controlNode: FigureEditorControl) {
+    const { editor } = controlNode;
+
+    if (!editor.controlsMode) return;
+
     const {
       ctx,
       hit,

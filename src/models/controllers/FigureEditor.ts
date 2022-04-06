@@ -1,4 +1,5 @@
 import { action, makeObservable, observable } from "mobx";
+import { Vector2d } from "../../utils/Transform";
 import { Figure } from "../Figure";
 import { FControl, FLink, FPoint } from "../FPoint";
 import { MkNode } from "../MkNode";
@@ -12,16 +13,14 @@ export class FigureEditorPoint extends FigureEditorNode {
     makeObservable(this);
   }
 
-  @action
-  realign() {
+  @action realign() {
     const { point } = this;
 
     this.x = point.x;
     this.y = point.y;
   }
 
-  @action
-  moveBy(dx: number, dy: number) {
+  @action moveBy(dx: number, dy: number) {
     const { point } = this;
 
     point.x += dx;
@@ -44,16 +43,14 @@ export class FigureEditorControl extends FigureEditorNode {
     makeObservable(this);
   }
 
-  @action
-  realign() {
+  @action realign() {
     const { control } = this;
 
     this.x = control.x;
     this.y = control.y;
   }
 
-  @action
-  moveBy(dx: number, dy: number) {
+  @action moveBy(dx: number, dy: number) {
     const { control } = this;
 
     control.x += dx;
@@ -69,8 +66,15 @@ export class FigureEditor extends FigureEditorNode {
 
   @observable target?: Figure;
 
+  @observable controlsMode = false;
+  @observable singleControlMode = false;
+
   mapPointToNode = new Map<FPoint, FigureEditorPoint>();
   mapControlToNode = new Map<FControl, FigureEditorControl>();
+
+  mouseDownPosition: Vector2d = { x: 0, y: 0 };
+  mouseDownNode?: FigureEditorNode;
+  prevMousePosition: Vector2d = { x: 0, y: 0 };
 
   constructor() {
     super();
@@ -78,15 +82,79 @@ export class FigureEditor extends FigureEditorNode {
     makeObservable(this);
   }
 
-  @action
-  setTarget(target?: Figure) {
+  @action setTarget(target?: Figure) {
     this.target = target;
     this.realign();
   }
 
-  @action
-  realign() {
+  @action final() {
+    const { target } = this;
+
+    if (target) target.adjustPointsAndSize();
+  }
+
+  @action setControlsMode(state: boolean) {
+    this.controlsMode = state;
+  }
+
+  @action setSingleControlMode(state: boolean) {
+    this.singleControlMode = state;
+  }
+
+  @action onMouseDown(position: Vector2d, node?: MkNode) {
+    if (!node) return;
+    if (!(node instanceof FigureEditorNode)) return;
+
+    this.mouseDownPosition = position;
+    this.prevMousePosition = position;
+    this.mouseDownNode = node;
+  }
+
+  @action onMouseMove(position: Vector2d) {
+    const { mouseDownNode } = this;
+
+    if (!mouseDownNode) return;
+
+    const mouseDelta: Vector2d = {
+      x: position.x - this.prevMousePosition.x,
+      y: position.y - this.prevMousePosition.y,
+    };
+
+    if (mouseDownNode instanceof FigureEditorPoint) {
+      mouseDownNode.moveBy(mouseDelta.x, mouseDelta.y);
+    } else if (mouseDownNode instanceof FigureEditorControl) {
+      // Проверяем возможность синхронного перемещения противоположной точки.
+      if (!this.singleControlMode && mouseDownNode.point.links.length === 2) {
+        const oppositeLink =
+          mouseDownNode.point.links[0] === mouseDownNode.link
+            ? mouseDownNode.point.links[1]
+            : mouseDownNode.point.links[0];
+        const opposite = oppositeLink.getControlFor(mouseDownNode.point);
+
+        if (
+          opposite.x === -mouseDownNode.control.x &&
+          opposite.y === -mouseDownNode.control.y
+        ) {
+          const oppositeNode = this.mapControlToNode.get(opposite);
+
+          oppositeNode?.moveBy(-mouseDelta.x, -mouseDelta.y);
+        }
+      }
+
+      mouseDownNode.moveBy(mouseDelta.x, mouseDelta.y);
+    }
+
+    this.prevMousePosition = position;
+  }
+
+  @action onMouseUp() {
+    this.mouseDownNode = undefined;
+  }
+
+  @action realign() {
     const { mapPointToNode, mapControlToNode, target } = this;
+
+    const controls: FControl[] = [];
 
     if (target) {
       const transform = target.absoluteTransform;
@@ -94,8 +162,6 @@ export class FigureEditor extends FigureEditorNode {
 
       this.x = x;
       this.y = y;
-
-      const controls: FControl[] = [];
 
       for (const point of target.points) {
         if (mapPointToNode.has(point)) continue;
@@ -136,23 +202,23 @@ export class FigureEditor extends FigureEditorNode {
           }
         }
       }
+    }
 
-      for (const [point, pointNode] of mapPointToNode) {
-        if (target.points.includes(point)) {
-          pointNode.realign();
-        } else {
-          mapPointToNode.delete(point);
-          pointNode.remove();
-        }
+    for (const [point, pointNode] of mapPointToNode) {
+      if (target && target.points.includes(point)) {
+        pointNode.realign();
+      } else {
+        mapPointToNode.delete(point);
+        pointNode.destroy();
       }
+    }
 
-      for (const [control, controlNode] of mapControlToNode) {
-        if (controls.includes(control)) {
-          controlNode.realign();
-        } else {
-          mapControlToNode.delete(control);
-          controlNode.remove();
-        }
+    for (const [control, controlNode] of mapControlToNode) {
+      if (controls.includes(control)) {
+        controlNode.realign();
+      } else {
+        mapControlToNode.delete(control);
+        controlNode.destroy();
       }
     }
   }
