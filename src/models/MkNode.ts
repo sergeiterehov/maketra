@@ -142,20 +142,16 @@ export class MkNode {
 
   @action public remove() {
     if (this.parentNode) {
-      this.parentNode.children.splice(
-        this.parentNode.children.indexOf(this),
-        1
-      );
+      const inParentIndex = this.parentNode.children.indexOf(this);
+
+      if (inParentIndex !== -1) {
+        this.parentNode.children.splice(inParentIndex, 1);
+      }
+
       this.parentNode = undefined;
     }
 
-    if (this.parentSection) {
-      this.parentSection.nodes.splice(
-        this.parentSection.nodes.indexOf(this),
-        1
-      );
-      this.parentSection = undefined;
-    }
+    this.appendToSection();
 
     return this;
   }
@@ -179,12 +175,12 @@ export class MkNode {
   }
 
   @action appendTo(parentNode: MkNode) {
-    this.remove();
-
-    this.parentNode = parentNode;
-    this.appendToSection(parentNode.parentSection);
-
     if (!parentNode.children.includes(this)) {
+      this.remove();
+
+      this.parentNode = parentNode;
+      this.appendToSection(parentNode.parentSection);
+
       parentNode.children.push(this);
     }
 
@@ -199,31 +195,37 @@ export class MkNode {
     const parentNode = neighborNode.parentNode;
     const parentSection = neighborNode.parentSection;
 
-    this.parentNode = parentNode;
-    this.parentSection = parentSection;
-
     if (parentNode) {
-      if (!parentNode.children.includes(this)) {
-        parentNode.children.splice(
-          parentNode.children.indexOf(neighborNode) + (after ? 1 : 0),
-          0,
-          this
-        );
-      }
+      this.parentNode = parentNode;
+      this.appendToSection(parentSection);
+
+      parentNode.children.splice(
+        parentNode.children.indexOf(neighborNode) + (after ? 1 : 0),
+        0,
+        this
+      );
     } else if (parentSection) {
-      if (!parentSection.nodes.includes(this)) {
-        parentSection.nodes.splice(
-          parentSection.nodes.indexOf(neighborNode) + (after ? 1 : 0),
-          0,
-          this
-        );
-      }
+      this.parentSection = parentSection;
+
+      parentSection.nodes.splice(
+        parentSection.nodes.indexOf(neighborNode) + (after ? 1 : 0),
+        0,
+        this
+      );
     }
 
     return this;
   }
 
   @action appendToSection(parentSection?: Section) {
+    if (this.parentSection) {
+      const inSectionIndex = this.parentSection.nodes.indexOf(this);
+
+      if (inSectionIndex !== -1) {
+        this.parentSection.nodes.splice(inSectionIndex, 1);
+      }
+    }
+
     this.parentSection = parentSection;
 
     for (const child of this.children) {
