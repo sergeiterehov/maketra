@@ -97,6 +97,8 @@ export class FigureEditor extends FigureEditorNode {
   mouseDownNode?: FigureEditorNode;
   prevMousePosition: Vector2d = { x: 0, y: 0 };
 
+  alignerPoints: FPoint[] = [];
+
   constructor() {
     super();
 
@@ -133,6 +135,9 @@ export class FigureEditor extends FigureEditorNode {
 
   @action onMouseMove(position: Vector2d) {
     const { mouseDownNode, target, freeMovementMode } = this;
+
+    // Сперва сбрасываем точки выравнивания. Их мы наполним поздней
+    this.alignerPoints = [];
 
     if (!mouseDownNode || !target) return;
 
@@ -179,8 +184,15 @@ export class FigureEditor extends FigureEditorNode {
           }
         }
 
-        if (xNearest) lx = xNearest.x;
-        if (yNearest) ly = yNearest.y;
+        if (xNearest) {
+          lx = xNearest.x;
+          this.alignerPoints.push(xNearest);
+        }
+
+        if (yNearest) {
+          ly = yNearest.y;
+          this.alignerPoints.push(yNearest);
+        }
       }
 
       mouseDownNode.moveTo(lx, ly);

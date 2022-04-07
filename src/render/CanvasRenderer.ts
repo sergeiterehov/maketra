@@ -298,7 +298,7 @@ export class CanvasRenderer {
   }
 
   protected renderFigureEditor(editor: FigureEditor) {
-    const { target, controlsMode } = editor;
+    const { target, controlsMode, alignerPoints, mouseDownNode } = editor;
 
     if (!target) return;
 
@@ -340,6 +340,19 @@ export class CanvasRenderer {
       }
 
       ctx.strokeStyle = "#F0F";
+      ctx.lineWidth = 1 / scale;
+      ctx.stroke();
+    }
+
+    if (mouseDownNode) {
+      ctx.beginPath();
+
+      for (const alignedBy of alignerPoints) {
+        ctx.moveTo(mouseDownNode.x, mouseDownNode.y);
+        ctx.lineTo(alignedBy.x, alignedBy.y);
+      }
+
+      ctx.strokeStyle = "#FA0";
       ctx.lineWidth = 1 / scale;
       ctx.stroke();
     }
