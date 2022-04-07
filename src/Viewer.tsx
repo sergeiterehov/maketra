@@ -385,7 +385,7 @@ export const Viewer = observer<{
           break;
         }
         case "ShiftLeft": {
-          figureEditor.setSingleControlMode(true);
+          figureEditor.setFreeMovementMode(true);
 
           break;
         }
@@ -423,7 +423,7 @@ export const Viewer = observer<{
           break;
         }
         case "ShiftLeft": {
-          figureEditor.setSingleControlMode(false);
+          figureEditor.setFreeMovementMode(false);
 
           break;
         }

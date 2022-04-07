@@ -26,6 +26,21 @@ export class FigureEditorPoint extends FigureEditorNode {
     point.x += dx;
     point.y += dy;
 
+    this.apply();
+  }
+
+  @action moveTo(x: number, y: number) {
+    const { point } = this;
+
+    point.x = x;
+    point.y = y;
+
+    this.apply();
+  }
+
+  @action apply() {
+    const { point } = this;
+
     this.x = point.x;
     this.y = point.y;
   }
@@ -67,7 +82,7 @@ export class FigureEditor extends FigureEditorNode {
   @observable target?: Figure;
 
   @observable controlsMode = false;
-  @observable singleControlMode = false;
+  @observable freeMovementMode = false;
 
   // TODO: нужен колбек на создание фигуры.
   // Если нет таргета, то рисуется точка создания.
@@ -103,8 +118,8 @@ export class FigureEditor extends FigureEditorNode {
     this.controlsMode = state;
   }
 
-  @action setSingleControlMode(state: boolean) {
-    this.singleControlMode = state;
+  @action setFreeMovementMode(state: boolean) {
+    this.freeMovementMode = state;
   }
 
   @action onMouseDown(position: Vector2d, node?: MkNode) {
@@ -117,9 +132,16 @@ export class FigureEditor extends FigureEditorNode {
   }
 
   @action onMouseMove(position: Vector2d) {
-    const { mouseDownNode } = this;
+    const { mouseDownNode, target, freeMovementMode } = this;
 
-    if (!mouseDownNode) return;
+    if (!mouseDownNode || !target) return;
+
+    const { x, y } = target.absoluteTransform.decompose();
+
+    const mousePosition: Vector2d = {
+      x: position.x - x,
+      y: position.y - y,
+    };
 
     const mouseDelta: Vector2d = {
       x: position.x - this.prevMousePosition.x,
@@ -127,10 +149,44 @@ export class FigureEditor extends FigureEditorNode {
     };
 
     if (mouseDownNode instanceof FigureEditorPoint) {
-      mouseDownNode.moveBy(mouseDelta.x, mouseDelta.y);
+      const { points } = target;
+
+      let lx = mousePosition.x;
+      let ly = mousePosition.y;
+
+      // Помощник выравнивания
+      if (!freeMovementMode) {
+        let xNearest: FPoint | null = null;
+        let yNearest: FPoint | null = null;
+
+        let dx = Infinity;
+        let dy = Infinity;
+
+        for (const point of points) {
+          if (point === mouseDownNode.point) continue;
+
+          const pdx = Math.abs(point.x - mousePosition.x);
+          const pdy = Math.abs(point.y - mousePosition.y);
+
+          if (pdx < 8 && pdx < dx) {
+            dx = pdx;
+            xNearest = point;
+          }
+
+          if (pdy < 8 && pdy < dy) {
+            dy = pdy;
+            yNearest = point;
+          }
+        }
+
+        if (xNearest) lx = xNearest.x;
+        if (yNearest) ly = yNearest.y;
+      }
+
+      mouseDownNode.moveTo(lx, ly);
     } else if (mouseDownNode instanceof FigureEditorControl) {
       // Проверяем возможность синхронного перемещения противоположной точки.
-      if (!this.singleControlMode && mouseDownNode.point.links.length === 2) {
+      if (!freeMovementMode && mouseDownNode.point.links.length === 2) {
         const oppositeLink =
           mouseDownNode.point.links[0] === mouseDownNode.link
             ? mouseDownNode.point.links[1]
