@@ -208,7 +208,7 @@ export const Viewer = observer<{
           if (parent) {
             newText.appendTo(parent);
           } else {
-            newText.moveToSection(section);
+            newText.appendToSection(section);
           }
 
           editorState.select(newText);
@@ -237,7 +237,7 @@ export const Viewer = observer<{
           if (parent) {
             newArea.appendTo(parent);
           } else {
-            newArea.moveToSection(section);
+            newArea.appendToSection(section);
           }
 
           editorState.creatingArea = newArea;
@@ -386,6 +386,16 @@ export const Viewer = observer<{
         }
         case "ShiftLeft": {
           figureEditor.setSingleControlMode(true);
+
+          break;
+        }
+        case "Backspace": {
+          const { selected } = editorState;
+
+          if (selected) {
+            editorState.select();
+            selected.destroy();
+          }
 
           break;
         }

@@ -15,20 +15,12 @@ const space = Object.assign(new Space(), {
     Object.assign(new Project(), {
       id: "dj09hfwoe",
       name: "Тестовый проект",
-      description: "Это локальный проект для тестирования при разработки клиентской части приложения",
+      description:
+        "Это локальный проект для тестирования при разработки клиентской части приложения",
       sections: [
         Object.assign(new Section(), {
           id: "ld3h9",
           name: "Проба пера",
-          nodes: [
-            Object.assign(new Area(), {
-              name: "Главный экран",
-              x: 30,
-              y: 30,
-              width: 300,
-              height: 400,
-            }),
-          ],
         }),
       ],
     }),
@@ -56,8 +48,15 @@ cp[3].connect(cp[4]);
 cp[4].connect(cp[5]);
 cp[6].connect(cp[7]);
 
-// cp[7].getLinkWith(cp[3])!.aControl.x = 20;
-// cp[7].getLinkWith(cp[3])!.aControl.y = -40;
+new Area()
+  .configure({
+    name: "Главный экран",
+    x: 30,
+    y: 30,
+    width: 300,
+    height: 400,
+  })
+  .appendToSection(space.projects[0].sections[0]);
 
 space.projects[0].sections[0].nodes[0].appendChild(
   new Area()

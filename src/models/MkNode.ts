@@ -141,23 +141,27 @@ export class MkNode {
   }
 
   @action public remove() {
-    if (!this.parentNode) return;
+    if (this.parentNode) {
+      this.parentNode.children.splice(
+        this.parentNode.children.indexOf(this),
+        1
+      );
+      this.parentNode = undefined;
+    }
 
-    const index = this.parentNode.children.indexOf(this);
-
-    this.parentNode.children.splice(index, 1);
-    this.parentNode = undefined;
+    if (this.parentSection) {
+      this.parentSection.nodes.splice(
+        this.parentSection.nodes.indexOf(this),
+        1
+      );
+      this.parentSection = undefined;
+    }
 
     return this;
   }
 
   @action public destroy() {
-    if (this.parentNode) {
-      const index = this.parentNode.children.indexOf(this);
-
-      this.parentNode.children.splice(index, 1);
-      this.parentNode = undefined;
-    }
+    this.remove();
 
     // Нужно пройти по копии массива, так как он изменяется.
     for (const child of [...this.children]) child.destroy();
@@ -178,7 +182,7 @@ export class MkNode {
     this.remove();
 
     this.parentNode = parentNode;
-    this.moveToSection(parentNode.parentSection);
+    this.appendToSection(parentNode.parentSection);
 
     if (!parentNode.children.includes(this)) {
       parentNode.children.push(this);
@@ -219,11 +223,11 @@ export class MkNode {
     return this;
   }
 
-  @action moveToSection(parentSection?: Section) {
+  @action appendToSection(parentSection?: Section) {
     this.parentSection = parentSection;
 
     for (const child of this.children) {
-      child.moveToSection(parentSection);
+      child.appendToSection(parentSection);
     }
 
     if (!this.parentNode && parentSection) {

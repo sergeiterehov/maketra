@@ -69,6 +69,12 @@ export class FigureEditor extends FigureEditorNode {
   @observable controlsMode = false;
   @observable singleControlMode = false;
 
+  // TODO: нужен колбек на создание фигуры.
+  // Если нет таргета, то рисуется точка создания.
+  // Если нажимаем без таргета, то делается вызов на создание фигуры. Ставится фокус и начинается редактирование.
+  // Так как мы остаемся в режиме добавления, то продолжаем рисование.
+  // В режиме добавления есть указатель на добавляемую точку. Это свойство, а не узел!
+
   mapPointToNode = new Map<FPoint, FigureEditorPoint>();
   mapControlToNode = new Map<FControl, FigureEditorControl>();
 
