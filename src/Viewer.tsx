@@ -364,7 +364,7 @@ export const Viewer = observer<{
 
     if (!section) return;
 
-    const downHandler = (e: KeyboardEvent) => {
+    const keyDownHandler = (e: KeyboardEvent) => {
       if (document.activeElement && document.activeElement !== document.body)
         return;
 
@@ -410,7 +410,7 @@ export const Viewer = observer<{
       }
     };
 
-    const upHandler = (e: KeyboardEvent) => {
+    const keyUpHandler = (e: KeyboardEvent) => {
       if (document.activeElement && document.activeElement !== document.body)
         return;
 
@@ -427,6 +427,26 @@ export const Viewer = observer<{
 
           break;
         }
+        case "KeyD": {
+          editorState.changeTool(ToolMode.Transformer);
+
+          break;
+        }
+        case "KeyF": {
+          editorState.changeTool(ToolMode.PointEditor);
+
+          break;
+        }
+        case "KeyT": {
+          editorState.changeTool(ToolMode.TextAdder);
+
+          break;
+        }
+        case "KeyA": {
+          editorState.changeTool(ToolMode.AreaAdder);
+
+          break;
+        }
         default: {
           intercepted = false;
         }
@@ -438,12 +458,12 @@ export const Viewer = observer<{
       }
     };
 
-    window.addEventListener("keydown", downHandler);
-    window.addEventListener("keyup", upHandler);
+    window.addEventListener("keydown", keyDownHandler);
+    window.addEventListener("keyup", keyUpHandler);
 
     return () => {
-      window.removeEventListener("keydown", downHandler);
-      window.removeEventListener("keyup", upHandler);
+      window.removeEventListener("keydown", keyDownHandler);
+      window.removeEventListener("keyup", keyUpHandler);
     };
   }, [pixelRatio]);
 
