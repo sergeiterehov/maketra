@@ -37,6 +37,18 @@ export class FLink {
     return Math.atan2(b.x, b.y) - Math.atan2(a.x, a.y);
   }
 
+  @action remove() {
+    let index = this.a.links.indexOf(this);
+
+    if (index !== -1) this.a.links.splice(index, 1);
+
+    index = this.b.links.indexOf(this);
+
+    if (index !== -1) this.b.links.splice(index, 1);
+
+    return this;
+  }
+
   /**
    * Возвращает ближайшую контрольную точку FControl для точки FPoint.
    * @param point Точка
@@ -172,8 +184,7 @@ export class FPoint {
    * @param thisControl
    * @param otherControl
    */
-  @action
-  public connect(
+  @action public connect(
     other: FPoint,
     thisControl?: Vector2d,
     otherControl?: Vector2d
@@ -196,6 +207,14 @@ export class FPoint {
     return this;
   }
 
+  @action remove() {
+    for (const link of [...this.links]) {
+      link.remove();
+    }
+
+    return this;
+  }
+
   /**
    * Присоединяет точку и возвращает ее.
    * @param next Присоединяемая точка.
@@ -213,8 +232,7 @@ export class FPoint {
    * @param thisControl
    * @param otherControl
    */
-  @action
-  public loop(thisControl?: Vector2d, otherControl?: Vector2d) {
+  @action public loop(thisControl?: Vector2d, otherControl?: Vector2d) {
     const checked: FPoint[] = [this];
     let lookup = [...this.linkedPoints];
 

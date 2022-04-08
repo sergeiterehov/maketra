@@ -74,6 +74,16 @@ export class FigureEditorControl extends FigureEditorNode {
     this.x = control.x;
     this.y = control.y;
   }
+
+  @action moveTo(dx: number, dy: number) {
+    const { control } = this;
+
+    control.x = dx;
+    control.y = dy;
+
+    this.x = control.x;
+    this.y = control.y;
+  }
 }
 
 export class FigureEditor extends FigureEditorNode {
@@ -84,8 +94,14 @@ export class FigureEditor extends FigureEditorNode {
   @observable controlsMode = false;
   @observable freeMovementMode = false;
 
+  @observable activeModel?: FigureEditorNode;
+
   creatingFromPoint?: FPoint;
   creatingPosition?: Vector2d;
+  /** Ожидаем создания новой фигуры. */
+  wannaCreateFigureFromPoint?: () => void;
+  /** Ожидаем завершения редактирования. */
+  wannaFinishCreating?: () => void;
 
   mapPointToNode = new Map<FPoint, FigureEditorPoint>();
   mapControlToNode = new Map<FControl, FigureEditorControl>();
@@ -106,6 +122,7 @@ export class FigureEditor extends FigureEditorNode {
     this.target = target;
     this.realign();
 
+    this.activeModel = undefined;
     this.creatingFromPoint = undefined;
     this.creatingPosition = undefined;
   }
@@ -143,17 +160,27 @@ export class FigureEditor extends FigureEditorNode {
   }
 
   @action onMouseDown(position: Vector2d, node?: MkNode) {
-    if (this.creatingPosition) {
+    const { creatingPosition } = this;
+
+    if (creatingPosition) {
       if (this.creatingFromPoint) {
         // Рисование от предыдущей точки.
 
         if (node instanceof FigureEditorPoint) {
           this.creatingFromPoint.connect(node.point);
           this.creatingFromPoint = node.point;
+
+          // Если замыкаем незамкнутую точку (скорей всего всю фигуру),
+          // то считаем что можно завершить редактирование.
+          if (node.point.links.length === 2) {
+            this.wannaFinishCreating = action(() => {
+              this.wannaFinishCreating = undefined;
+            });
+          }
         } else {
           this.creatingFromPoint = this.creatingFromPoint.lineTo(
-            this.creatingPosition.x,
-            this.creatingPosition.y
+            creatingPosition.x,
+            creatingPosition.y
           );
 
           if (this.target) {
@@ -170,21 +197,39 @@ export class FigureEditor extends FigureEditorNode {
           // Начинаем рисование отдельной вложенной фигуры.
 
           this.creatingFromPoint = new FPoint(
-            this.creatingPosition.x,
-            this.creatingPosition.y
+            creatingPosition.x,
+            creatingPosition.y
           );
 
           this.target.points.push(this.creatingFromPoint);
         }
       } else {
-        // Нужно создать Фигуру и точку на ней. Далее рисуем там.
-        // TODO: callback
+        // Редактор должен сам создать фигуру и продолжить рисование там.
+        this.wannaCreateFigureFromPoint = action(() => {
+          this.wannaCreateFigureFromPoint = undefined;
+
+          this.creatingPosition = creatingPosition;
+
+          if (this.target) {
+            this.target.x = this.x;
+            this.target.y = this.y;
+
+            this.creatingFromPoint = new FPoint(
+              creatingPosition.x,
+              creatingPosition.y
+            );
+
+            this.target.points.push(this.creatingFromPoint);
+          }
+        });
       }
 
       this.realign();
 
       return;
     }
+
+    this.activeModel = node instanceof FigureEditorNode ? node : undefined;
 
     if (!node) return;
     if (!(node instanceof FigureEditorNode)) return;

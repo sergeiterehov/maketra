@@ -160,7 +160,7 @@ export const Toolbar = styled(
           <ToolPicker tool={ToolMode.AreaAdder}>
             <span style={{ fontSize: 20 }}>&#10693;</span>
           </ToolPicker>
-          <ToolPicker tool={ToolMode.FigureEditor}>
+          <ToolPicker tool={ToolMode.PointPen}>
             <span style={{ fontSize: 24 }}>&#9191;</span>
           </ToolPicker>
           <ToolPicker tool={ToolMode.TextAdder}>

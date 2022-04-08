@@ -13,6 +13,11 @@ import { ColorFill } from "./models/Fill";
 import { Color } from "./utils/Color";
 import { Area } from "./models/Area";
 import { Text } from "./models/Text";
+import { Stroke } from "./models/Stroke";
+import {
+  FigureEditorControl,
+  FigureEditorPoint,
+} from "./models/controllers/FigureEditor";
 
 function findNodeForCreating(node: MkNode) {
   let lookup: MkNode | undefined = node;
@@ -251,6 +256,32 @@ export const Viewer = observer<{
             node
           );
 
+          if (figureEditor.wannaFinishCreating) {
+            editorState.changeTool(ToolMode.Transformer);
+            figureEditor.wannaFinishCreating();
+          }
+
+          if (figureEditor.wannaCreateFigureFromPoint) {
+            const parent = selected && findNodeForCreating(selected);
+
+            const newFigure = new Figure().configure({
+              name: "Новая фигура",
+              fills: [new ColorFill(new Color({ hex: "#BBB" }))],
+              strokes: [new Stroke()],
+            });
+
+            if (parent) {
+              newFigure.appendTo(parent);
+            } else {
+              newFigure.appendToSection(section);
+            }
+
+            editorState.select(newFigure);
+            figureEditor.setTarget(newFigure);
+
+            figureEditor.wannaCreateFigureFromPoint();
+          }
+
           break;
         }
       }
@@ -375,6 +406,11 @@ export const Viewer = observer<{
 
               break;
             }
+            case ToolMode.FigureEditor: {
+              editorState.changeTool(ToolMode.Transformer);
+
+              break;
+            }
             case ToolMode.PointPen: {
               figureEditor.setCreating(false);
               editorState.changeTool(ToolMode.Transformer);
@@ -418,9 +454,32 @@ export const Viewer = observer<{
         case "Backspace": {
           const { selected } = editorState;
 
-          if (selected) {
-            editorState.select();
-            selected.destroy();
+          switch (editorState.tool) {
+            case ToolMode.Transformer: {
+              if (selected) {
+                editorState.select();
+                selected.destroy();
+              }
+
+              break;
+            }
+            case ToolMode.FigureEditor: {
+              if (figureEditor.target) {
+                if (figureEditor.activeModel instanceof FigureEditorPoint) {
+                  figureEditor.target.removePoint(
+                    figureEditor.activeModel.point
+                  );
+                } else if (
+                  figureEditor.activeModel instanceof FigureEditorControl
+                ) {
+                  figureEditor.activeModel.moveTo(0, 0);
+                }
+
+                figureEditor.realign();
+              }
+
+              break;
+            }
           }
 
           break;

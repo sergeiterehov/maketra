@@ -54,10 +54,10 @@ export class Figure extends Primitive {
 
         for (const link of point.links) {
           if (!changedLinks.includes(link)) {
-            link.aControl.x += kx * link.aControl.x / 2;
-            link.aControl.y += ky * link.aControl.y / 2;
-            link.bControl.x += kx * link.bControl.x / 2;
-            link.bControl.y += ky * link.bControl.y / 2;
+            link.aControl.x += (kx * link.aControl.x) / 2;
+            link.aControl.y += (ky * link.aControl.y) / 2;
+            link.bControl.x += (kx * link.bControl.x) / 2;
+            link.bControl.y += (ky * link.bControl.y) / 2;
           }
         }
       }
@@ -66,8 +66,7 @@ export class Figure extends Primitive {
     });
   }
 
-  @action
-  public adjustPointsAndSize() {
+  @action public adjustPointsAndSize() {
     let xMin = +Infinity;
     let yMin = +Infinity;
     let xMax = -Infinity;
@@ -97,5 +96,16 @@ export class Figure extends Primitive {
     this.x += x;
     this.y += y;
     this.lockScaleOnResize = false;
+  }
+
+  @action removePoint(point: FPoint) {
+    const index = this.points.indexOf(point);
+
+    if (index !== -1) {
+      point.remove();
+      this.points.splice(index, 1);
+    }
+
+    return this;
   }
 }

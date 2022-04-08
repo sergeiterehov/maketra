@@ -402,14 +402,22 @@ export class CanvasRenderer {
       viewTransformComponents: { scaleX: scale },
     } = this;
 
-    const size = 12 / scale;
-
-    ctx.beginPath();
-    ctx.rect(0 - size / 2, 0 - size / 2, size, size);
+    let size = 12 / scale;
 
     ctx.fillStyle = "#FFF";
     ctx.strokeStyle = "#0AF";
     ctx.lineWidth = 1 / scale;
+
+    if (pointNode === pointNode.editor.activeModel) {
+      size *= 1.5;
+      ctx.strokeStyle = "#FFF";
+      ctx.fillStyle = "#0AF";
+      ctx.lineWidth = 2 / scale;
+    }
+
+    ctx.beginPath();
+    ctx.rect(0 - size / 2, 0 - size / 2, size, size);
+
     ctx.fill();
     ctx.stroke();
 
@@ -431,14 +439,22 @@ export class CanvasRenderer {
       viewTransformComponents: { scaleX: scale },
     } = this;
 
-    const size = 12 / scale;
-
-    ctx.beginPath();
-    ctx.ellipse(0, 0, size / 2, size / 2, 0, 0, Math.PI * 2);
+    let size = 12 / scale;
 
     ctx.fillStyle = "#FFF";
     ctx.strokeStyle = "#F0F";
     ctx.lineWidth = 1 / scale;
+
+    if (controlNode === controlNode.editor.activeModel) {
+      size *= 1.5;
+      ctx.strokeStyle = "#FFF";
+      ctx.fillStyle = "#F0F";
+      ctx.lineWidth = 2 / scale;
+    }
+
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size / 2, size / 2, 0, 0, Math.PI * 2);
+
     ctx.fill();
     ctx.stroke();
 
