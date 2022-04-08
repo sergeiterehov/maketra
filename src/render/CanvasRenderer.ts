@@ -298,21 +298,28 @@ export class CanvasRenderer {
   }
 
   protected renderFigureEditor(editor: FigureEditor) {
-    const { target, controlsMode, alignerPoints, mouseDownNode } = editor;
-
-    if (!target) return;
-
     const {
       ctx,
       viewTransformComponents: { scaleX: scale },
     } = this;
 
+    const {
+      target,
+      controlsMode,
+      alignerPoints,
+      mouseDownNode,
+      creatingPosition,
+      creatingFromPoint,
+    } = editor;
+
     const links: FLink[] = [];
 
-    for (const point of target.points) {
-      for (const link of point.links) {
-        if (!links.includes(link)) {
-          links.push(link);
+    if (target) {
+      for (const point of target.points) {
+        for (const link of point.links) {
+          if (!links.includes(link)) {
+            links.push(link);
+          }
         }
       }
     }
@@ -355,6 +362,36 @@ export class CanvasRenderer {
       ctx.strokeStyle = "#FA0";
       ctx.lineWidth = 1 / scale;
       ctx.stroke();
+    }
+
+    if (creatingPosition) {
+      if (creatingFromPoint) {
+        ctx.beginPath();
+        ctx.moveTo(creatingFromPoint.x, creatingFromPoint.y);
+        ctx.lineTo(creatingPosition.x, creatingPosition.y);
+
+        ctx.strokeStyle = "#0A8";
+        ctx.lineWidth = 1 / scale;
+        ctx.stroke();
+      }
+
+      const size = 16 / scale;
+
+      ctx.beginPath();
+      ctx.ellipse(
+        creatingPosition.x,
+        creatingPosition.y,
+        size / 2,
+        size / 2,
+        0,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fillStyle = "#DEF";
+      ctx.strokeStyle = "#0A8";
+      ctx.stroke();
+      ctx.fill();
     }
   }
 

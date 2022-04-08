@@ -1,9 +1,11 @@
 import { action, observable } from "mobx";
 import { figureEditor } from "./figureEditor";
 import { Area } from "./models/Area";
+import { Figure } from "./models/Figure";
 import { MkNode } from "./models/MkNode";
 import { Project } from "./models/Project";
 import { Section } from "./models/Section";
+import { transformer } from "./transformer";
 import { Transform } from "./utils/Transform";
 
 export enum ToolMode {
@@ -11,8 +13,9 @@ export enum ToolMode {
   Hand,
   AreaAdder,
   TextAdder,
-  PointEditor,
+  FigureEditor,
   PointBender,
+  PointPen,
 
   Default = Transformer,
 }
@@ -45,6 +48,8 @@ export const editorState = observable(
         this.section = object;
       } else {
         this.selected = object;
+
+        transformer.adjust(object);
       }
 
       return this;
@@ -56,7 +61,8 @@ export const editorState = observable(
       // Сперва завершаем работу с предыдущим инструментом
       switch (this.tool) {
         case ToolMode.PointBender:
-        case ToolMode.PointEditor: {
+        case ToolMode.PointPen:
+        case ToolMode.FigureEditor: {
           figureEditor.final();
 
           break;
@@ -67,11 +73,15 @@ export const editorState = observable(
 
       // Далее применяем новый инструмент
       switch (this.tool) {
-        case ToolMode.PointBender:
-        case ToolMode.PointEditor: {
-          figureEditor.realign();
+        case ToolMode.PointPen: {
+          figureEditor.setCreating(true);
 
           break;
+        }
+        case ToolMode.FigureEditor: {
+          figureEditor.setTarget(
+            this.selected instanceof Figure ? this.selected : undefined
+          );
         }
       }
     },

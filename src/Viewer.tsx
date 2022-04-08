@@ -1,4 +1,4 @@
-import { observe, runInAction } from "mobx";
+import { runInAction } from "mobx";
 import { observer } from "mobx-react-lite";
 import React, { useCallback, useMemo, useRef } from "react";
 import { useEffect } from "react";
@@ -79,7 +79,11 @@ export const Viewer = observer<{
         renderer.renderNode(node);
       }
 
-      if (tool === ToolMode.PointBender || tool === ToolMode.PointEditor) {
+      if (
+        tool === ToolMode.PointBender ||
+        tool === ToolMode.FigureEditor ||
+        tool === ToolMode.PointPen
+      ) {
         renderer.renderNode(figureEditor);
       } else {
         renderer.renderNode(transformer.group);
@@ -91,16 +95,6 @@ export const Viewer = observer<{
     draw();
 
     return () => window.cancelAnimationFrame(animRequest);
-  }, []);
-
-  // Подключаем инструменты к состоянию.
-  useEffect(() => {
-    return observe(editorState, "selected", () => {
-      const { selected } = editorState;
-
-      transformer.adjust(selected);
-      figureEditor.setTarget(selected instanceof Figure ? selected : undefined);
-    });
   }, []);
 
   useEffect(() => {
@@ -245,7 +239,8 @@ export const Viewer = observer<{
 
           break;
         }
-        case ToolMode.PointEditor:
+        case ToolMode.FigureEditor:
+        case ToolMode.PointPen:
         case ToolMode.PointBender: {
           figureEditor.onMouseDown(
             baseTransform
@@ -318,7 +313,8 @@ export const Viewer = observer<{
 
           break;
         }
-        case ToolMode.PointEditor:
+        case ToolMode.FigureEditor:
+        case ToolMode.PointPen:
         case ToolMode.PointBender: {
           figureEditor.onMouseMove(
             baseTransform
@@ -348,7 +344,8 @@ export const Viewer = observer<{
 
           break;
         }
-        case ToolMode.PointEditor:
+        case ToolMode.FigureEditor:
+        case ToolMode.PointPen:
         case ToolMode.PointBender: {
           figureEditor.onMouseUp();
 
@@ -360,9 +357,7 @@ export const Viewer = observer<{
   );
 
   useEffect(() => {
-    const { section } = editorState;
-
-    if (!section) return;
+    if (!editorState.section) return;
 
     const keyDownHandler = (e: KeyboardEvent) => {
       if (document.activeElement && document.activeElement !== document.body)
@@ -372,10 +367,21 @@ export const Viewer = observer<{
 
       switch (e.code) {
         case "Enter": {
-          // if (figureEditor.addingMode) {
-          //   figureEditor.disableAdding();
-          //   editorState.select(figureEditor.target);
-          // }
+          switch (editorState.tool) {
+            case ToolMode.Transformer: {
+              if (editorState.selected instanceof Figure) {
+                editorState.changeTool(ToolMode.FigureEditor);
+              }
+
+              break;
+            }
+            case ToolMode.PointPen: {
+              figureEditor.setCreating(false);
+              editorState.changeTool(ToolMode.Transformer);
+
+              break;
+            }
+          }
 
           break;
         }
@@ -386,6 +392,26 @@ export const Viewer = observer<{
         }
         case "ShiftLeft": {
           figureEditor.setFreeMovementMode(true);
+
+          break;
+        }
+        case "KeyD": {
+          editorState.changeTool(ToolMode.Transformer);
+
+          break;
+        }
+        case "KeyF": {
+          editorState.changeTool(ToolMode.PointPen);
+
+          break;
+        }
+        case "KeyT": {
+          editorState.changeTool(ToolMode.TextAdder);
+
+          break;
+        }
+        case "KeyA": {
+          editorState.changeTool(ToolMode.AreaAdder);
 
           break;
         }
@@ -424,26 +450,6 @@ export const Viewer = observer<{
         }
         case "ShiftLeft": {
           figureEditor.setFreeMovementMode(false);
-
-          break;
-        }
-        case "KeyD": {
-          editorState.changeTool(ToolMode.Transformer);
-
-          break;
-        }
-        case "KeyF": {
-          editorState.changeTool(ToolMode.PointEditor);
-
-          break;
-        }
-        case "KeyT": {
-          editorState.changeTool(ToolMode.TextAdder);
-
-          break;
-        }
-        case "KeyA": {
-          editorState.changeTool(ToolMode.AreaAdder);
 
           break;
         }

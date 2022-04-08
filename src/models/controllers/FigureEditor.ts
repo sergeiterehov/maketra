@@ -84,11 +84,8 @@ export class FigureEditor extends FigureEditorNode {
   @observable controlsMode = false;
   @observable freeMovementMode = false;
 
-  // TODO: нужен колбек на создание фигуры.
-  // Если нет таргета, то рисуется точка создания.
-  // Если нажимаем без таргета, то делается вызов на создание фигуры. Ставится фокус и начинается редактирование.
-  // Так как мы остаемся в режиме добавления, то продолжаем рисование.
-  // В режиме добавления есть указатель на добавляемую точку. Это свойство, а не узел!
+  creatingFromPoint?: FPoint;
+  creatingPosition?: Vector2d;
 
   mapPointToNode = new Map<FPoint, FigureEditorPoint>();
   mapControlToNode = new Map<FControl, FigureEditorControl>();
@@ -108,6 +105,27 @@ export class FigureEditor extends FigureEditorNode {
   @action setTarget(target?: Figure) {
     this.target = target;
     this.realign();
+
+    this.creatingFromPoint = undefined;
+    this.creatingPosition = undefined;
+  }
+
+  @action setCreating(state: boolean) {
+    this.creatingFromPoint = undefined;
+
+    if (state) {
+      this.creatingPosition = { x: 0, y: 0 };
+    } else {
+      this.creatingPosition = undefined;
+    }
+  }
+
+  @action setCreatingFromPoint(point: FPoint) {
+    this.creatingFromPoint = point;
+
+    if (!this.creatingPosition) {
+      this.creatingPosition = { x: 0, y: 0 };
+    }
   }
 
   @action final() {
@@ -125,6 +143,49 @@ export class FigureEditor extends FigureEditorNode {
   }
 
   @action onMouseDown(position: Vector2d, node?: MkNode) {
+    if (this.creatingPosition) {
+      if (this.creatingFromPoint) {
+        // Рисование от предыдущей точки.
+
+        if (node instanceof FigureEditorPoint) {
+          this.creatingFromPoint.connect(node.point);
+          this.creatingFromPoint = node.point;
+        } else {
+          this.creatingFromPoint = this.creatingFromPoint.lineTo(
+            this.creatingPosition.x,
+            this.creatingPosition.y
+          );
+
+          if (this.target) {
+            this.target.points.push(this.creatingFromPoint);
+          }
+        }
+      } else if (this.target) {
+        if (node instanceof FigureEditorPoint) {
+          // Если до этого не была выбрана точка, и мы нажимаем на нее,
+          // то начинаем рисование от нее.
+
+          this.creatingFromPoint = node.point;
+        } else {
+          // Начинаем рисование отдельной вложенной фигуры.
+
+          this.creatingFromPoint = new FPoint(
+            this.creatingPosition.x,
+            this.creatingPosition.y
+          );
+
+          this.target.points.push(this.creatingFromPoint);
+        }
+      } else {
+        // Нужно создать Фигуру и точку на ней. Далее рисуем там.
+        // TODO: callback
+      }
+
+      this.realign();
+
+      return;
+    }
+
     if (!node) return;
     if (!(node instanceof FigureEditorNode)) return;
 
@@ -136,12 +197,16 @@ export class FigureEditor extends FigureEditorNode {
   @action onMouseMove(position: Vector2d) {
     const { mouseDownNode, target, freeMovementMode } = this;
 
+    const { x, y } = (target || this).absoluteTransform.decompose();
+
     // Сперва сбрасываем точки выравнивания. Их мы наполним поздней
     this.alignerPoints = [];
 
-    if (!mouseDownNode || !target) return;
-
-    const { x, y } = target.absoluteTransform.decompose();
+    // Перемещение указателя создаваемой точки
+    if (this.creatingPosition) {
+      this.creatingPosition.x = position.x - x;
+      this.creatingPosition.y = position.y - y;
+    }
 
     const mousePosition: Vector2d = {
       x: position.x - x,
@@ -152,6 +217,8 @@ export class FigureEditor extends FigureEditorNode {
       x: position.x - this.prevMousePosition.x,
       y: position.y - this.prevMousePosition.y,
     };
+
+    if (!mouseDownNode || !target) return;
 
     if (mouseDownNode instanceof FigureEditorPoint) {
       const { points } = target;
