@@ -149,6 +149,8 @@ export class FigureEditor extends FigureEditorNode {
     const { target } = this;
 
     if (target) target.adjustPointsAndSize();
+
+    this.setTarget();
   }
 
   @action setControlsMode(state: boolean) {
@@ -208,18 +210,9 @@ export class FigureEditor extends FigureEditorNode {
         this.wannaCreateFigureFromPoint = action(() => {
           this.wannaCreateFigureFromPoint = undefined;
 
-          this.creatingPosition = creatingPosition;
-
           if (this.target) {
-            this.target.x = this.x;
-            this.target.y = this.y;
-
-            this.creatingFromPoint = new FPoint(
-              creatingPosition.x,
-              creatingPosition.y
-            );
-
-            this.target.points.push(this.creatingFromPoint);
+            this.creatingPosition = { x: 0, y: 0 };
+            this.creatingFromPoint = this.target.points[0];
           }
         });
       }

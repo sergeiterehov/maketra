@@ -56,33 +56,33 @@ export const editorState = observable(
     },
 
     changeTool(tool: ToolMode) {
-      if (tool === this.tool) return;
+      const prevTool = this.tool;
 
-      // Сперва завершаем работу с предыдущим инструментом
-      switch (this.tool) {
-        case ToolMode.PointBender:
-        case ToolMode.PointPen:
-        case ToolMode.FigureEditor: {
-          figureEditor.final();
-
-          break;
-        }
-      }
+      if (tool === prevTool) return;
 
       this.tool = tool;
 
-      // Далее применяем новый инструмент
-      switch (this.tool) {
-        case ToolMode.PointPen: {
-          figureEditor.setCreating(true);
+      // Сперва завершаем работу с предыдущим инструментом
 
-          break;
-        }
-        case ToolMode.FigureEditor: {
-          figureEditor.setTarget(
-            this.selected instanceof Figure ? this.selected : undefined
-          );
-        }
+      if (
+        (prevTool === ToolMode.FigureEditor ||
+          prevTool === ToolMode.PointPen ||
+          prevTool === ToolMode.PointBender) &&
+        tool !== ToolMode.FigureEditor &&
+        tool !== ToolMode.PointPen &&
+        tool !== ToolMode.PointBender
+      ) {
+        figureEditor.final();
+      }
+
+      // Далее применяем новый инструмент
+
+      if (tool === ToolMode.PointPen) {
+        figureEditor.setCreating(true);
+      } else if (tool === ToolMode.FigureEditor) {
+        figureEditor.setTarget(
+          this.selected instanceof Figure ? this.selected : undefined
+        );
       }
     },
   },

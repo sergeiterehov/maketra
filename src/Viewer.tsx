@@ -18,6 +18,7 @@ import {
   FigureEditorControl,
   FigureEditorPoint,
 } from "./models/controllers/FigureEditor";
+import { FPoint } from "./models/FPoint";
 
 function findNodeForCreating(node: MkNode) {
   let lookup: MkNode | undefined = node;
@@ -263,11 +264,24 @@ export const Viewer = observer<{
 
           if (figureEditor.wannaCreateFigureFromPoint) {
             const parent = selected && findNodeForCreating(selected);
+            const transform = baseTransform.copy();
+
+            if (parent) {
+              transform.multiply(parent.absoluteTransform);
+            }
+
+            const location = transform
+              .invert()
+              .scale(pixelRatio, pixelRatio)
+              .point({ x, y });
 
             const newFigure = new Figure().configure({
               name: "Новая фигура",
+              x: location.x,
+              y: location.y,
               fills: [new ColorFill(new Color({ hex: "#BBB" }))],
               strokes: [new Stroke()],
+              points: [new FPoint(0, 0)],
             });
 
             if (parent) {
