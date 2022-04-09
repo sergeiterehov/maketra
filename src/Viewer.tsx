@@ -203,7 +203,10 @@ export const Viewer = observer<{
           newText.name = "Надпись";
           newText.text = "Поменяй меня";
           newText.fills.push(new ColorFill(new Color({ hex: "#000" })));
-          newText.configure({ x: location.x, y: location.y });
+          newText.configure({
+            x: Math.round(location.x),
+            y: Math.round(location.y),
+          });
 
           if (parent) {
             newText.appendTo(parent);
@@ -232,7 +235,10 @@ export const Viewer = observer<{
           const newArea = new Area();
 
           newArea.name = "Новая область";
-          newArea.configure({ x: location.x, y: location.y });
+          newArea.configure({
+            x: Math.round(location.x),
+            y: Math.round(location.y),
+          });
 
           if (parent) {
             newArea.appendTo(parent);
@@ -248,14 +254,16 @@ export const Viewer = observer<{
         case ToolMode.FigureEditor:
         case ToolMode.PointPen:
         case ToolMode.PointBender: {
-          figureEditor.onMouseDown(
-            baseTransform
-              .copy()
-              .invert()
-              .scale(pixelRatio, pixelRatio)
-              .point({ x, y }),
-            node
-          );
+          const position = baseTransform
+            .copy()
+            .invert()
+            .scale(pixelRatio, pixelRatio)
+            .point({ x, y });
+
+          position.x = Math.round(position.x);
+          position.y = Math.round(position.y);
+
+          figureEditor.onMouseDown(position, node);
 
           if (figureEditor.wannaFinishCreating) {
             editorState.changeTool(ToolMode.Transformer);
@@ -277,8 +285,8 @@ export const Viewer = observer<{
 
             const newFigure = new Figure().configure({
               name: "Новая фигура",
-              x: location.x,
-              y: location.y,
+              x: Math.round(location.x),
+              y: Math.round(location.y),
               fills: [new ColorFill(new Color({ hex: "#BBB" }))],
               strokes: [new Stroke()],
               points: [new FPoint(0, 0)],
@@ -312,8 +320,8 @@ export const Viewer = observer<{
 
       const { dragging } = mouseRef.current;
 
-      const dx = x - mouseRef.current.x;
-      const dy = y - mouseRef.current.y;
+      const dx = Math.round(x - mouseRef.current.x);
+      const dy = Math.round(y - mouseRef.current.y);
 
       mouseRef.current.x = x;
       mouseRef.current.y = y;
@@ -351,8 +359,8 @@ export const Viewer = observer<{
               .point({ x, y });
 
             creatingArea.configure({
-              width: Math.max(0, location.x - creatingArea.x),
-              height: Math.max(0, location.y - creatingArea.y),
+              width: Math.max(0, Math.round(location.x - creatingArea.x)),
+              height: Math.max(0, Math.round(location.y - creatingArea.y)),
             });
           }
 
@@ -361,13 +369,16 @@ export const Viewer = observer<{
         case ToolMode.FigureEditor:
         case ToolMode.PointPen:
         case ToolMode.PointBender: {
-          figureEditor.onMouseMove(
-            baseTransform
-              .copy()
-              .invert()
-              .scale(pixelRatio, pixelRatio)
-              .point({ x, y })
-          );
+          const position = baseTransform
+            .copy()
+            .invert()
+            .scale(pixelRatio, pixelRatio)
+            .point({ x, y });
+
+          position.x = Math.round(position.x);
+          position.y = Math.round(position.y);
+
+          figureEditor.onMouseMove(position);
 
           break;
         }

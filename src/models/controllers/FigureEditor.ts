@@ -240,16 +240,16 @@ export class FigureEditor extends FigureEditorNode {
     // Сперва сбрасываем точки выравнивания. Их мы наполним поздней
     this.alignerPoints = [];
 
-    // Перемещение указателя создаваемой точки
-    if (this.creatingPosition) {
-      this.creatingPosition.x = position.x - x;
-      this.creatingPosition.y = position.y - y;
-    }
-
     const mousePosition: Vector2d = {
       x: position.x - x,
       y: position.y - y,
     };
+
+    // Перемещение указателя создаваемой точки
+    if (this.creatingPosition) {
+      this.creatingPosition.x = mousePosition.x;
+      this.creatingPosition.y = mousePosition.y;
+    }
 
     const mouseDelta: Vector2d = {
       x: position.x - this.prevMousePosition.x,
