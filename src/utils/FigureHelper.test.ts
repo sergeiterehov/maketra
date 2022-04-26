@@ -56,3 +56,24 @@ test("Странная фигура", () => {
 
   expect(FigureHelper.outline(cp)).toHaveLength(4);
 });
+
+test("Разделение кривой", () => {
+  expect(
+    FigureHelper.bezSplit2([200, 300, 100, 100, 500, 100, 400, 300])
+  ).toEqual([
+    [200, 300, 150, 200, 225, 150, 300, 150],
+    [300, 150, 375, 150, 450, 200, 400, 300],
+  ]);
+});
+
+test("Поиск пересечения", () => {
+  const p = FigureHelper.bezInt(
+    [200, 300, 100, 100, 500, 100, 400, 300],
+    [0, 0, 0, 0, 500, 500, 500, 500]
+  );
+
+  expect(p).toBeDefined();
+
+  expect(Math.round(p!.x)).toEqual(196);
+  expect(Math.round(p!.y)).toEqual(196);
+});

@@ -8,18 +8,18 @@ export interface CurvePoints {
 
 /**
  * TODO: Переделать кривые
- * 
+ *
  * Curve - это аналог FLink. Но ее не пересекают другие кривые.
- * 
+ *
  * Нужно научиться разбивать кривые безье на сегменты.
  * Для этого используется бинарный поиск через пересечение ПООП.
  * А далее необходимо найти дистанцию до точки разделения.
  * https://stackoverflow.com/questions/18655135/divide-bezier-curve-into-two-equal-halves
- * 
+ *
  * Curve {a: Vertex, b: Vertex, ac: Vec2D, ab: Vec2D}
- * 
+ *
  * Vertex - это аналог Point. Сравнивать нужно именно вершины, а не координаты.
- * 
+ *
  * CurvePath - это замкнутая или нет последовательность кривых.
  * Может быть использована для выделения самостоятельных областей в фигуре.
  * Их поиск осуществляется только левыми или правыми поворотами от опорной точки.
@@ -325,5 +325,95 @@ export class FigureHelper {
     }
 
     return path;
+  }
+
+  static bezSplit2(a: number[]): [number[], number[]] {
+    const split_1d = ([A, B, C, D]: number[]) => {
+      const E = (A + B) / 2;
+      const F = (B + C) / 2;
+      const G = (C + D) / 2;
+      const H = (E + F) / 2;
+      const J = (F + G) / 2;
+      const K = (H + J) / 2;
+
+      return [
+        [A, E, H, K],
+        [K, J, G, D],
+      ];
+    };
+
+    const [x1, x2] = split_1d([a[0], a[2], a[4], a[6]]);
+    const [y1, y2] = split_1d([a[1], a[3], a[5], a[7]]);
+
+    return [
+      [x1[0], y1[0], x1[1], y1[1], x1[2], y1[2], x1[3], y1[3]],
+      [x2[0], y2[0], x2[1], y2[1], x2[2], y2[2], x2[3], y2[3]],
+    ];
+  }
+
+  static bezBBox(a: number[]): { min: Vector2d; max: Vector2d } {
+    return {
+      min: {
+        x: Math.min(a[0], a[2], a[4], a[6]),
+        y: Math.min(a[1], a[3], a[5], a[7]),
+      },
+      max: {
+        x: Math.max(a[0], a[2], a[4], a[6]),
+        y: Math.max(a[1], a[3], a[5], a[7]),
+      },
+    };
+  }
+
+  static bezInt(
+    a: number[],
+    b: number[],
+    threshold = 0.5
+  ): Vector2d | undefined {
+    const aBox = this.bezBBox(a);
+    const bBox = this.bezBBox(b);
+
+    const hasIntersection =
+      aBox.max.x >= bBox.min.x &&
+      bBox.max.x >= aBox.min.x &&
+      aBox.max.y >= bBox.min.y &&
+      bBox.max.y >= aBox.min.y;
+
+    // Нет пересечений, возвращаем пусто.
+    if (!hasIntersection) return;
+
+    const aArea = (aBox.max.x - aBox.min.x) * (aBox.max.y - aBox.min.y);
+    const bArea = (bBox.max.x - bBox.min.x) * (bBox.max.y - bBox.min.y);
+
+    // Пересечение в минимальной области, возвращаем точку.
+    if (aArea + bArea < threshold) {
+      return aBox.min;
+    }
+
+    const [a1, a2] = this.bezSplit2(a);
+    const [b1, b2] = this.bezSplit2(b);
+
+    return (
+      this.bezInt(a1, b1) ||
+      this.bezInt(a1, b2) ||
+      this.bezInt(a2, b1) ||
+      this.bezInt(a2, b2)
+    );
+  }
+
+  static curveIntersection(a1: FPoint, a2: FPoint, b1: FPoint, b2: FPoint) {
+    const la = a1.getLinkWith(a2);
+    const lb = b1.getLinkWith(b2);
+
+    if (!la || !lb) return;
+
+    const ca1 = la.getControlFor(a1);
+    const ca2 = la.getControlFor(a2);
+    const cb1 = lb.getControlFor(b1);
+    const cb2 = lb.getControlFor(b2);
+
+    return this.bezInt(
+      [a1.x, a1.y, ca1.x, ca1.y, ca2.x, ca2.y, a2.x, a2.y],
+      [b1.x, b1.y, cb1.x, cb1.y, cb2.x, cb2.y, b2.x, b2.y]
+    );
   }
 }
