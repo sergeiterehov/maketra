@@ -345,9 +345,13 @@ export class FigureHelper {
     const [x1, x2] = split_1d([a[0], a[2], a[4], a[6]]);
     const [y1, y2] = split_1d([a[1], a[3], a[5], a[7]]);
 
+    const ra = a[8] ?? 0;
+    const rb = a[9] ?? 1;
+    const rab2 = (rb - ra) / 2;
+
     return [
-      [x1[0], y1[0], x1[1], y1[1], x1[2], y1[2], x1[3], y1[3]],
-      [x2[0], y2[0], x2[1], y2[1], x2[2], y2[2], x2[3], y2[3]],
+      [x1[0], y1[0], x1[1], y1[1], x1[2], y1[2], x1[3], y1[3], ra, ra + rab2],
+      [x2[0], y2[0], x2[1], y2[1], x2[2], y2[2], x2[3], y2[3], ra + rab2, rb],
     ];
   }
 
@@ -368,7 +372,7 @@ export class FigureHelper {
     a: number[],
     b: number[],
     threshold = 0.5
-  ): Vector2d | undefined {
+  ): { location: Vector2d; ta: number; tb: number } | undefined {
     const aBox = this.bezBBox(a);
     const bBox = this.bezBBox(b);
 
@@ -386,7 +390,7 @@ export class FigureHelper {
 
     // Пересечение в минимальной области, возвращаем точку.
     if (aArea + bArea < threshold) {
-      return aBox.min;
+      return { location: aBox.min, ta: a[8], tb: b[8] };
     }
 
     const [a1, a2] = this.bezSplit2(a);
