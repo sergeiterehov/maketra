@@ -396,6 +396,8 @@ export class FigureHelper {
     const [a1, a2] = this.bezSplit2(a);
     const [b1, b2] = this.bezSplit2(b);
 
+    // TODO: может быть 3 и более точек пересечения. Например $
+
     return (
       this.bezInt(a1, b1) ||
       this.bezInt(a1, b2) ||
@@ -416,8 +418,8 @@ export class FigureHelper {
     const cb2 = lb.getControlFor(b2);
 
     return this.bezInt(
-      [a1.x, a1.y, ca1.x, ca1.y, ca2.x, ca2.y, a2.x, a2.y],
-      [b1.x, b1.y, cb1.x, cb1.y, cb2.x, cb2.y, b2.x, b2.y]
+      [a1.x, a1.y, a1.x + ca1.x, a1.y + ca1.y, a2.x + ca2.x, a2.y + ca2.y, a2.x, a2.y],
+      [b1.x, b1.y, b1.x + cb1.x, b1.y + cb1.y, b2.x + cb2.x, b2.y + cb2.y, b2.x, b2.y]
     );
   }
 }

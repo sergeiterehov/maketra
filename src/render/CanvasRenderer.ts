@@ -284,6 +284,21 @@ export class CanvasRenderer {
       }
     }
 
+    for (const la of links) {
+      for (const lb of links) {
+        if (la === lb) continue;
+
+        const int = FigureHelper.curveIntersection(la.a, la.b, lb.a, lb.b);
+
+        if (!int) continue;
+
+        // TODO: по идее, если отрезки имеют общую точку и пересекаются только в 1 точке, то это не пересечение.
+
+        ctx.fillStyle = "#F00";
+        ctx.fillRect(int.location.x, int.location.y, 4, 4);
+      }
+    }
+
     if (Figure.debug) {
       ctx.beginPath();
       ctx.moveTo(0, 0);
